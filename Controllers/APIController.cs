@@ -9138,6 +9138,8 @@ namespace Mocha2023.Controllers
                 ConsumableItemDesc = string.Empty,
                 EquipmentPrefabName = string.Empty,
                 EquipmentModificationGuid = string.Empty,
+                AvatarItemType = item.AvatarItemType,
+                ItemType = item.AvatarItemType,
                 Rarity = item.Rarity,
                 IsQuery = false,
                 Unique = true,
@@ -9755,6 +9757,7 @@ namespace Mocha2023.Controllers
         {
             public int StorefrontType { get; set; }
             public DateTime NextUpdate { get; set; }
+            public int SubscriberDiscountPercent { get; set; }
             public List<CatalogSku> StoreItems { get; set; } = new();
         }
 
@@ -9772,6 +9775,8 @@ namespace Mocha2023.Controllers
         {
             public int CurrencyType { get; set; }
             public int Price { get; set; }
+            public int Type { get; set; }
+            public object? StorefrontSaleData { get; set; }
         }
 
         public sealed class CatalogGiftDrop
@@ -9785,6 +9790,12 @@ namespace Mocha2023.Controllers
             public string EquipmentModificationGuid { get; set; } = string.Empty;
             public int ItemType { get; set; }
             public int ConsumableItemType { get; set; }
+            public int AvatarItemType { get; set; }
+            public int Currency { get; set; }
+            public int CurrencyType { get; set; }
+            public int ItemSetId { get; set; }
+            public string ItemSetFriendlyName { get; set; } = string.Empty;
+            public bool SubscribersOnly { get; set; }
             public int Rarity { get; set; }
             public bool IsQuery { get; set; }
             public bool Unique { get; set; }
@@ -9828,6 +9839,7 @@ namespace Mocha2023.Controllers
             public bool HasRealName { get; set; } = true;
             public DateTime CreatedAt { get; set; }
             public List<CatalogPrice> Prices { get; set; } = new();
+            public List<CatalogPrice> SubscriberPrices => Prices;
             public CatalogGiftDrop GiftDrop { get; set; } = new();
             public List<CatalogGiftDrop> GiftDrops { get; set; } = new();
         }
