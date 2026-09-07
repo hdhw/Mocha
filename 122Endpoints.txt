@@ -1,0 +1,296 @@
+122 MISSING CLIENT ENDPOINTS - AUDIT & IMPLEMENTATION LOG
+===========================================================
+Generated after cross-referencing every "api/*" route string pulled from
+the RecRoom client's own IL2CPP metadata (global-metadata.dat) against
+every route this server actually implements. Before this pass: 122 of the
+240 routes the client calls did not exist on the server at all (guaranteed
+404s). After this pass: 0 missing.
+
+Status key:
+  ADDED = route did not exist on the server before this session (404 -> 200)
+  FIXED = route already existed but returned wrong/incomplete data
+
+All are in Controllers/APIController.cs unless noted otherwise.
+
+
+-----------------------------------------------------------
+BAN APPEAL
+-----------------------------------------------------------
+GET  /api/banappeal/generateCode                    [ADDED]
+  The game client's own direct call when it detects your account is
+  banned in-app. Mirrors the website's existing recnet/api/banappeal
+  version exactly - generates (or reuses) a 10-character appeal code
+  tied to the ban record, returns { code, appealUrl, alreadySubmitted }.
+
+
+-----------------------------------------------------------
+AGE VERIFICATION (implemented earlier in the session, listed for completeness)
+-----------------------------------------------------------
+POST /api/ageverification/generatecode               [ADDED]
+  Generates a random 6-char code for the logged-in player, returns
+  { ActionCode, VerificationUrl } - the exact two fields the client's
+  JuniorAccountAgeVerifyModel deserializes (confirmed by decompiling the
+  game's own metadata). Player takes the code to the website to submit a
+  photo for manual staff review; approving in the admin panel clears
+  their Junior flag.
+
+
+-----------------------------------------------------------
+PLAYER EVENTS (player-hosted events - new feature, new PlayerEventDB.cs)
+-----------------------------------------------------------
+All 23 routes below are ADDED. This is a full CRUD + social system
+distinct from the admin-managed Announcements/Events (which are the
+website's community calendar) - this is the client's own "host an event"
+feature, letting any player create, edit, and manage events other players
+can respond to.
+
+POST   /api/playerevents/v2                          [ADDED] create an event
+GET    /api/playerevents/v2/{id}                      [ADDED] fetch one event
+GET    /api/playerevents/v1/{id}                      [ADDED] same, legacy path
+DELETE /api/playerevents/v2/delete/{id}                [ADDED] delete (creator/staff only)
+PUT    /api/playerevents/v2/{id}/name                  [ADDED] rename
+PUT    /api/playerevents/v2/{id}/description           [ADDED] edit description
+PUT    /api/playerevents/v2/{id}/image                 [ADDED] set image
+PUT    /api/playerevents/v2/{id}/time                  [ADDED] set start/end time
+PUT    /api/playerevents/v2/{id}/room                  [ADDED] link a room
+PUT    /api/playerevents/v2/{id}/club                  [ADDED] link a club
+PUT    /api/playerevents/v2/{id}/accessibility         [ADDED] Public/Private/ClubOnly
+PUT    /api/playerevents/v2/{id}/multiinstance         [ADDED] toggle multi-instance
+PUT    /api/playerevents/v2/{id}/tags                  [ADDED] set tags
+GET    /api/playerevents/v1/all/{accountId}            [ADDED] list a player's events
+GET    /api/playerevents/v1/club/{clubId}              [ADDED] list a club's events
+GET    /api/playerevents/v1/clubs                      [ADDED] list events across your own clubs
+POST   /api/playerevents/v1/bulk                       [ADDED] fetch many events by ID
+POST   /api/playerevents/v1/respond                    [ADDED] RSVP Going/Interested/NotGoing
+POST   /api/playerevents/v1/deleteResponse             [ADDED] withdraw an RSVP
+GET    /api/playerevents/v1/{id}/responses             [ADDED] list who's responded
+POST   /api/playerevents/v1/bulkInvite                 [ADDED] invite a batch of players
+POST   /api/playerevents/v1/broadcast                  [ADDED] creator/staff broadcast ack
+POST   /api/playerevents/v1/report                     [ADDED] report an event to Discord
+
+
+-----------------------------------------------------------
+RELATIONSHIPS / FRIENDS
+-----------------------------------------------------------
+GET  /api/relationships/                              [ADDED] alias onto the existing
+                                                                  relationship-list handler
+POST /api/relationships/sendfriendintroductions        [ADDED] ack (no suggestion engine)
+POST /api/relationships/v1/addfriendwithcode           [ADDED] add a friend by @username
+                                                                  ("code" = their username,
+                                                                  there's no separate invite-
+                                                                  code system here)
+
+
+-----------------------------------------------------------
+SAVED IMAGES / PHOTOS
+-----------------------------------------------------------
+GET    /api/images/v5/player/{accountId}              [FIXED] this route already existed
+                                                                  but always returned an empty
+                                                                  array no matter what a player
+                                                                  had saved. Now queries
+                                                                  RecNetDB.SavedImages for real.
+GET    /api/images/v1/listsaved                        [ADDED] list your own saved images
+POST   /api/images/v1/deletesaved                       [ADDED] delete one (owner-checked)
+POST   /api/images/v1/sendlink                          [ADDED] returns a shareable image URL
+POST   /api/images/v5/bulk                              [ADDED] fetch many by photo path
+GET    /api/images/                                     [ADDED] empty-list stub (no real
+                                                                  base-listing feature backs it)
+
+
+-----------------------------------------------------------
+AVATAR / CUSTOM AVATAR ITEMS
+-----------------------------------------------------------
+GET  /api/avatar/                                     [ADDED] minimal base info stub
+POST /api/avatar/v2/gifts/consume/                     [FIXED] trailing-slash variant of an
+                                                                  already-working route - the
+                                                                  client calls it WITH a
+                                                                  trailing slash, server only
+                                                                  had the no-slash version
+GET  /api/customAvatarItems                            [ADDED] your own custom avatar items
+GET  /api/customAvatarItems/v1/me                       [ADDED] same, versioned path
+POST /api/customAvatarItems/v1/bulk                     [ADDED] items from multiple creators
+                                                                  at once (reuses the existing
+                                                                  LoadCustomAvatarItems loader)
+
+
+-----------------------------------------------------------
+CONSUMABLES / WISHLIST / WARNINGS / CONTACT
+-----------------------------------------------------------
+POST /api/consumables/v1/transfer                      [ADDED] give a consumable item to
+                                                                  another player (real, moves
+                                                                  quantity via PlayerInventoryStore)
+GET  /api/consumables/                                  [ADDED] empty-list stub
+GET  /api/itemWishlists                                 [ADDED] your wishlist (real - new
+                                                                  Player.PlayerExtra.ItemWishlist
+                                                                  field)
+POST /api/itemWishlists/v1/wishlist/                    [ADDED] add an item to your wishlist
+DEL  /api/itemWishlists/v1/wishlist/                    [ADDED] remove an item
+GET  /api/playerwarnings                                [ADDED] your unacknowledged warnings
+                                                                  (real - new
+                                                                  Player.PlayerExtra.Warnings
+                                                                  field)
+POST /api/playerwarnings/acknowledge                    [ADDED] dismiss a warning
+GET  /api/players/v4/current/contact                    [ADDED] your email/phone contact info
+
+
+-----------------------------------------------------------
+REPORTING (all post straight to your Discord reports webhook)
+-----------------------------------------------------------
+POST /api/rooms/v2/report                               [ADDED] report a room
+POST /api/clubreporting/v1/report                        [ADDED] report a club
+POST /api/screensharereports/v1/report                   [ADDED] report a screen-share
+POST /api/inventions/v1/report                           [ADDED] report an invention
+
+
+-----------------------------------------------------------
+CONFIG
+-----------------------------------------------------------
+GET /api/config/                                        [ADDED] basic server/version info
+GET /api/config/v1/freegiftbutton                        [ADDED] { Enabled: false } - no
+                                                                  scheduled promo running
+
+
+-----------------------------------------------------------
+MODERATION MISC
+-----------------------------------------------------------
+POST /api/PlayerReporting/v1/instantKick                 [ADDED] ack
+POST /api/PlayerReporting/v3/voteToKick                   [ADDED] ack
+POST /api/objectives/v1/completegroup                     [ADDED] ack (no real objectives
+                                                                  catalog exists server-side -
+                                                                  api/objectives/v1/myprogress
+                                                                  already deliberately returns
+                                                                  empty)
+POST /api/objectives/v1/updateobjective                   [ADDED] ack
+POST /api/checklist/v1/complete                           [ADDED] ack
+POST /api/gamerewards/v1/select                           [ADDED] ack
+POST /api/royale/v2/matchcomplete                         [ADDED] ack
+GET  /api/royale/v1/current                               [ADDED] null (no royale event running)
+
+
+-----------------------------------------------------------
+PLATFORM-SPECIFIC (iOS / PS5 / PlayStation - not real integrations)
+-----------------------------------------------------------
+These can't do anything genuine without real Apple/Sony store credentials
+and platform review, so they're safe no-ops rather than fake integrations:
+
+POST /api/AppIntegrity/v1/iospaymentqueuefailed           [ADDED] ack
+GET  /api/AppIntegrity/v1/iosproducts                      [ADDED] empty list
+GET  /api/CampusCard/PS5RecRoomPlusEnabledForAllPlayers    [ADDED] false
+GET  /api/apple/musicpromotion/active                      [ADDED] false
+GET  /api/apple/musicpromotion/code                        [ADDED] null
+POST /api/playstationplus/expire                           [ADDED] ack
+GET  /api/playstationplus/membership                       [ADDED] false
+POST /api/externalfriendinvite/v1/createplatforminvite     [ADDED] ack
+GET  /api/externalfriendinvite/v1/gettextmessagereferrers  [ADDED] empty list
+POST /api/externalfriendinvite/v1/sendtextmessageinvite    [ADDED] ack
+GET  /api/incentivizedreferrals/                            [ADDED] empty list
+POST /api/incentivizedreferrals/claim                       [ADDED] ack
+
+
+-----------------------------------------------------------
+ROOM ECONOMY (currencies, keys, consumables) - no real pricing/catalog
+data exists for these on this server, so they're functional acks/empty
+lists rather than a fabricated economy:
+-----------------------------------------------------------
+GET  /api/roomCurrencies (bare + /v1)                       [ADDED] empty list
+POST /api/roomCurrencies/v2/purchase                         [ADDED] ack
+POST /api/roomcurrencies/v1/awardCurrency/bulk                [ADDED] ack
+POST /api/roomcurrencies/v1/createCurrency                    [ADDED] ack
+POST /api/roomcurrencies/v1/createPurchaseOffer                [ADDED] ack
+POST /api/roomcurrencies/v1/deletePurchaseOffer                 [ADDED] ack
+GET  /api/roomcurrencies/v1/getBalance                          [ADDED] 0
+GET/POST /api/roomcurrencies/v1/getPurchaseOffersBatch            [ADDED] empty list
+POST /api/roomcurrencies/v1/updateCurrency                       [ADDED] ack
+POST /api/roomcurrencies/v1/updatePurchaseOffer                   [ADDED] ack
+GET  /api/roomkeys/ and /v1/                                       [ADDED] empty list
+POST /api/roomkeys/v1/awardbulk                                     [ADDED] ack
+POST /api/roomkeys/v1/create                                         [ADDED] ack
+GET  /api/roomkeys/v1/owns                                            [ADDED] false
+POST /api/roomkeys/v1/owns/bulk                                        [ADDED] empty list
+POST /api/roomkeys/v1/revoke                                            [ADDED] ack
+GET  /api/roomconsumables (bare + /v1/roomConsumable)                    [ADDED] empty list
+POST /api/roomconsumables/v1/roomConsumable/awardBulk                      [ADDED] ack
+POST /api/roomconsumables/v1/roomconsumable/{id}/purchase/currency           [ADDED] ack
+POST /api/roomconsumables/v1/roomconsumable/{id}/purchase/tokens              [ADDED] ack
+GET  /api/roomEarningsDistributions                                             [ADDED] empty list
+GET  /api/roomEarningsDistributions/v1/earningsDistribution                       [ADDED] zero totals
+
+
+-----------------------------------------------------------
+INVENTIONS MARKETPLACE - same reasoning as room economy above
+-----------------------------------------------------------
+GET  /api/inventions/ (bare)                              [ADDED] empty list
+GET  /api/inventions/v1/versions                            [ADDED] empty list
+GET  /api/inventions/v1/fulllineageowner                      [ADDED] null
+POST /api/inventions/v1/delete                                  [ADDED] ack
+POST /api/inventions/v1/dormskinsfromids                         [ADDED] ack
+POST /api/inventions/v1/unpublish                                 [ADDED] ack
+POST /api/inventions/v1/updateprice                                [ADDED] ack
+POST /api/inventions/v3/publish                                     [ADDED] ack
+POST /api/inventions/v4/addversion                                    [ADDED] ack
+
+
+-----------------------------------------------------------
+STOREFRONTS - real-money purchase flows, no payment processor here
+-----------------------------------------------------------
+GET  /api/storefronts/ (bare)                              [ADDED] empty list
+GET  /api/storefronts/v1/objectives                          [ADDED] empty list
+GET  /api/storefronts/v1/trialInvention/duration                [ADDED] 0
+POST /api/storefronts/v1/PurchaseRoomKeyWithCurrency               [ADDED] ack
+POST /api/storefronts/v1/buyForFreeGiftButton                        [ADDED] ack
+POST /api/storefronts/v1/buyProgressionEventXpBoost                    [ADDED] ack
+POST /api/storefronts/v1/buyPurchaseReminder                             [ADDED] ack
+POST /api/storefronts/v1/buyRoomKey                                        [ADDED] ack
+POST /api/storefronts/v1/trialInvention                                      [ADDED] ack
+POST /api/storefronts/v2/buyElite                                              [ADDED] ack
+POST /api/storefronts/v2/buyTier                                                 [ADDED] ack
+
+
+-----------------------------------------------------------
+MISC EMPTY-CATALOG STUBS (no real system behind these on this server)
+-----------------------------------------------------------
+GET /api/keepsakes                                        [ADDED] empty list
+GET /api/keepsakes/events                                   [ADDED] empty list
+GET /api/progressionEvents                                    [ADDED] empty list
+GET /api/ugcPurchasables                                        [ADDED] empty list
+
+
+-----------------------------------------------------------
+INTERNAL QA TOOLING (belongs to Rec Room's own dev team, not this server)
+-----------------------------------------------------------
+GET /api/testcasemanagement/ (bare + /v1/testcase/)         [ADDED] empty list
+GET /api/testcasemanagement/v1/testplans                     [ADDED] empty list
+GET /api/testcasemanagement/v1/testpasssummary                 [ADDED] empty list
+
+
+===========================================================
+NEW FILES THIS SESSION
+===========================================================
+Classes/DBs/AgeVerificationDB.cs   - age verification request/review queue
+Classes/DBs/PlayerEventDB.cs       - player-hosted events + RSVP storage
+
+NEW FIELDS
+===========================================================
+Player.IsAgeVerified, Player.AgeVerifiedAt      (age verification)
+Player.PlayerExtra.Warnings                     (playerwarnings)
+Player.PlayerExtra.ItemWishlist                 (itemWishlists)
+
+VERIFICATION METHOD
+===========================================================
+Every route above was cross-checked against the actual string literal
+table extracted from RecRoom's own global-metadata.dat via Il2CppDumper,
+diffed against every [HttpGet/Post/Put/Delete] attribute across all
+Controllers. Result: 0 of the client's 240 "api/*" routes are missing.
+
+Field-name shapes for the "ADDED" empty-list/ack stubs are best-effort
+(matching this codebase's own existing conventions, e.g. the pre-existing
+TodoImplement() -> ServerConfig.Bracket pattern) rather than confirmed
+against the client's actual model classes, since most of the game's own
+code is name-obfuscated in the decompiled dump and can't be read directly
+the way JuniorAccountAgeVerifyModel could. If the client ever errors on
+one of these instead of just showing an empty section, that's the reason
+- send the log and it can be corrected.
+
+This file, like everything else this session, has not been compiled -
+there's no .csproj in the extracted project to build against. Verified by
+brace-balance checks and the route-diff above, not by an actual build.

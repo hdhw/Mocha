@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "FemRec2023": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "recnet/",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "MOCHA_SERVER_URL": "https://localhost:443"
+      },
+      "applicationUrl": "https://localhost:443"
+    }
+  }
+}
