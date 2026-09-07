@@ -1093,7 +1093,10 @@ namespace Mocha2023.Controllers
 
             if (!hasSteamId && !isQuest)
             {
-                return OutdatedPatch();
+                // The build is current here - what is missing is the Steam identity.
+                // Reporting "old patch" for this sends people off to update a patch that
+                // was never the problem.
+                return NoSteamIdentity();
             }
 
             if (hasSteamId && SteamAccessDB.IsBlacklisted(steamId))
@@ -1102,6 +1105,17 @@ namespace Mocha2023.Controllers
             }
 
             return null;
+        }
+
+        // Deliberately still the outdated_client code: it is the one the 2023 client
+        // already knows how to display. Only the text differs, so the player is told
+        // what actually went wrong.
+        private BadRequestObjectResult NoSteamIdentity()
+        {
+            return OAuthError(
+                "outdated_client",
+                "The patch couldn't read your Steam account.\r\n" +
+                "Make sure Steam is running, then relaunch Rec Room.");
         }
 
         private BadRequestObjectResult OutdatedPatch()
