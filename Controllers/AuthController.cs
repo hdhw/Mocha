@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -1059,6 +1059,29 @@ namespace Mocha2023.Controllers
 
         private IActionResult CheckModGate(IFormCollection form)
         {
+            string steamIdHeader = Request.Headers["X-Mocha-SteamId"].ToString();
+            bool hasSteamId =
+                ulong.TryParse(steamIdHeader, out ulong steamId) &&
+                steamId != 0;
+
+            TryReadPlatform(form, out var platform, out ulong platformId);
+            bool isQuest = platform == PlayerDBClasses.Platforms.Oculus;
+
+            // The patch is PC-only, so Quest clients never send X-Mocha-Build
+            // and got bounced with the "old patch" error before they could log
+            // in. Let them past the build check - there is nothing for them to
+            // update. PC clients are unaffected and still need the patch.
+            if (isQuest &&
+                !hasSteamId &&
+                ServerConfig.ExemptQuestFromModGate)
+            {
+                Console.WriteLine(
+                    $"[MOD GATE] Quest client exempt from patch gate " +
+                    $"(platformId={platformId}).");
+
+                return null;
+            }
+
             string buildHeader = Request.Headers["X-Mocha-Build"].ToString();
 
             if (string.IsNullOrWhiteSpace(buildHeader) ||
@@ -1067,14 +1090,6 @@ namespace Mocha2023.Controllers
             {
                 return OutdatedPatch();
             }
-
-            string steamIdHeader = Request.Headers["X-Mocha-SteamId"].ToString();
-            bool hasSteamId =
-                ulong.TryParse(steamIdHeader, out ulong steamId) &&
-                steamId != 0;
-
-            TryReadPlatform(form, out var platform, out ulong platformId);
-            bool isQuest = platform == PlayerDBClasses.Platforms.Oculus;
 
             if (!hasSteamId && !isQuest)
             {

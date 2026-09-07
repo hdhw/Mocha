@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,5 +28,10 @@ namespace Mocha2023.Classes
             !string.IsNullOrWhiteSpace(PhotonRealtimeAppId);
 
         public static readonly Version MinModVersion = new Version(1, 0, 6);
+
+        // Quest has no PC patch to install, so the MinModVersion gate
+        // cannot apply to it. Set to false to re-enforce the gate on
+        // every platform.
+        public static readonly bool ExemptQuestFromModGate = true;
     }
 }
