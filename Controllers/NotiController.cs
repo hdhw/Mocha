@@ -214,6 +214,7 @@ namespace Mocha2023.Controllers
         private const string GiftPackageReceivedTarget = "30";
         private const string GiftPackageReceivedImmediateTarget = "31";
         private const string ConsumableMappingRemovedTarget = "71";
+        private const string ReputationUpdateTarget = "ReputationUpdate";
         private const string GiftConsumedTarget = "gift.manualconsumed";
         private const string RelationshipsInvalidTarget = "50";
         private const string ChatMessageReceivedTarget = "ChatMessageReceived";
@@ -231,6 +232,7 @@ namespace Mocha2023.Controllers
                 [GiftPackageReceivedTarget] = "GiftPackageReceived",
                 [GiftPackageReceivedImmediateTarget] = "GiftPackageReceivedImmediate",
                 [ConsumableMappingRemovedTarget] = "ConsumableMappingRemoved",
+                [ReputationUpdateTarget] = "ReputationUpdate",
                 [GiftConsumedTarget] = "GiftManualConsumed",
                 [RelationshipsInvalidTarget] = "RelationshipsInvalid",
                 [ChatMessageReceivedTarget] = "ChatMessageReceived",
@@ -1288,17 +1290,66 @@ namespace Mocha2023.Controllers
             NotificationDB.ClientNotification notification,
             int category)
         {
-
+            // The visible cheer plays off this PlayerCheer message, not off the
+            // ReputationUpdate frame - that one only moves the counters.
             await SendPushEventToPlayerAsync(
                 receiverPlayerId,
                 MessageReceivedTarget,
                 notification);
+        }
 
-            await SendHubEventToPlayerAsync(
-                receiverPlayerId,
-                "PlayerCheerReceived",
-                notification.FromPlayerId,
-                category);
+        // A ReputationUpdate frame is ABOUT a player, which is not the same as who
+        // it is sent to: a cheer's frame names the player who was cheered and goes to
+        // everyone watching. Noteriety, SubscriberCount and SubscribedCount are left
+        // out - they are not part of the frame.
+        private static object CreateReputationFrame(
+            long accountId,
+            PlayerDBClasses.Reputation? reputation)
+        {
+            return new
+            {
+                AccountId = accountId,
+                IsCheerful = reputation?.IsCheerful ?? false,
+                SelectedCheer = (int?)reputation?.SelectedCheer,
+                CheerCredit = reputation?.CheerCredit ?? 0,
+                CheerGeneral = reputation?.CheerGeneral ?? 0,
+                CheerHelpful = reputation?.CheerHelpful ?? 0,
+                CheerCreative = reputation?.CheerCreative ?? 0,
+                CheerGreatHost = reputation?.CheerGreatHost ?? 0,
+                CheerSportsman = reputation?.CheerSportsman ?? 0
+            };
+        }
+
+        // Push one player's reputation record to a set of recipients. aboutPlayerId is
+        // whose counters these are; recipients are whoever should see them move. The
+        // player the frame is about gets it because their own record changed; the room
+        // around them gets a copy so their displayed counters follow.
+        public static async Task NotifyReputationUpdatedAsync(
+            long aboutPlayerId,
+            IEnumerable<long> recipientPlayerIds)
+        {
+            long[] recipients = recipientPlayerIds
+                .Where(playerId => playerId > 0)
+                .Distinct()
+                .ToArray();
+
+            if (recipients.Length == 0)
+                return;
+
+            PlayerDBClasses.Reputation? reputation =
+                PlayerDB.Players.FindById(aboutPlayerId)?.Player?.Reputation;
+
+            object frame = CreateReputationFrame(aboutPlayerId, reputation);
+
+            await Task.WhenAll(recipients.Select(playerId =>
+                SendPushEventToPlayerAsync(
+                    playerId,
+                    ReputationUpdateTarget,
+                    frame)));
+
+            Console.WriteLine(
+                $"[REPUTATION PUSH] about={aboutPlayerId} " +
+                $"recipients={recipients.Length} eventId={ReputationUpdateTarget}");
         }
 
         public static async Task NotifyConsumableRemovedAsync(

@@ -7900,6 +7900,29 @@ namespace Mocha2023.Controllers
                     receiverId,
                     notification,
                     (int)category);
+
+                // The cheered player's own record changed, so they get their frame
+                // directly. The audience is read from the GIVER's presence rather than
+                // anything the client sent, so a client cannot play its effect in
+                // someone else's room; the cheered player is excluded because they were
+                // already sent it above.
+                await NotiController.NotifyReputationUpdatedAsync(
+                    receiverId,
+                    new[] { receiverId });
+
+                long[] audience = PlayerDB
+                    .GetActiveSameInstancePlayerIds((long)id)
+                    .Where(playerId => playerId != receiverId)
+                    .ToArray();
+
+                await NotiController.NotifyReputationUpdatedAsync(
+                    receiverId,
+                    audience);
+
+                // The giver's own record moved too - their cheer credit was spent.
+                await NotiController.NotifyReputationUpdatedAsync(
+                    (long)id,
+                    new[] { (long)id });
             }
 
             Console.WriteLine(

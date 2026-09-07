@@ -87,9 +87,30 @@ namespace Mocha2023.Classes.DBs
             FriendRequestAccepted = 40,
             PlayerCheer = 50,
             PlayerCheerAnonymous = 51,
+            RoomCoOwnerAdded = 60,
+            RoomCoOwnerRemoved = 61,
+            RoomCoOwnerInvited = 62,
+            CreatorPublishedNewRoom = 70,
+            PlayerAttendingEvent = 80,
+            PlayerEventInvitation = 81,
+            DeprecatedGroupInvitation = 90,
+            DeprecatedPlayerJoinedGroup = 91,
             CoachMessage = 100,
+            NewRoomComments = 110,
             PartyUpRequest = 120,
-            FriendIntroduction = 130
+            FriendIntroduction = 130,
+            ClubMemberInvited = 200,
+            ClubModeratorInvited = 201,
+            ClubCoownerInvited = 202,
+            VirtualClubAnnouncementRoomPublished = 100000,
+            VirtualClubAnnouncementInventionPublished = 100001,
+            VirtualClubAnnouncementGeneric = 100002,
+            VirtualClubAnnouncementPlayerEventPublished = 100003,
+            VirtualClubAnnouncementClub = 100004,
+            VirtualClubAnnouncementPlayer = 100005,
+            VirtualClubAnnouncementCode = 100006,
+            VirtualClubAnnouncementPhoto = 100007,
+            VirtualRoomNotification = 100008
         }
 
         public sealed class StoredNotification
