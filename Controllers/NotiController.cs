@@ -953,10 +953,20 @@ namespace Mocha2023.Controllers
                 .Distinct()
                 .ToArray();
 
+            // ServerMaintenance (25) carries a payload - { StartsInMinutes } - and
+            // the countdown the client shows comes from it. Sending a bare signal
+            // told every client "maintenance" with no time attached, so no timer
+            // ever appeared. startsInMinutes used to reach the log line only.
+            var payload = new
+            {
+                StartsInMinutes = startsInMinutes
+            };
+
             await Task.WhenAll(connectedPlayers.Select(playerId =>
-                SendPushSignalToPlayerAsync(
+                SendPushEventToPlayerAsync(
                     playerId,
-                    ServerMaintenanceTarget)));
+                    ServerMaintenanceTarget,
+                    payload)));
 
             Console.WriteLine(
                 $"[Maintenance] Sent {startsInMinutes}-minute countdown to " +
