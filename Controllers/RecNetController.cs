@@ -3286,6 +3286,33 @@ namespace Mocha2023.Controllers
             }
         }
 
+        // Message every online player as Coach at once.
+        [HttpPost("admin/coach-message-all")]
+        [RequestSizeLimit(16 * 1024)]
+        public async Task<IActionResult> AdminCoachMessageAll(
+            [FromBody] AdminCoachMessageAllRequest request)
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+
+            string body = (request?.Message ?? string.Empty).Trim();
+            if (body.Length is < 1 or > 2000)
+                return BadRequest(new { error = "Message must be 1-2000 characters." });
+
+            int count = await NotiController.BroadcastCoachMessageAsync(body);
+
+            Console.WriteLine(
+                $"[ADMIN COACH BROADCAST] admin={admin!.PlayerId} players={count}");
+
+            return Ok(new
+            {
+                success = true,
+                count,
+                message = $"Coach message sent to {count} online player(s)."
+            });
+        }
+
         [HttpPost("admin/maintenance")]
         [RequestSizeLimit(16 * 1024)]
         public async Task<IActionResult> StartAdminMaintenance(
@@ -8617,6 +8644,11 @@ namespace Mocha2023.Controllers
             public string? Network { get; set; }
             public string? Reason { get; set; }
         }
+        public class AdminCoachMessageAllRequest
+        {
+            public string? Message { get; set; }
+        }
+
         public class AdminMaintenanceRequest
         {
             public int Minutes { get; set; }

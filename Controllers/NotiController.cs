@@ -945,6 +945,34 @@ namespace Mocha2023.Controllers
                 NotifyAnnouncementsUpdatedAsync));
         }
 
+        // Send a Coach message (MessageReceived type 100) to every connected player.
+        // Like recflare's coach-message-all this is an online broadcast - it is not
+        // stored, so players who are offline now do not receive it later.
+        public static async Task<int> BroadcastCoachMessageAsync(string body)
+        {
+            long[] players = PlayerConnections.Keys
+                .Where(playerId => playerId > 0)
+                .Distinct()
+                .ToArray();
+
+            const long coachAccountId = 1;
+
+            await Task.WhenAll(players.Select(playerId =>
+                NotifyMessageAsync(
+                    playerId,
+                    new NotificationDB.ClientNotification
+                    {
+                        FromPlayerId = (int)coachAccountId,
+                        ToPlayerId = playerId,
+                        CreatedAt = DateTime.UtcNow,
+                        Type = (int)NotificationDB.MessageType.CoachMessage,
+                        Message = body
+                    })));
+
+            Console.WriteLine($"[COACH BROADCAST] players={players.Length}");
+            return players.Length;
+        }
+
         public static async Task BroadcastServerMaintenanceAsync(int startsInMinutes)
         {
             if (startsInMinutes < 0)
