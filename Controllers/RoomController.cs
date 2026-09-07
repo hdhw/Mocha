@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Mocha2023.Classes;
 using Mocha2023.Classes.DBs;
@@ -891,11 +891,11 @@ namespace Mocha2023.Controllers
             var rooms = RoomDB.PrepareRoomsForClient(
                 RoomDB.Rooms.FindAll().Where(IsPubliclyDiscoverableRoom));
 
-            return Ok(new
+            return Ok(MutationSuccess(new
             {
                 Results = rooms,
                 TotalResults = rooms.Count
-            });
+            }));
         }
 
         [HttpGet("rooms/search")]
@@ -1039,11 +1039,11 @@ namespace Mocha2023.Controllers
                 $"[ROOM SEARCH] query=\"{rawQuery}\" public={discoverableRooms.Count} " +
                 $"matches={matches.Count} skip={skip} take={take}");
 
-            return Ok(new
+            return Ok(MutationSuccess(new
             {
                 Results = page,
                 TotalResults = matches.Count
-            });
+            }));
         }
 
         [HttpGet("rooms/base")]
@@ -1053,11 +1053,11 @@ namespace Mocha2023.Controllers
         {
             var (results, total) = RoomDB.GetHotRooms("base", skip, take);
 
-            return Ok(new
+            return Ok(MutationSuccess(new
             {
                 Results = results ?? new List<RoomDBClasses.Room>(),
                 TotalResults = total
-            });
+            }));
         }
 
         [HttpGet("rooms/{roomId}")]
@@ -1593,11 +1593,11 @@ namespace Mocha2023.Controllers
             var all = RoomDB.Rooms.Find(r => r.CreatorAccountId == (long)id).ToList();
             var page = RoomDB.PrepareRoomsForClient(all.Skip(skip).Take(take));
 
-            return Ok(new
+            return Ok(MutationSuccess(new
             {
                 Results = page,
                 TotalResults = all.Count
-            });
+            }));
         }
 
         [HttpGet("rooms/ownedby/{ownerId}")]
@@ -1618,11 +1618,11 @@ namespace Mocha2023.Controllers
                 .ToList();
             var page = RoomDB.PrepareRoomsForClient(all.Skip(skip).Take(take));
 
-            return Ok(new
+            return Ok(MutationSuccess(new
             {
                 Results = page,
                 TotalResults = all.Count
-            });
+            }));
         }
 
         [HttpPost("rooms/{roomId}/subrooms/{subRoomId}/data")]
@@ -2761,11 +2761,11 @@ namespace Mocha2023.Controllers
 
             RoomDB.PrepareRoomsForClient(orderedRooms);
 
-            return Ok(new
+            return Ok(MutationSuccess(new
             {
                 Results = orderedRooms.Skip(skip).Take(take).ToList(),
                 TotalResults = orderedRooms.Count
-            });
+            }));
         }
 
         [HttpGet("rooms/favoritedby/me")]
@@ -2788,11 +2788,11 @@ namespace Mocha2023.Controllers
 
             RoomDB.PrepareRoomsForClient(rooms);
 
-            return Ok(new
+            return Ok(MutationSuccess(new
             {
                 Results = rooms,
                 TotalResults = allFavoriteRooms.Count
-            });
+            }));
         }
 
         [HttpPut("rooms/{roomId}/interactionby/me/cheer")]
@@ -3002,11 +3002,11 @@ namespace Mocha2023.Controllers
             var page = matches.Skip(skip).Take(take).ToList();
             RoomDB.PrepareRoomsForClient(page);
 
-            return Ok(new
+            return Ok(MutationSuccess(new
             {
                 Results = page,
                 TotalResults = matches.Count
-            });
+            }));
         }
 
         [HttpDelete("rooms/{roomId}/interactionby/me/favorite")]
@@ -3350,11 +3350,11 @@ namespace Mocha2023.Controllers
                 .Where(room => CanViewRoomDirectly(room, callerId))
                 .ToList();
 
-            return Ok(new
+            return Ok(MutationSuccess(new
             {
                 Results = rooms,
                 TotalResults = rooms.Count
-            });
+            }));
         }
 
         [HttpGet("photon_access_token")]
@@ -3423,22 +3423,22 @@ namespace Mocha2023.Controllers
             }
 
             Response.Headers.CacheControl = "no-store";
-            return Ok(new
+            return Ok(MutationSuccess(new
             {
                 Results = results ?? new List<RoomDBClasses.Room>(),
                 TotalResults = total
-            });
+            }));
         }
 
         [HttpGet("rooms/curated_playlists")]
         public IActionResult GetCuratedPlaylistIds()
         {
 
-            return Ok(new
+            return Ok(MutationSuccess(new
             {
                 Results = Array.Empty<long>(),
                 TotalResults = 0
-            });
+            }));
         }
 
         [HttpGet("rooms/carousel/rising")]
@@ -3462,11 +3462,11 @@ namespace Mocha2023.Controllers
                 page = allRooms.Take(take).ToList();
 
             Response.Headers.CacheControl = "no-store";
-            return Ok(new
+            return Ok(MutationSuccess(new
             {
                 Results = page,
                 TotalResults = allRooms.Count
-            });
+            }));
         }
 
         [HttpGet("featuredrooms/current")]
@@ -3843,11 +3843,11 @@ namespace Mocha2023.Controllers
         [HttpGet("rooms/recommendations")]
         public IActionResult GetRoomRecommendations()
         {
-            return Ok(new
+            return Ok(MutationSuccess(new
             {
                 Results = Array.Empty<object>(),
                 TotalResults = 0
-            });
+            }));
         }
 
         [HttpGet("rooms/{roomId}/interactionby/me")]
