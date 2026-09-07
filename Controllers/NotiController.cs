@@ -214,7 +214,7 @@ namespace Mocha2023.Controllers
         private const string GiftPackageReceivedTarget = "30";
         private const string GiftPackageReceivedImmediateTarget = "31";
         private const string ConsumableMappingRemovedTarget = "71";
-        private const string GiftConsumedTarget = "GiftConsumed";
+        private const string GiftConsumedTarget = "gift.manualconsumed";
         private const string RelationshipsInvalidTarget = "50";
         private const string ChatMessageReceivedTarget = "ChatMessageReceived";
         private const string CommunityBoardUpdateTarget = "CommunityBoardUpdate";
@@ -231,7 +231,7 @@ namespace Mocha2023.Controllers
                 [GiftPackageReceivedTarget] = "GiftPackageReceived",
                 [GiftPackageReceivedImmediateTarget] = "GiftPackageReceivedImmediate",
                 [ConsumableMappingRemovedTarget] = "ConsumableMappingRemoved",
-                [GiftConsumedTarget] = "GiftConsumed",
+                [GiftConsumedTarget] = "GiftManualConsumed",
                 [RelationshipsInvalidTarget] = "RelationshipsInvalid",
                 [ChatMessageReceivedTarget] = "ChatMessageReceived",
                 [CommunityBoardUpdateTarget] = "CommunityBoardUpdate",
@@ -1683,17 +1683,12 @@ namespace Mocha2023.Controllers
             long giftId,
             IEnumerable<GiftPackage>? remainingGifts = null)
         {
-            object[] remainingPayloads = remainingGifts?
-                .Select(giftPackage => CreateClientGiftPackagePayload(
-                    giftPackage,
-                    giftPackage.FromPlayerId,
-                    receiverPlayerId))
-                .ToArray() ?? Array.Empty<object>();
-
+            // The frame carries the consumed package id and nothing else. The client
+            // refetches the remaining gifts itself, so RemainingGifts was never read -
+            // and GiftId was the wrong field name for the one value that is.
             var payload = new
             {
-                GiftId = giftId,
-                RemainingGifts = remainingPayloads
+                GiftPackageId = giftId
             };
 
             await SendPushEventToPlayerAsync(
@@ -1703,8 +1698,7 @@ namespace Mocha2023.Controllers
 
             Console.WriteLine(
                 $"[GIFT CONSUMED PUSH] player={receiverPlayerId} " +
-                $"gift={giftId} remaining={remainingPayloads.Length} " +
-                $"eventId={GiftConsumedTarget}");
+                $"gift={giftId} eventId={GiftConsumedTarget}");
         }
 
         private static object CreateClientGiftPackagePayload(

@@ -5705,13 +5705,16 @@ namespace Mocha2023.Controllers
             if (message == null)
                 return BadRequest(new { error = "Message failed to send." });
 
+            // Same shape the normal chat path sends (BuildChatMessageDto): the field is
+            // timeSent, not createdAt, and moderationState is part of the contract.
             var messageDto = new
             {
                 chatMessageId = message.MessageId,
                 chatThreadId = message.ThreadId,
                 senderPlayerId = (int)coachAccountId,
+                timeSent = message.CreatedAt,
                 contents = message.Body,
-                createdAt = message.CreatedAt
+                moderationState = 0
             };
 
             _ = NotiController.NotifyChatMessageReceivedAsync(accountId, messageDto);

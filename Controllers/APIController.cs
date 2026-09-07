@@ -1,4 +1,4 @@
-using Mocha2023.Auth;
+﻿using Mocha2023.Auth;
 using Mocha2023.Classes;
 using Mocha2023.Classes.DBs;
 using Mocha2023.Classes.DBs.DBClasses;
@@ -6448,8 +6448,12 @@ namespace Mocha2023.Controllers
             }
 
             object messageDto = BuildChatMessageDto(message);
+            // Notify the sender too. The client does not fold the HTTP response into
+            // its local thread cache, so without a self-targeted push your own outgoing
+            // message does not appear until the thread is refetched. The thread-creation
+            // path below already pushes to every member for the same reason.
             long[] recipients = thread.MemberIds
-                .Where(id => id != accountId.Value)
+                .Where(id => id > 0)
                 .Distinct()
                 .ToArray();
 
@@ -6636,8 +6640,12 @@ namespace Mocha2023.Controllers
             }
 
             object messageDto = BuildChatMessageDto(message);
+            // Notify the sender too. The client does not fold the HTTP response into
+            // its local thread cache, so without a self-targeted push your own outgoing
+            // message does not appear until the thread is refetched. The thread-creation
+            // path below already pushes to every member for the same reason.
             long[] recipients = thread.MemberIds
-                .Where(id => id != accountId.Value)
+                .Where(id => id > 0)
                 .Distinct()
                 .ToArray();
 
