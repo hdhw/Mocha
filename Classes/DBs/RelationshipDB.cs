@@ -1,4 +1,4 @@
-using Mocha2023.Classes.DBs.DBClasses;
+﻿using Mocha2023.Classes.DBs.DBClasses;
 using LiteDB;
 using static Mocha2023.Classes.DBs.DBClasses.PlayerDBClasses;
 
@@ -349,6 +349,19 @@ namespace Mocha2023.Classes.DBs
                 return Records.Count(value =>
                     value.Kind == RelationshipKind.Subscription &&
                     value.SourcePlayerId == subscriberId);
+        }
+
+        // The account ids this player subscribes to (the creators they follow),
+        // read from the same store GetSubscribedCount counts.
+        public static long[] GetSubscribedTargetIds(long subscriberId)
+        {
+            lock (Sync)
+                return Records
+                    .Find(value =>
+                        value.Kind == RelationshipKind.Subscription &&
+                        value.SourcePlayerId == subscriberId)
+                    .Select(value => value.TargetPlayerId)
+                    .ToArray();
         }
 
         public static long[] GetPersistentLiveSubjectIds(long viewerPlayerId)

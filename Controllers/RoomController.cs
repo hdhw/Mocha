@@ -3372,6 +3372,60 @@ namespace Mocha2023.Controllers
             return Ok(response);
         }
 
+        // The home-screen "rooms from creators you follow" carousel. The 2023 client
+        // calls /roomserver/rooms/fromcreators?id=<accountId>&skip&take, with id=0
+        // meaning the caller. Rooms are the public, non-dorm rooms created by any
+        // creator the player subscribes to. Same { Results, TotalResults } carousel
+        // envelope as rooms/hot and rooms/carousel/rising.
+        [HttpGet("rooms/fromcreators")]
+        public IActionResult GetRoomsFromCreators(
+            [FromQuery] long id = 0,
+            [FromQuery] int skip = 0,
+            [FromQuery] int take = 100)
+        {
+            skip = Math.Max(0, skip);
+            take = Math.Clamp(take, 1, 100);
+
+            long subscriberId = id > 0 ? id : (AuthStuff.GetPlayerId(Request) ?? 0);
+
+            long[] creatorIds = subscriberId > 0
+                ? RelationshipDB.GetSubscribedTargetIds(subscriberId)
+                : Array.Empty<long>();
+
+            if (creatorIds.Length == 0)
+            {
+                Response.Headers.CacheControl = "no-store";
+                return Ok(new
+                {
+                    Results = new List<RoomDBClasses.Room>(),
+                    TotalResults = 0
+                });
+            }
+
+            var creatorSet = new HashSet<long>(creatorIds);
+
+            var all = RoomDB.Rooms.FindAll()
+                .Where(IsPubliclyDiscoverableRoom)
+                .Where(room => creatorSet.Contains(room.CreatorAccountId))
+                .OrderByDescending(room => room.Stats?.VisitCount ?? 0)
+                .ThenByDescending(room => room.CreatedAt)
+                .ThenBy(room => room.RoomId)
+                .ToList();
+
+            var page = RoomDB.PrepareRoomsForClient(all.Skip(skip).Take(take));
+
+            Console.WriteLine(
+                $"[ROOM FROMCREATORS] subscriber={subscriberId} " +
+                $"creators={creatorIds.Length} matches={all.Count} skip={skip} take={take}");
+
+            Response.Headers.CacheControl = "no-store";
+            return Ok(new
+            {
+                Results = page,
+                TotalResults = all.Count
+            });
+        }
+
         [HttpGet("rooms/hot")]
         public IActionResult HotRooms(
             [FromQuery] string? tag = null,
