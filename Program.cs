@@ -337,6 +337,7 @@ namespace Mocha2023
                 _serverStartedAt = DateTimeOffset.UtcNow;
                 Volatile.Write(ref _serverIsOnline, 1);
                 RegisterShutdownWebhookHandlers();
+                ResumeMaintenanceTickerIfActive();
 
                 ServerLog.Success($"Server listening on {ServerUrl}");
                 ServerLog.Info("Type 'help' to view console commands.");
@@ -2098,6 +2099,7 @@ namespace Mocha2023
                 throw new InvalidDataException("ConfigV2.json could not be parsed.");
 
             config.Remove("ServerMaintainence");
+            long endsAt = 0;
             if (minutes <= 0)
             {
                 // Clearing the countdown - drop the node so config serves no maintenance.
@@ -2109,11 +2111,11 @@ namespace Mocha2023
                 // StartsInMinutes on every read, instead of the frozen value the
                 // countdown used to snap back to. StartsInMinutes is kept for the
                 // first read before now advances.
+                endsAt = DateTimeOffset.UtcNow.AddMinutes(minutes).ToUnixTimeSeconds();
                 config["ServerMaintenance"] = new
                 {
                     StartsInMinutes = minutes,
-                    EndsAtUnixTime =
-                        DateTimeOffset.UtcNow.AddMinutes(minutes).ToUnixTimeSeconds()
+                    EndsAtUnixTime = endsAt
                 };
             }
 
@@ -2126,6 +2128,78 @@ namespace Mocha2023
             );
 
             await NotiController.BroadcastServerMaintenanceAsync(minutes);
+
+            // Re-push the decremented value every minute. Quest clients don't tick the
+            // countdown locally or poll config - they only render what's pushed - so
+            // without this they'd sit on the first number forever. Covers PC too.
+            if (minutes > 0)
+                StartMaintenanceTicker(endsAt);
+            else
+                StopMaintenanceTicker();
+        }
+
+        private static Timer? _maintenanceTicker;
+        private static long _maintenanceEndsAtUnix;
+
+        // Resume the ticker after a restart if a countdown is still running.
+        public static void ResumeMaintenanceTickerIfActive()
+        {
+            try
+            {
+                string configPath = Path.Combine(dataDir, "APIS", "ConfigV2.json");
+                if (!File.Exists(configPath))
+                    return;
+
+                using JsonDocument doc = JsonDocument.Parse(File.ReadAllText(configPath));
+                if (doc.RootElement.TryGetProperty("ServerMaintenance", out JsonElement sm) &&
+                    sm.ValueKind == JsonValueKind.Object &&
+                    sm.TryGetProperty("EndsAtUnixTime", out JsonElement endEl) &&
+                    endEl.TryGetInt64(out long endsAt) &&
+                    endsAt > DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+                {
+                    StartMaintenanceTicker(endsAt);
+                    ServerLog.Info("Maintenance countdown resumed from config.");
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerLog.Error("Maintenance resume failed: " + ex.Message);
+            }
+        }
+
+        private static void StartMaintenanceTicker(long endsAtUnix)
+        {
+            _maintenanceEndsAtUnix = endsAtUnix;
+            _maintenanceTicker?.Dispose();
+            _maintenanceTicker = new Timer(
+                async _ =>
+                {
+                    try
+                    {
+                        long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                        long remaining = _maintenanceEndsAtUnix > now
+                            ? (_maintenanceEndsAtUnix - now + 59) / 60
+                            : 0;
+
+                        await NotiController.BroadcastServerMaintenanceAsync((int)remaining);
+
+                        if (remaining <= 0)
+                            StopMaintenanceTicker();
+                    }
+                    catch (Exception ex)
+                    {
+                        ServerLog.Error("Maintenance ticker: " + ex.Message);
+                    }
+                },
+                null,
+                TimeSpan.FromMinutes(1),
+                TimeSpan.FromMinutes(1));
+        }
+
+        private static void StopMaintenanceTicker()
+        {
+            _maintenanceTicker?.Dispose();
+            _maintenanceTicker = null;
         }
 
         private static async Task HandleMaintenanceAsync(string arguments)
