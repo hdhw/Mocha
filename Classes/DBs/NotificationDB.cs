@@ -1,4 +1,4 @@
-using LiteDB;
+﻿using LiteDB;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -87,6 +87,7 @@ namespace Mocha2023.Classes.DBs
             FriendRequestAccepted = 40,
             PlayerCheer = 50,
             PlayerCheerAnonymous = 51,
+            CoachMessage = 100,
             PartyUpRequest = 120,
             FriendIntroduction = 130
         }

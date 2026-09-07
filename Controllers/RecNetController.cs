@@ -1,4 +1,4 @@
-using Mocha2023.Classes.DBs;
+﻿using Mocha2023.Classes.DBs;
 using Mocha2023.Classes.DBs.DBClasses;
 using Mocha2023.Classes;
 using Mocha2023.Auth;
@@ -5716,9 +5716,29 @@ namespace Mocha2023.Controllers
 
             _ = NotiController.NotifyChatMessageReceivedAsync(accountId, messageDto);
 
+            // The chat push above only reaches the chat UI. What the client surfaces
+            // as a message *from Coach* is a MessageReceived (2) notification whose
+            // Type is 100 (CoachMessage) - the frame recflare sends for
+            // /internal/coach-message. Without it the message was written to the
+            // thread but never announced in game.
+            //
+            // CreatePlayerMessage stores the notification, so a player who is offline
+            // right now still receives it when they next connect.
+            NotificationDB.ClientNotification coachNotification =
+                NotificationDB.CreatePlayerMessage(
+                    coachAccountId,
+                    accountId,
+                    NotificationDB.MessageType.CoachMessage,
+                    body);
+
+            await NotiController.NotifyMessageAsync(
+                accountId,
+                coachNotification);
+
             Console.WriteLine(
                 $"[ADMIN CHAT] admin={admin!.PlayerId} sentAsCoach=true " +
-                $"to={accountId} threadId={thread.ThreadId}");
+                $"to={accountId} threadId={thread.ThreadId} " +
+                $"coachMessageId={coachNotification.Id} type=100");
 
             return Ok(new { success = true, threadId = thread.ThreadId, messageId = message.MessageId });
         }
