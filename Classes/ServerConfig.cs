@@ -27,7 +27,7 @@ namespace Mocha2023.Classes
         public static bool PhotonEnabled =>
             !string.IsNullOrWhiteSpace(PhotonRealtimeAppId);
 
-        public static readonly Version MinModVersion = new Version(1, 0, 6);
+        public static readonly Version MinModVersion = new Version(1, 0, 8);
 
         // Quest has no PC patch to install, so the MinModVersion gate
         // cannot apply to it. Set to false to re-enforce the gate on
