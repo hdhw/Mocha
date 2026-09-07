@@ -733,7 +733,6 @@ namespace Mocha2023.Controllers
             });
         }
 
-        [HttpGet("/api/avatar/")]
         [HttpGet("/api/avatar")]
         public IActionResult GetAvatarBase()
         {
@@ -743,7 +742,6 @@ namespace Mocha2023.Controllers
             return Ok(new { AccountId = accountId.Value });
         }
 
-        [HttpGet("/api/config/")]
         [HttpGet("/api/config")]
         public IActionResult GetGeneralConfig()
         {
@@ -897,7 +895,6 @@ namespace Mocha2023.Controllers
             return Ok(wishlist);
         }
 
-        [HttpPost("/api/itemWishlists/v1/wishlist/")]
         [HttpPost("/api/itemWishlists/v1/wishlist")]
         public IActionResult AddToItemWishlist([FromBody] ItemWishlistRequest request)
         {
@@ -921,7 +918,6 @@ namespace Mocha2023.Controllers
             return Ok(new { success = true, wishlist = account.Player.PlayerExtra.ItemWishlist });
         }
 
-        [HttpDelete("/api/itemWishlists/v1/wishlist/")]
         [HttpDelete("/api/itemWishlists/v1/wishlist")]
         public IActionResult RemoveFromItemWishlist([FromBody] ItemWishlistRequest request)
         {
@@ -2793,7 +2789,6 @@ namespace Mocha2023.Controllers
         }
 
         [HttpGet("/api/relationships/v2/get")]
-        [HttpGet("/api/relationships/")]
         [HttpGet("/api/relationships")]
         public IActionResult GetMyRelationships([FromQuery] long? id = null)
         {
@@ -3609,11 +3604,8 @@ namespace Mocha2023.Controllers
         [HttpGet("/api/roomcurrencies/v1/currencies")]
         [HttpGet("/api/AppIntegrity/v1/iosproducts")]
         [HttpGet("/api/externalfriendinvite/v1/gettextmessagereferrers")]
-        [HttpGet("/api/images/")]
         [HttpGet("/api/images")]
-        [HttpGet("/api/incentivizedreferrals/")]
         [HttpGet("/api/incentivizedreferrals")]
-        [HttpGet("/api/inventions/")]
         [HttpGet("/api/inventions")]
         [HttpGet("/api/inventions/v1/versions")]
         [HttpGet("/api/keepsakes")]
@@ -3624,7 +3616,6 @@ namespace Mocha2023.Controllers
         [HttpGet("/api/roomcurrencies")]
         [HttpGet("/api/roomkeys/")]
         [HttpGet("/api/roomkeys/v1/")]
-        [HttpGet("/api/storefronts/")]
         [HttpGet("/api/storefronts")]
         [HttpGet("/api/storefronts/v1/objectives")]
         [HttpGet("/api/testcasemanagement/")]
@@ -3632,7 +3623,6 @@ namespace Mocha2023.Controllers
         [HttpGet("/api/testcasemanagement/v1/testplans")]
         [HttpGet("/api/testcasemanagement/v1/testpasssummary")]
         [HttpGet("/api/ugcPurchasables")]
-        [HttpGet("/api/consumables/")]
         [HttpGet("/api/consumables")]
         public IActionResult TodoImplement()
         {
