@@ -14,13 +14,13 @@ namespace Mocha2023.Classes
         public static int GameVersion = 20230406;
 
         public const string PhotonRealtimeAppId =
-            "c73b99b5-eba7-4152-90c2-b3f7bac5fa00";
+            "94e5bc5c-d19b-4651-b3c0-e0f7758c17e1";
 
         public const string PhotonVoiceAppId =
-            "88ed1211-b61c-451c-90f6-9e494ce7ef5f";
+            "bfa91264-1580-4e63-b355-77404b95e33e";
 
         public const string PhotonRegion = "us";
-        public const string PhotonAppVersion = "20230427_prod";
+        public const string PhotonAppVersion = "20230406_prod";
         public static readonly string PhotonCustomAuthSecret =
             Program.LoadLocalSetting("PHOTON_CUSTOM_AUTH_SECRET");
 
