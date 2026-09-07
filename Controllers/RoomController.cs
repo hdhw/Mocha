@@ -891,11 +891,11 @@ namespace Mocha2023.Controllers
             var rooms = RoomDB.PrepareRoomsForClient(
                 RoomDB.Rooms.FindAll().Where(IsPubliclyDiscoverableRoom));
 
-            return Ok(MutationSuccess(new
+            return Ok(new
             {
                 Results = rooms,
                 TotalResults = rooms.Count
-            }));
+            });
         }
 
         [HttpGet("rooms/search")]
@@ -1039,11 +1039,11 @@ namespace Mocha2023.Controllers
                 $"[ROOM SEARCH] query=\"{rawQuery}\" public={discoverableRooms.Count} " +
                 $"matches={matches.Count} skip={skip} take={take}");
 
-            return Ok(MutationSuccess(new
+            return Ok(new
             {
                 Results = page,
                 TotalResults = matches.Count
-            }));
+            });
         }
 
         [HttpGet("rooms/base")]
@@ -1051,13 +1051,9 @@ namespace Mocha2023.Controllers
             [FromQuery] int skip = 0,
             [FromQuery] int take = 100)
         {
-            var (results, total) = RoomDB.GetHotRooms("base", skip, take);
+            var (results, _) = RoomDB.GetHotRooms("base", skip, take);
 
-            return Ok(MutationSuccess(new
-            {
-                Results = results ?? new List<RoomDBClasses.Room>(),
-                TotalResults = total
-            }));
+            return Ok(results ?? new List<RoomDBClasses.Room>());
         }
 
         [HttpGet("rooms/{roomId}")]
@@ -1593,11 +1589,7 @@ namespace Mocha2023.Controllers
             var all = RoomDB.Rooms.Find(r => r.CreatorAccountId == (long)id).ToList();
             var page = RoomDB.PrepareRoomsForClient(all.Skip(skip).Take(take));
 
-            return Ok(MutationSuccess(new
-            {
-                Results = page,
-                TotalResults = all.Count
-            }));
+            return Ok(page);
         }
 
         [HttpGet("rooms/ownedby/{ownerId}")]
@@ -1618,11 +1610,7 @@ namespace Mocha2023.Controllers
                 .ToList();
             var page = RoomDB.PrepareRoomsForClient(all.Skip(skip).Take(take));
 
-            return Ok(MutationSuccess(new
-            {
-                Results = page,
-                TotalResults = all.Count
-            }));
+            return Ok(page);
         }
 
         [HttpPost("rooms/{roomId}/subrooms/{subRoomId}/data")]
@@ -2761,11 +2749,7 @@ namespace Mocha2023.Controllers
 
             RoomDB.PrepareRoomsForClient(orderedRooms);
 
-            return Ok(MutationSuccess(new
-            {
-                Results = orderedRooms.Skip(skip).Take(take).ToList(),
-                TotalResults = orderedRooms.Count
-            }));
+            return Ok(orderedRooms.Skip(skip).Take(take).ToList());
         }
 
         [HttpGet("rooms/favoritedby/me")]
@@ -2788,11 +2772,7 @@ namespace Mocha2023.Controllers
 
             RoomDB.PrepareRoomsForClient(rooms);
 
-            return Ok(MutationSuccess(new
-            {
-                Results = rooms,
-                TotalResults = allFavoriteRooms.Count
-            }));
+            return Ok(rooms);
         }
 
         [HttpPut("rooms/{roomId}/interactionby/me/cheer")]
@@ -2828,18 +2808,14 @@ namespace Mocha2023.Controllers
 
             RoomDB.PrepareRoomsForClient(allRooms);
 
-            // Every other room-mutation endpoint in this file answers the standard
-            // {Value, Success, ErrorId, Error, LocalizationContext} envelope
-            // (MutationSuccess); this bare {Results, TotalResults} shape is what the
-            // client's deserializer rejects outright - confirmed in Player log:
-            // "Rethrow as ...: Malformed Response: '{"Results":[...],"TotalResults":1}'"
-            // - the room data itself is fine, it's this envelope the client can't parse,
-            // so created rooms never show up on the room page/tab.
-            return Ok(MutationSuccess(new
-            {
-                Results = allRooms.Skip(skip).Take(take).ToList(),
-                TotalResults = allRooms.Count
-            }));
+            // The client rejected the bare {Results, TotalResults} shape here -
+            // confirmed in Player log:
+            //   Malformed Response: '{"Results":[...],"TotalResults":1}'
+            // The MutationSuccess envelope was the wrong replacement though: that one
+            // is for room MUTATIONS. Every "my rooms" list answers a plain array of
+            // rooms - no paging wrapper, no envelope - which is what the deserializer
+            // was actually asking for.
+            return Ok(allRooms.Skip(skip).Take(take).ToList());
         }
 
         [HttpGet("/roomserver/rooms/{roomId}/playerdata/me")]
@@ -3002,11 +2978,11 @@ namespace Mocha2023.Controllers
             var page = matches.Skip(skip).Take(take).ToList();
             RoomDB.PrepareRoomsForClient(page);
 
-            return Ok(MutationSuccess(new
+            return Ok(new
             {
                 Results = page,
                 TotalResults = matches.Count
-            }));
+            });
         }
 
         [HttpDelete("rooms/{roomId}/interactionby/me/favorite")]
@@ -3350,11 +3326,7 @@ namespace Mocha2023.Controllers
                 .Where(room => CanViewRoomDirectly(room, callerId))
                 .ToList();
 
-            return Ok(MutationSuccess(new
-            {
-                Results = rooms,
-                TotalResults = rooms.Count
-            }));
+            return Ok(rooms);
         }
 
         [HttpGet("photon_access_token")]
@@ -3423,22 +3395,18 @@ namespace Mocha2023.Controllers
             }
 
             Response.Headers.CacheControl = "no-store";
-            return Ok(MutationSuccess(new
+            return Ok(new
             {
                 Results = results ?? new List<RoomDBClasses.Room>(),
                 TotalResults = total
-            }));
+            });
         }
 
         [HttpGet("rooms/curated_playlists")]
         public IActionResult GetCuratedPlaylistIds()
         {
 
-            return Ok(MutationSuccess(new
-            {
-                Results = Array.Empty<long>(),
-                TotalResults = 0
-            }));
+            return Ok(Array.Empty<long>());
         }
 
         [HttpGet("rooms/carousel/rising")]
@@ -3462,11 +3430,11 @@ namespace Mocha2023.Controllers
                 page = allRooms.Take(take).ToList();
 
             Response.Headers.CacheControl = "no-store";
-            return Ok(MutationSuccess(new
+            return Ok(new
             {
                 Results = page,
                 TotalResults = allRooms.Count
-            }));
+            });
         }
 
         [HttpGet("featuredrooms/current")]
@@ -3843,11 +3811,7 @@ namespace Mocha2023.Controllers
         [HttpGet("rooms/recommendations")]
         public IActionResult GetRoomRecommendations()
         {
-            return Ok(MutationSuccess(new
-            {
-                Results = Array.Empty<object>(),
-                TotalResults = 0
-            }));
+            return Ok(Array.Empty<object>());
         }
 
         [HttpGet("rooms/{roomId}/interactionby/me")]
