@@ -3411,7 +3411,45 @@ namespace Mocha2023.Controllers
         public IActionResult GetConfigV2()
         {
             string path = Path.Combine(Program.dataDir, "APIS", "ConfigV2.json");
-            return System.IO.File.Exists(path) ? Content(System.IO.File.ReadAllText(path), "application/json") : NotFound();
+            if (!System.IO.File.Exists(path))
+                return NotFound();
+
+            string raw = System.IO.File.ReadAllText(path);
+
+            // ServerMaintenance carries an absolute EndsAtUnixTime (written by
+            // SetMaintenanceCountdownAsync). Recompute StartsInMinutes against the
+            // clock on every read so the config-driven countdown actually ticks down,
+            // and strip EndsAtUnixTime so the client sees only the field it expects.
+            try
+            {
+                var config = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(raw);
+                if (config != null &&
+                    config.TryGetValue("ServerMaintenance", out JsonElement maintenance) &&
+                    maintenance.ValueKind == JsonValueKind.Object &&
+                    maintenance.TryGetProperty("EndsAtUnixTime", out JsonElement endsAtElement) &&
+                    endsAtElement.TryGetInt64(out long endsAt))
+                {
+                    long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                    long remaining = endsAt > now ? (endsAt - now + 59) / 60 : 0;
+
+                    var rebuilt = new Dictionary<string, object?>();
+                    foreach (KeyValuePair<string, JsonElement> entry in config)
+                        rebuilt[entry.Key] = entry.Value;
+                    rebuilt["ServerMaintenance"] = new { StartsInMinutes = remaining };
+
+                    return Content(
+                        JsonSerializer.Serialize(
+                            rebuilt,
+                            new JsonSerializerOptions { WriteIndented = true }),
+                        "application/json");
+                }
+            }
+            catch
+            {
+                // Fall through and serve the file as-is on any parse trouble.
+            }
+
+            return Content(raw, "application/json");
         }
 
         [HttpGet("/api/avatar/v3/saved")]

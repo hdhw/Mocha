@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -2098,10 +2098,24 @@ namespace Mocha2023
                 throw new InvalidDataException("ConfigV2.json could not be parsed.");
 
             config.Remove("ServerMaintainence");
-            config["ServerMaintenance"] = new
+            if (minutes <= 0)
             {
-                StartsInMinutes = minutes
-            };
+                // Clearing the countdown - drop the node so config serves no maintenance.
+                config.Remove("ServerMaintenance");
+            }
+            else
+            {
+                // Persist an absolute end time so GetConfigV2 can serve a shrinking
+                // StartsInMinutes on every read, instead of the frozen value the
+                // countdown used to snap back to. StartsInMinutes is kept for the
+                // first read before now advances.
+                config["ServerMaintenance"] = new
+                {
+                    StartsInMinutes = minutes,
+                    EndsAtUnixTime =
+                        DateTimeOffset.UtcNow.AddMinutes(minutes).ToUnixTimeSeconds()
+                };
+            }
 
             File.WriteAllText(
                 configPath,
