@@ -1,4 +1,4 @@
-using Mocha2023.Auth;
+﻿using Mocha2023.Auth;
 using Mocha2023.Classes;
 using Mocha2023.Classes.DBs;
 using Mocha2023.Classes.DBs.DBClasses;
@@ -1145,25 +1145,40 @@ namespace Mocha2023.Controllers
             // returns that subtype, so re-fetch specifically for the owner's own socket.
             PlayerDTOBase selfAccount = PlayerDB.GetAccountMe(playerId) ?? account;
 
-            Task selfPush = ownConnections.Length == 0
-                ? Task.CompletedTask
-                : SendProfilePushToConnectionIdsAsync(
+            // The client keeps two separate caches: the "me" object, fed by
+            // SelfAccountUpdate, and the public profile cache keyed by accountId,
+            // fed by AccountUpdate (SubscriptionUpdateProfile). Your own sockets
+            // need BOTH - sending only SelfAccountUpdate updates the "me" object
+            // while leaving your own entry in the public cache stale, so your
+            // nameplate and avatar never refresh live for you.
+            //
+            // Send self first, then the public shape, so the client applies them
+            // in the same order it would from a real Rec Room server.
+            if (ownConnections.Length > 0)
+            {
+                await SendProfilePushToConnectionIdsAsync(
                     ownConnections,
                     selfAccount,
                     SelfAccountUpdateNotificationId);
 
-            Task viewerPush = viewerConnections.Length == 0
-                ? Task.CompletedTask
-                : SendProfilePushToConnectionIdsAsync(
+                await SendProfilePushToConnectionIdsAsync(
+                    ownConnections,
+                    account,
+                    AccountUpdateNotificationId);
+            }
+
+            if (viewerConnections.Length > 0)
+            {
+                await SendProfilePushToConnectionIdsAsync(
                     viewerConnections,
                     account,
                     AccountUpdateNotificationId);
-
-            await Task.WhenAll(selfPush, viewerPush);
+            }
 
             Console.WriteLine(
                 $"[PROFILE PUSH] player={playerId} " +
                 $"selfSockets={ownConnections.Length} viewerSockets={viewerConnections.Length} " +
+                $"ownPublicPush={(ownConnections.Length > 0 ? "yes" : "no")} " +
                 $"displayName={account.displayName} emoji={account.displayEmoji} " +
                 $"profileImage={account.profileImage}");
         }
