@@ -3895,6 +3895,76 @@ namespace Mocha2023.Controllers
             return Ok(new { success = true });
         }
 
+        // Copy another account's current outfit onto this one. accountId is the
+        // profile being managed (the target); SourceAccountId in the body is whose
+        // outfit to copy. Referenced avatar items the target doesn't own are granted
+        // so the copied look renders instead of showing gaps.
+        [HttpPost("admin/accounts/{accountId:long}/copy-outfit")]
+        public async Task<IActionResult> AdminCopyOutfit(
+            long accountId,
+            [FromBody] AdminCopyOutfitRequest request)
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+
+            var target = PlayerDB.Players.FindById(accountId);
+            if (target?.Player == null)
+                return NotFound(new { error = "Target account not found." });
+            if (IsDeveloper(target) && !IsDeveloper(admin))
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new { error = "Moderators cannot edit Developer profiles." });
+
+            long sourceId = request?.SourceAccountId ?? 0;
+            if (sourceId <= 0)
+                return BadRequest(new { error = "A source account id is required." });
+            if (sourceId == accountId)
+                return BadRequest(new { error = "Source and target are the same account." });
+
+            var source = PlayerDB.Players.FindById(sourceId);
+            if (source?.Player == null)
+                return NotFound(new { error = $"Source account #{sourceId} was not found." });
+
+            source.Player.PlayerExtra ??= new PlayerDBClasses.PlayerExtra();
+            target.Player.PlayerExtra ??= new PlayerDBClasses.PlayerExtra();
+
+            var src = source.Player.PlayerExtra.Avatar ?? new PlayerDBClasses.Avatar();
+            target.Player.PlayerExtra.Avatar = new PlayerDBClasses.Avatar
+            {
+                OutfitSelections = src.OutfitSelections,
+                FaceFeatures = src.FaceFeatures,
+                SkinColor = src.SkinColor,
+                HairColor = src.HairColor
+            };
+
+            var targetItems = target.Player.PlayerExtra.AvatarItems ??= new List<string>();
+            int granted = 0;
+            foreach (string item in source.Player.PlayerExtra.AvatarItems
+                     ?? new List<string>())
+            {
+                if (!string.IsNullOrEmpty(item) && !targetItems.Contains(item))
+                {
+                    targetItems.Add(item);
+                    granted++;
+                }
+            }
+
+            PlayerDB.Players.Update(target);
+            await NotiController.NotifyPlayerProfileUpdatedAsync(accountId);
+
+            Console.WriteLine(
+                $"[ADMIN COPY OUTFIT] admin={admin!.PlayerId} " +
+                $"target={accountId} source={sourceId} grantedItems={granted}");
+
+            return Ok(new
+            {
+                success = true,
+                message = $"Copied #{sourceId}'s outfit onto #{accountId}" +
+                    (granted > 0 ? $" (+{granted} item(s) granted)." : ".")
+            });
+        }
+
         [HttpPost("admin/accounts/{accountId:long}/username/reset")]
         public async Task<IActionResult> AdminResetUsername(long accountId)
         {
@@ -8683,6 +8753,11 @@ namespace Mocha2023.Controllers
         {
             public bool RemoveLinkedAccounts { get; set; }
         }
+        public class AdminCopyOutfitRequest
+        {
+            public long SourceAccountId { get; set; }
+        }
+
         public class AdminProfileUpdate
         {
             public string? Username { get; set; }
