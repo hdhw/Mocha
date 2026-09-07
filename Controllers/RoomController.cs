@@ -1039,7 +1039,11 @@ namespace Mocha2023.Controllers
                 $"[ROOM SEARCH] query=\"{rawQuery}\" public={discoverableRooms.Count} " +
                 $"matches={matches.Count} skip={skip} take={take}");
 
-            return Ok(page);
+            return Ok(new
+            {
+                Results = page,
+                TotalResults = matches.Count
+            });
         }
 
         [HttpGet("rooms/base")]
@@ -2745,11 +2749,7 @@ namespace Mocha2023.Controllers
 
             RoomDB.PrepareRoomsForClient(orderedRooms);
 
-            return Ok(new
-            {
-                Results = orderedRooms.Skip(skip).Take(take).ToList(),
-                TotalResults = orderedRooms.Count
-            });
+            return Ok(orderedRooms.Skip(skip).Take(take).ToList());
         }
 
         [HttpGet("rooms/favoritedby/me")]
@@ -2772,11 +2772,7 @@ namespace Mocha2023.Controllers
 
             RoomDB.PrepareRoomsForClient(rooms);
 
-            return Ok(new
-            {
-                Results = rooms,
-                TotalResults = allFavoriteRooms.Count
-            });
+            return Ok(rooms);
         }
 
         [HttpPut("rooms/{roomId}/interactionby/me/cheer")]
@@ -2982,7 +2978,11 @@ namespace Mocha2023.Controllers
             var page = matches.Skip(skip).Take(take).ToList();
             RoomDB.PrepareRoomsForClient(page);
 
-            return Ok(page);
+            return Ok(new
+            {
+                Results = page,
+                TotalResults = matches.Count
+            });
         }
 
         [HttpDelete("rooms/{roomId}/interactionby/me/favorite")]
@@ -3395,7 +3395,11 @@ namespace Mocha2023.Controllers
             if (creatorIds.Length == 0)
             {
                 Response.Headers.CacheControl = "no-store";
-                return Ok(new List<RoomDBClasses.Room>());
+                return Ok(new
+                {
+                    Results = new List<RoomDBClasses.Room>(),
+                    TotalResults = 0
+                });
             }
 
             var creatorSet = new HashSet<long>(creatorIds);
@@ -3415,7 +3419,11 @@ namespace Mocha2023.Controllers
                 $"creators={creatorIds.Length} matches={all.Count} skip={skip} take={take}");
 
             Response.Headers.CacheControl = "no-store";
-            return Ok(page);
+            return Ok(new
+            {
+                Results = page,
+                TotalResults = all.Count
+            });
         }
 
         [HttpGet("rooms/hot")]
@@ -3441,7 +3449,11 @@ namespace Mocha2023.Controllers
             }
 
             Response.Headers.CacheControl = "no-store";
-            return Ok(results ?? new List<RoomDBClasses.Room>());
+            return Ok(new
+            {
+                Results = results ?? new List<RoomDBClasses.Room>(),
+                TotalResults = total
+            });
         }
 
         [HttpGet("rooms/curated_playlists")]
@@ -3472,7 +3484,11 @@ namespace Mocha2023.Controllers
                 page = allRooms.Take(take).ToList();
 
             Response.Headers.CacheControl = "no-store";
-            return Ok(page);
+            return Ok(new
+            {
+                Results = page,
+                TotalResults = allRooms.Count
+            });
         }
 
         [HttpGet("featuredrooms/current")]
