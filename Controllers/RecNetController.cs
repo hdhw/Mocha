@@ -3313,6 +3313,59 @@ namespace Mocha2023.Controllers
             });
         }
 
+        // Backup status for the panel: what the service is set to do, and what it
+        // actually has on disk.
+        [HttpGet("admin/db-backups")]
+        public IActionResult AdminDbBackups()
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+
+            var snapshots = Mocha2023.Classes.DbBackupService.ListSnapshots();
+
+            return Ok(new
+            {
+                intervalMinutes = Mocha2023.Classes.DbBackupService.IntervalMinutes,
+                retained = Mocha2023.Classes.DbBackupService.RetainedSnapshots,
+                count = snapshots.Count,
+                totalBytes = snapshots.Sum(snapshot => snapshot.Bytes),
+                snapshots = snapshots.Select(snapshot => new
+                {
+                    name = snapshot.Name,
+                    createdUtc = snapshot.CreatedUtc,
+                    files = snapshot.Files,
+                    bytes = snapshot.Bytes
+                })
+            });
+        }
+
+        // Force a snapshot regardless of whether anything changed - the scheduled pass
+        // skips an unchanged database, so this is how you take one on demand.
+        [HttpPost("admin/db-backups/run")]
+        public IActionResult AdminDbBackupNow()
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+
+            string? path = Mocha2023.Classes.DbBackupService.BackupNow(
+                $"admin {admin!.PlayerId}");
+
+            if (path == null)
+                return StatusCode(500, new { error = "Backup failed - check the server log." });
+
+            Console.WriteLine(
+                $"[ADMIN DB BACKUP] admin={admin.PlayerId} snapshot={Path.GetFileName(path)}");
+
+            return Ok(new
+            {
+                success = true,
+                name = Path.GetFileName(path),
+                message = $"Snapshot {Path.GetFileName(path)} written."
+            });
+        }
+
         [HttpPost("admin/maintenance")]
         [RequestSizeLimit(16 * 1024)]
         public async Task<IActionResult> StartAdminMaintenance(

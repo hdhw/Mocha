@@ -55,7 +55,7 @@ function setActiveNav(view) {
 }
 
 const DEVELOPER_ONLY_VIEWS = new Set([
-    'community-board', 'coach-gifting', 'announcements', 'player-events',
+    'community-board', 'coach-gifting', 'announcements', 'player-events', 'misc',
     'room-importer', 'logs', 'scanner-logs', 'anticheat-logs', 'config', 'account-creation',
     'avatar-items', 'ip-bans', 'steam-blacklist', 'shop'
 ]);
@@ -94,6 +94,7 @@ async function route() {
         else if (view === 'anticheat-logs') await anticheatLogsView();
         else if (view === 'ip-bans') await ipBansView();
         else if (view === 'community-board') await communityBoardView();
+        else if (view === 'misc') await miscView();
         else if (view === 'clubs' && rest[0]) await clubDetail(rest[0]);
         else if (view === 'clubs') await clubsView();
         else if (view === 'coach-gifting') await coachGiftingView();
@@ -2006,6 +2007,122 @@ async function renderClubTab(tab, clubId) {
 
 const GIFT_CONTEXT_DEFS = [['None', -1], ['Default'], ['First_Activity'], ['Game_Drop'], ['All_Daily_Challenges_Complete'], ['All_Weekly_Challenge_Complete'], ['Daily_Challenge_Complete'], ['Weekly_Challenge_Complete'], ['Unassigned_Equipment', 10], ['Unassigned_Avatar'], ['Unassigned_Consumable'], ['Reacquisition', 20], ['Membership'], ['NUX_TokensAndDressUp', 30], ['NUX_Experiment1'], ['NUX_Experiment2'], ['NUX_Experiment3'], ['NUX_Experiment4'], ['NUX_Experiment5'], ['GameRewards', 50], ['GameRewards_Tokens'], ['LevelUp', 100], ['Purchased_Gift_A', 500], ['Purchased_Gift_B'], ['Purchased_Gift_C'], ['Purchased_Gift_D'], ['Holiday', 1000], ['Contest'], ['Promotion'], ['SubscribersOnly'], ['Deprecated', 1100], ['RecRoyale', 1200], ['DEPRECATED_Paintball_ClearCut', 2000], ['DEPRECATED_Paintball_Homestead'], ['DEPRECATED_Paintball_Quarry'], ['DEPRECATED_Paintball_River'], ['DEPRECATED_Paintball_Dam'], ['DEPRECATED_Paintball_DriveIn'], ['Paintball_ClearCut', 2010], ['Paintball_Homestead'], ['Paintball_Quarry'], ['Paintball_River'], ['Paintball_Dam'], ['Paintball_DriveIn'], ['DEPRECATED_Discgolf_Propulsion', 3000], ['DEPRECATED_Discgolf_Lake'], ['Discgolf_Propulsion', 3010], ['Discgolf_Lake'], ['Discgolf_Mode_CoopCatch', 3500], ['Quest_Goblin_A', 4000], ['Quest_Goblin_B'], ['Quest_Goblin_C'], ['Quest_Goblin_S'], ['Quest_Goblin_Consumable'], ['Quest_Cauldron_A', 4010], ['Quest_Cauldron_B'], ['Quest_Cauldron_C'], ['Quest_Cauldron_S'], ['Quest_Cauldron_Consumable'], ['Quest_Pirate1_A', 4100], ['Quest_Pirate1_B'], ['Quest_Pirate1_C'], ['Quest_Pirate1_S'], ['Quest_Pirate1_X'], ['Quest_Pirate1_Consumable'], ['Quest_Dracula1_A', 4200], ['Quest_Dracula1_B'], ['Quest_Dracula1_C'], ['Quest_Dracula1_S'], ['Quest_Dracula1_X'], ['Quest_Dracula1_Consumable'], ['Quest_Dracula1_SS'], ['Quest_SciFi_A', 4500], ['Quest_SciFi_B'], ['Quest_SciFi_C'], ['Quest_SciFi_S'], ['Quest_Scifi_Consumable'], ['DEPRECATED_Charades', 5000], ['Charades'], ['DEPRECATED_Soccer', 6000], ['Soccer'], ['DEPRECATED_Paddleball', 7000], ['Paddleball'], ['DEPRECATED_Dodgeball', 8000], ['Dodgeball'], ['DEPRECATED_Lasertag', 9000], ['Lasertag'], ['DEPRECATED_Bowling', 10000], ['Bowling'], ['StuntRunner_TheMainEvent_A', 11000], ['StuntRunner_TheMainEvent_B'], ['StuntRunner_TheMainEvent_C'], ['StuntRunner_TheMainEvent_D'], ['StuntRunner_TheMainEvent_S'], ['StuntRunner_TheMainEvent_X'], ['StuntRunner_TheMainEvent_Consumable'], ['StuntRunner_TheMainEvent_SS'], ['Store_LaserTag', 100000], ['Store_RecCenter', 100010], ['Consumable', 110000], ['Token', 110100], ['Punchcard_Challenge_Complete', 110200], ['All_Punchcard_Challenges_Complete'], ['Commerce_Purchase', 200000]];
 const GIFT_CONTEXTS = (() => { let next = 0; return GIFT_CONTEXT_DEFS.map(([name, value]) => { const v = value !== undefined ? value : next; next = v + 1; return { name, value: v }; }); })();
+
+// Misc - the operational actions that have no page of their own: the live Coach
+// broadcast, the database snapshots, and two cleanup tools. These all existed on
+// the server already; only the Coach broadcast and the gift/image cleanups were
+// left without a control when the old #admin page was retired.
+async function miscView() {
+    app.innerHTML = `
+    <h1 class="page-title">Misc</h1>
+
+    <div class="card">
+        <h2>Coach message everyone</h2>
+        <p class="field-hint">Sends a live Coach DM to every player currently online. It is not stored, so anyone offline never sees it.</p>
+        <label>Message<textarea id="coachMessage" rows="3" maxlength="2000" placeholder="Message to send as Coach"></textarea></label>
+        <br>
+        <button class="btn" id="coachSend">Send to everyone online</button>
+        <span class="form-status" id="coachStatus"></span>
+    </div>
+
+    <div class="card">
+        <h2>Database backups</h2>
+        <p class="field-hint" id="backupSummary">Loading...</p>
+        <button class="btn" id="backupNow">Back up now</button>
+        <span class="form-status" id="backupStatus"></span>
+        <div id="backupList" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+        <h2>Clear unclaimed outgoing gifts</h2>
+        <p class="field-hint">Removes gift boxes sent by an account that recipients have not opened yet. Defaults to Coach (account 1).</p>
+        <label>From account ID<input type="number" id="giftClearFrom" value="1"></label>
+        <br><br>
+        <button class="btn" id="giftClear">Clear unclaimed gifts</button>
+        <span class="form-status" id="giftClearStatus"></span>
+    </div>
+
+    <div class="card">
+        <h2>Delete an image</h2>
+        <p class="field-hint">Removes a photo by its stored path, both the file and its record.</p>
+        <label>Photo path<input type="text" id="imagePath" placeholder="e.g. 2026/08/abc123.png"></label>
+        <br><br>
+        <button class="btn" id="imageDelete">Delete image</button>
+        <span class="form-status" id="imageDeleteStatus"></span>
+    </div>`;
+
+    const say = (el, message, ok = true) => {
+        el.textContent = message;
+        el.style.color = ok ? 'var(--ok, #4ade80)' : 'var(--danger, #f87171)';
+    };
+
+    // Wrap a button so it cannot be double-fired and always reports an outcome.
+    const wire = (buttonId, statusId, run) => {
+        const button = document.querySelector(`#${buttonId}`);
+        const status = document.querySelector(`#${statusId}`);
+        if (!button || !status) return;
+        button.addEventListener('click', async () => {
+            button.disabled = true;
+            say(status, 'Working...');
+            try {
+                say(status, await run());
+            } catch (err) {
+                say(status, err.message, false);
+            } finally {
+                button.disabled = false;
+            }
+        });
+    };
+
+    const bytes = value => value >= 1073741824
+        ? `${(value / 1073741824).toFixed(2)} GB`
+        : `${(value / 1048576).toFixed(1)} MB`;
+
+    async function refreshBackups() {
+        const summary = document.querySelector('#backupSummary');
+        const list = document.querySelector('#backupList');
+        if (!summary || !list) return;
+        try {
+            const data = await get(`${API}/admin/db-backups`);
+            summary.textContent = `Automatic snapshot every ${data.intervalMinutes} minutes, but only when the database has changed. Keeping the newest ${data.retained}. Currently ${data.count} snapshot(s), ${bytes(data.totalBytes)} in Data/DBBackups.`;
+            list.innerHTML = data.snapshots.length
+                ? `<table><thead><tr><th>Snapshot</th><th>Files</th><th>Size</th></tr></thead><tbody>${data.snapshots.map(s => `<tr><td>${esc(s.name)}</td><td>${s.files}</td><td>${bytes(s.bytes)}</td></tr>`).join('')}</tbody></table>`
+                : '<p class="field-hint">No snapshots yet.</p>';
+        } catch (err) {
+            summary.textContent = `Could not read backup status: ${err.message}`;
+        }
+    }
+
+    wire('coachSend', 'coachStatus', async () => {
+        const box = document.querySelector('#coachMessage');
+        const message = (box?.value || '').trim();
+        if (!message) throw new Error('Type a message first.');
+        const data = await send(`${API}/admin/coach-message-all`, 'POST', { Message: message });
+        if (box) box.value = '';
+        return data.message || `Sent to ${data.count} player(s).`;
+    });
+
+    wire('backupNow', 'backupStatus', async () => {
+        const data = await send(`${API}/admin/db-backups/run`, 'POST', {});
+        await refreshBackups();
+        return data.message || 'Snapshot written.';
+    });
+
+    wire('giftClear', 'giftClearStatus', async () => {
+        const from = Number(document.querySelector('#giftClearFrom')?.value) || 1;
+        const data = await send(`${API}/admin/gifts/clear-outgoing`, 'POST', { FromPlayerId: from });
+        return data.message || `Removed ${data.removedBoxes ?? 0} box(es) across ${data.affectedPlayers ?? 0} player(s).`;
+    });
+
+    wire('imageDelete', 'imageDeleteStatus', async () => {
+        const path = (document.querySelector('#imagePath')?.value || '').trim();
+        if (!path) throw new Error('Enter a photo path.');
+        const data = await send(`${API}/admin/images/delete`, 'POST', { PhotoPath: path });
+        return data.message || 'Image deleted.';
+    });
+
+    await refreshBackups();
+}
 
 async function coachGiftingView() {
     app.innerHTML = `

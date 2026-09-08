@@ -338,6 +338,7 @@ namespace Mocha2023
                 Volatile.Write(ref _serverIsOnline, 1);
                 RegisterShutdownWebhookHandlers();
                 ResumeMaintenanceTickerIfActive();
+                Classes.DbBackupService.Start();
 
                 ServerLog.Success($"Server listening on {ServerUrl}");
                 ServerLog.Info("Type 'help' to view console commands.");
@@ -357,6 +358,11 @@ namespace Mocha2023
             {
                 if (serverStarted)
                 {
+                    // Take a final snapshot unconditionally: whatever happened in the
+                    // last interval would otherwise be the one window never covered.
+                    Classes.DbBackupService.Stop();
+                    Classes.DbBackupService.BackupNow("shutdown");
+
                     await SendServerOfflineWebhookOnceAsync(shutdownReason);
                 }
 
