@@ -4516,14 +4516,14 @@ namespace Mocha2023.Controllers
             if (accountId == null)
                 return Unauthorized();
 
-            if (!Enum.IsDefined(typeof(CurrencyType), currencyType))
-                return BadRequest(new { error = "invalid_currency" });
-
-            var parsedCurrency = (CurrencyType)currencyType;
-            int balance = PlayerDB.GetCurrencyBalance(
-                accountId.Value,
-                parsedCurrency);
-            int balanceType = (int)BalanceType.NonPurchasedDefault;
+            // An unknown or non-account-scoped currency answers a 0 balance rather
+            // than 400: the client treats a failed balance fetch as a load error, and
+            // "you have none of that" is the honest answer anyway.
+            int balance = Enum.IsDefined(typeof(CurrencyType), currencyType)
+                ? PlayerDB.GetCurrencyBalance(
+                    accountId.Value,
+                    (CurrencyType)currencyType)
+                : 0;
 
             return Ok(new[]
             {
@@ -4531,7 +4531,7 @@ namespace Mocha2023.Controllers
                 {
                     Balance = (long)balance,
                     CurrencyType = currencyType,
-                    BalanceType = balanceType
+                    Platform = (int)BalanceType.NonPurchasedNotUsableInP2P
                 }
             });
         }
@@ -4548,7 +4548,7 @@ namespace Mocha2023.Controllers
                 "currencyTypes", "CurrencyTypes",
                 "type", "Type");
 
-            int balanceType = (int)BalanceType.NonPurchasedDefault;
+            int balanceType = (int)BalanceType.NonPurchasedNotUsableInP2P;
 
             IEnumerable<CurrencyType> typesToReturn = requestedTypes.Count > 0
                 ? requestedTypes
@@ -7968,22 +7968,21 @@ namespace Mocha2023.Controllers
                 $"category={category} anonymous={anonymous} " +
                 $"created={cheer != null}");
 
+            // PascalCase { Success, Message }, with Message NULL on success - NOT the
+            // lowercase { success, error } envelope the reports and warnings use. A
+            // refusal answers 200 with Success false and the reason in Message; the
+            // client shows that message, and treats an error status as a failed call.
             return cheer == null
-                ? BadRequest(new
+                ? Ok(new
                 {
-                    success = false,
-                    message = "Unable to send cheer. Check the player and your available cheers.",
-                    error = "invalid_player_or_no_cheer_credit"
+                    Success = false,
+                    Message =
+                        "Unable to send cheer. Check the player and your available cheers."
                 })
                 : Ok(new
                 {
-                    success = true,
-                    message = "Cheer sent.",
-                    cheerId = cheer.CheerId,
-                    notificationId = cheer.NotificationId,
-                    remainingCheerCredits = PlayerDB
-                        .GetReputationBulk(new List<long> { id.Value })
-                        .FirstOrDefault()?.CheerCredit ?? 0
+                    Success = true,
+                    Message = (string?)null
                 });
         }
 
@@ -8315,7 +8314,7 @@ namespace Mocha2023.Controllers
                     AlreadyOwned = recipientAlreadyOwned,
                     Balance = giftBalance,
                     CurrencyType = (int)PlayerDBClasses.CurrencyType.RecCenterTokens,
-                    BalanceType = (int)PlayerDBClasses.BalanceType.NonPurchasedDefault,
+                    BalanceType = (int)PlayerDBClasses.BalanceType.NonPurchasedNotUsableInP2P,
                     NewBalance = giftBalance,
                     Price = GetStorePriceForRarity(sku.Rarity),
                     SkuId = sku.SkuId,
@@ -8383,7 +8382,7 @@ namespace Mocha2023.Controllers
                 AlreadyOwned = alreadyOwned,
                 Balance = newBalance,
                 CurrencyType = (int)PlayerDBClasses.CurrencyType.RecCenterTokens,
-                BalanceType = (int)PlayerDBClasses.BalanceType.NonPurchasedDefault,
+                BalanceType = (int)PlayerDBClasses.BalanceType.NonPurchasedNotUsableInP2P,
                 NewBalance = newBalance,
                 Price = GetStorePriceForRarity(sku.Rarity),
                 SkuId = sku.SkuId,

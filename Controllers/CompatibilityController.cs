@@ -552,7 +552,9 @@ namespace Mocha2023.Controllers
                 Version = versionValue
             };
 
-            int balanceType = (int)BalanceType.NonPlayStationNonPurchasedP2P;
+            // The one account-wide bucket every other balance surface names. Naming a
+            // different one here made the client add this balance to the real one.
+            int balanceType = (int)BalanceType.NonPurchasedNotUsableInP2P;
             var balanceUpdateResponse = new
             {
                 Balance = (long)balance,

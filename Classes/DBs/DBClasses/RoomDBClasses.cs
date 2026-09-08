@@ -585,7 +585,9 @@ namespace Mocha2023.Classes.DBs.DBClasses
         {
             Private = 0,
             Public = 1,
-            Unlisted = 2
+            Unlisted = 2,
+            Dev_only = 3,
+            Dev_Unlisted = 4
         }
 
         public enum RoomState

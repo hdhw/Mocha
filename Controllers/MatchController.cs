@@ -765,7 +765,9 @@ namespace Mocha2023.Controllers
             Sessions.MarkPlayerLeft(id.Value);
             Heartbeat? heartbeat = PlayerDB.LeaveCurrentRoom(id.Value);
             await NotiController.NotifyPlayerPresenceUpdatedAsync(id.Value);
-            return Ok(heartbeat);
+            return await MatchmakeResultAsync(
+                heartbeat,
+                heartbeat.errorCode ?? MatchmakingErrorCode.Success);
         }
 
         [HttpGet("rooms/requiring/{role}")]
@@ -946,14 +948,18 @@ namespace Mocha2023.Controllers
                     $"[DORM GUEST HOLD] player={player.PlayerId} " +
                     $"instance={currentHeartbeat.roomInstance?.roomInstanceId} " +
                     "reason=recent-guest-dorm-skip-auto-reload");
-                return Ok(currentHeartbeat);
+                return await MatchmakeResultAsync(
+                    currentHeartbeat,
+                    currentHeartbeat.errorCode ?? MatchmakingErrorCode.Success);
             }
 
             Heartbeat dormHeartbeat = Sessions.CreateDorm(
                 player.PlayerId,
                 player.Player.Username);
             await NotiController.NotifyPlayerPresenceUpdatedAsync(player.PlayerId);
-            return Ok(dormHeartbeat);
+            return await MatchmakeResultAsync(
+                dormHeartbeat,
+                dormHeartbeat.errorCode ?? MatchmakingErrorCode.Success);
         }
 
         [HttpPost("matchmake/room/{roomId}")]
@@ -976,14 +982,9 @@ namespace Mocha2023.Controllers
                 isPrivate: isPrivate);
             if (heartbeat == null)
             {
-                return NotFound(new
-                {
-                    success = false,
-                    error = "room_not_found_or_access_denied",
-                    errorMessage =
-                        "That room is unavailable or you do not have access.",
-                    roomId
-                });
+                return await MatchmakeResultAsync(
+                    null,
+                    MatchmakingErrorCode.NoSuchRoom);
             }
 
             if (heartbeat != null)
@@ -1005,7 +1006,9 @@ namespace Mocha2023.Controllers
             }
 
             await NotiController.NotifyPlayerPresenceUpdatedAsync(player.PlayerId);
-            return Ok(heartbeat);
+            return await MatchmakeResultAsync(
+                heartbeat,
+                heartbeat.errorCode ?? MatchmakingErrorCode.Success);
         }
 
         [HttpPost("matchmake/private/room/{roomId:long}")]
@@ -1028,7 +1031,9 @@ namespace Mocha2023.Controllers
                 $"[PRIVATE MATCHMAKE] player={player.PlayerId} " +
                 $"room={roomId} instance={heartbeat.roomInstance?.roomInstanceId}");
             await NotiController.NotifyPlayerPresenceUpdatedAsync(player.PlayerId);
-            return Ok(heartbeat);
+            return await MatchmakeResultAsync(
+                heartbeat,
+                heartbeat.errorCode ?? MatchmakingErrorCode.Success);
         }
 
         private async Task<IActionResult?> TryJoinLatestInviteForRoomAsync(
@@ -1074,7 +1079,9 @@ namespace Mocha2023.Controllers
                 $"invite={inviteId} instance={roomInstanceId} " +
                 "grantPendingJoinResult=true");
             await NotiController.NotifyPlayerPresenceUpdatedAsync(playerId);
-            return Ok(heartbeat);
+            return await MatchmakeResultAsync(
+                heartbeat,
+                heartbeat.errorCode ?? MatchmakingErrorCode.Success);
         }
 
         [HttpPost("matchmake/instance/{roomInstanceId:long}")]
@@ -1235,7 +1242,9 @@ namespace Mocha2023.Controllers
                 $"viaInvite={hasInvite.ToString().ToLowerInvariant()} " +
                 $"grantPendingJoinResult={hasInvite.ToString().ToLowerInvariant()}");
             await NotiController.NotifyPlayerPresenceUpdatedAsync(player.PlayerId);
-            return Ok(heartbeat);
+            return await MatchmakeResultAsync(
+                heartbeat,
+                heartbeat.errorCode ?? MatchmakingErrorCode.Success);
         }
 
         [HttpPost("matchmake/invite/{inviteId:long}")]
@@ -1372,7 +1381,9 @@ namespace Mocha2023.Controllers
                 $"room={invitedRoomId} instance={roomInstanceId} " +
                 "grantPendingJoinResult=true");
             await NotiController.NotifyPlayerPresenceUpdatedAsync(player.PlayerId);
-            return Ok(heartbeat);
+            return await MatchmakeResultAsync(
+                heartbeat,
+                heartbeat.errorCode ?? MatchmakingErrorCode.Success);
         }
 
         private static bool TryReadJsonLong(
@@ -1446,15 +1457,9 @@ namespace Mocha2023.Controllers
                 isPrivate);
             if (heartbeat == null)
             {
-                return NotFound(new
-                {
-                    success = false,
-                    error = "room_not_found_or_access_denied",
-                    errorMessage =
-                        "That room is unavailable or you do not have access.",
-                    roomId,
-                    subRoomId
-                });
+                return await MatchmakeResultAsync(
+                    null,
+                    MatchmakingErrorCode.NoSuchRoom);
             }
 
             PlayerDB.RecordRoomVisit(player.PlayerId, roomId);
@@ -1474,7 +1479,9 @@ namespace Mocha2023.Controllers
                 $"[SUBROOM MATCHMAKE] player={player.PlayerId} room={roomId} " +
                 $"subroom={subRoomId} instance={heartbeat.roomInstance?.roomInstanceId}");
             await NotiController.NotifyPlayerPresenceUpdatedAsync(player.PlayerId);
-            return Ok(heartbeat);
+            return await MatchmakeResultAsync(
+                heartbeat,
+                heartbeat.errorCode ?? MatchmakingErrorCode.Success);
         }
 
         [HttpPost("matchmake/private/room/{roomId:long}/{subRoomId:long}")]
@@ -1501,11 +1508,149 @@ namespace Mocha2023.Controllers
                 $"room={roomId} subroom={subRoomId} " +
                 $"instance={heartbeat.roomInstance?.roomInstanceId}");
             await NotiController.NotifyPlayerPresenceUpdatedAsync(player.PlayerId);
-            return Ok(heartbeat);
+            return await MatchmakeResultAsync(
+                heartbeat,
+                heartbeat.errorCode ?? MatchmakingErrorCode.Success);
+        }
+
+        // Every matchmake response - refusals included - echoes the request's
+        // CorrelationId back as `correlationId`. The client tags each attempt with a
+        // GUID and fails with "Unable to connect to game session" if it can't match the
+        // response to the attempt. A request that names none gets the all-zero
+        // Guid.Empty rather than null: the client's field is a non-nullable Guid.
+        //
+        // The join code goes out under TWO names - `result`, which the client reads, and
+        // `errorCode`, which this server has always sent. They are the same number and
+        // must never disagree, which is why nothing builds this envelope by hand.
+        private async Task<IActionResult> MatchmakeResultAsync(
+            Heartbeat? heartbeat,
+            MatchmakingErrorCode errorCode)
+        {
+            string correlationId = await ReadCorrelationIdAsync();
+
+            // A couple of paths answer a different envelope - PascalCase, with no
+            // `result` twin. The shape is chosen here, off the request path, rather
+            // than in the handlers, so the ban gate, a refusal and a success on such a
+            // path all answer in the same shape.
+            string path = Request.Path.Value ?? string.Empty;
+            if (path.Contains("/matchmake/v2/", StringComparison.OrdinalIgnoreCase) ||
+                path.Contains("/matchmake/invite/", StringComparison.OrdinalIgnoreCase))
+            {
+                return Ok(new
+                {
+                    ErrorCode = (int)errorCode,
+                    CorrelationId = correlationId,
+                    RoomInstance = heartbeat?.roomInstance
+                });
+            }
+
+            var envelope = new Dictionary<string, object?>();
+
+            if (heartbeat != null)
+            {
+                JsonElement serialized = JsonSerializer.SerializeToElement(heartbeat);
+                foreach (JsonProperty property in serialized.EnumerateObject())
+                    envelope[property.Name] = property.Value;
+            }
+            else
+            {
+                envelope["roomInstance"] = null;
+            }
+
+            envelope["errorCode"] = (int)errorCode;
+            envelope["result"] = (int)errorCode;
+            envelope["correlationId"] = correlationId;
+
+            return Ok(envelope);
+        }
+
+        // The client sends the correlation id as a query parameter, a header or a body
+        // field depending on the route, so all three are checked. The body may already
+        // have been consumed by another reader on this request, which is why it is only
+        // re-read when the stream can be rewound.
+        private async Task<string> ReadCorrelationIdAsync()
+        {
+            const string empty = "00000000-0000-0000-0000-000000000000";
+
+            foreach (string key in new[] { "correlationId", "CorrelationId" })
+            {
+                foreach (string? value in Request.Query[key])
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                        return value.Trim().Trim('"');
+                }
+
+                foreach (string? value in Request.Headers[key])
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                        return value.Trim().Trim('"');
+                }
+            }
+
+            if (Request.HasFormContentType)
+            {
+                var form = await Request.ReadFormAsync(HttpContext.RequestAborted);
+                foreach (var field in form)
+                {
+                    if (!field.Key.Equals(
+                            "CorrelationId",
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    foreach (string? value in field.Value)
+                    {
+                        if (!string.IsNullOrWhiteSpace(value))
+                            return value.Trim().Trim('"');
+                    }
+                }
+
+                return empty;
+            }
+
+            if (!Request.Body.CanSeek || (Request.ContentLength ?? 0) <= 0)
+                return empty;
+
+            Request.Body.Position = 0;
+            using var reader = new StreamReader(
+                Request.Body,
+                leaveOpen: true);
+            string body = await reader.ReadToEndAsync();
+            Request.Body.Position = 0;
+
+            if (string.IsNullOrWhiteSpace(body))
+                return empty;
+
+            try
+            {
+                using JsonDocument document = JsonDocument.Parse(body);
+                foreach (JsonProperty property in
+                         document.RootElement.EnumerateObject())
+                {
+                    if (!property.Name.Equals(
+                            "CorrelationId",
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    string? value = property.Value.ToString();
+                    if (!string.IsNullOrWhiteSpace(value))
+                        return value.Trim().Trim('"');
+                }
+            }
+            catch (JsonException)
+            {
+            }
+
+            return empty;
         }
 
         private async Task<bool> ReadPrivateMatchmakingFlagAsync()
         {
+            Request.EnableBuffering();
+
             foreach (string key in new[]
                      {
                          "isPrivate", "private", "createPrivate",
@@ -1556,8 +1701,15 @@ namespace Mocha2023.Controllers
             if ((Request.ContentLength ?? 0) <= 0)
                 return false;
 
-            using var reader = new StreamReader(Request.Body);
+            if (Request.Body.CanSeek)
+                Request.Body.Position = 0;
+
+            using var reader = new StreamReader(Request.Body, leaveOpen: true);
             string body = await reader.ReadToEndAsync();
+
+            if (Request.Body.CanSeek)
+                Request.Body.Position = 0;
+
             if (string.IsNullOrWhiteSpace(body))
                 return false;
 

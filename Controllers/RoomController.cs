@@ -1303,7 +1303,8 @@ namespace Mocha2023.Controllers
                 return BadRequest(new
                 {
                     success = false,
-                    error = "Accessibility must be Private (0), Public (1), or Unlisted (2)."
+                    error = "Accessibility must be Private (0), Public (1), Unlisted (2), " +
+                        "Dev_only (3), or Dev_Unlisted (4)."
                 });
             }
 
@@ -1336,7 +1337,8 @@ namespace Mocha2023.Controllers
                 return BadRequest(new
                 {
                     success = false,
-                    error = "Accessibility must be Private (0), Public (1), or Unlisted (2)."
+                    error = "Accessibility must be Private (0), Public (1), Unlisted (2), " +
+                        "Dev_only (3), or Dev_Unlisted (4)."
                 });
             }
 
@@ -1522,7 +1524,8 @@ namespace Mocha2023.Controllers
                     return BadRequest(new
                     {
                         success = false,
-                        error = "Accessibility must be Private (0), Public (1), or Unlisted (2)."
+                        error = "Accessibility must be Private (0), Public (1), Unlisted (2), " +
+                        "Dev_only (3), or Dev_Unlisted (4)."
                     });
                 }
 
@@ -1962,12 +1965,16 @@ namespace Mocha2023.Controllers
             room.DataBlob = roomBlob;
             subRoom.DataBlob = objectBlob;
 
+            // Description here is the SAVE COMMENT for this one revision - it is shown
+            // against the save in .../saves, and it is stored on the save row below.
+            // It is NOT the room's public description, which belongs to
+            // PUT /rooms/{roomId}/description alone: assigning it here silently
+            // replaced the room's description every time anyone saved the room.
             if (payload.Description != null)
             {
                 string description = payload.Description.Trim();
                 if (description.Length > 1_000 || description.Any(ch => ch == '\0'))
                     return BadRequest(new { success = false, error = "Room description is too long." });
-                room.Description = description;
             }
 
             room.PersistenceVersion =

@@ -19,6 +19,13 @@ namespace Mocha2023.Controllers
     {
         private static readonly object DbLock = new();
 
+        // The client adds one to Rank before it draws, so ranks are 0-BASED: Rank 0 is
+        // "#1". 0 being a real rank (first place), "not on this board" has to be a large
+        // sentinel rather than 0 - the same 99999 every reference server sends.
+        private const int Unranked = 99999;
+
+        private const int NoScore = 0;
+
         private static readonly LiteDatabase LeaderboardDb = OpenDatabase();
 
         private static readonly ILiteCollection<LeaderboardStat> Stats =
@@ -132,8 +139,9 @@ namespace Mocha2023.Controllers
 
             return Ok(new PlayerRankResponse
             {
-                Rank = player?.Rank ?? 0,
-                Score = player?.Score ?? 0
+                PlayerId = SafePlayerId(requestedPlayerId),
+                Rank = player?.Rank ?? Unranked,
+                Score = player?.Score ?? NoScore
             });
         }
 
@@ -177,7 +185,7 @@ namespace Mocha2023.Controllers
             {
                 return Ok(new NearbyScoresResponse
                 {
-                    Results = new List<LeaderboardEntry>()
+                    Rows = new List<LeaderboardEntry>()
                 });
             }
 
@@ -195,7 +203,7 @@ namespace Mocha2023.Controllers
 
             return Ok(new NearbyScoresResponse
             {
-                Results = results
+                Rows = results
             });
         }
 
@@ -215,8 +223,8 @@ namespace Mocha2023.Controllers
             {
                 RequestValues values = await ReadRequestValuesAsync();
                 request = RankRequest.From(values);
-                rankStart = Math.Max(1, values.GetInt32("RankStart", 1));
-                rankEnd = Math.Max(rankStart, values.GetInt32("RankEnd", rankStart + 49));
+                rankStart = Math.Max(0, values.GetInt32("RankStart", 0));
+                rankEnd = Math.Max(rankStart, values.GetInt32("RankEnd", 9));
             }
             catch (JsonException exception)
             {
@@ -237,7 +245,7 @@ namespace Mocha2023.Controllers
 
             return Ok(new NearbyScoresResponse
             {
-                Results = results
+                Rows = results
             });
         }
 
@@ -266,7 +274,7 @@ namespace Mocha2023.Controllers
                 .Select((row, index) => new RankedStat
                 {
                     AccountId = row.AccountId,
-                    Rank = index + 1,
+                    Rank = index,
                     Score = row.Score
                 })
                 .ToList();
@@ -403,6 +411,8 @@ namespace Mocha2023.Controllers
 
         private sealed class PlayerRankResponse
         {
+            public int PlayerId { get; set; }
+
             public int Rank { get; set; }
 
             public int Score { get; set; }
@@ -410,7 +420,7 @@ namespace Mocha2023.Controllers
 
         private sealed class NearbyScoresResponse
         {
-            public List<LeaderboardEntry> Results { get; set; } = new();
+            public List<LeaderboardEntry> Rows { get; set; } = new();
         }
 
         private sealed class LeaderboardEntry
