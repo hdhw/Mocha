@@ -358,8 +358,6 @@ namespace Mocha2023
             {
                 if (serverStarted)
                 {
-                    // Take a final snapshot unconditionally: whatever happened in the
-                    // last interval would otherwise be the one window never covered.
                     Classes.DbBackupService.Stop();
                     Classes.DbBackupService.BackupNow("shutdown");
 

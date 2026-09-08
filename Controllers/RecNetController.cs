@@ -3313,8 +3313,6 @@ namespace Mocha2023.Controllers
             });
         }
 
-        // Backup status for the panel: what the service is set to do, and what it
-        // actually has on disk.
         [HttpGet("admin/db-backups")]
         public IActionResult AdminDbBackups()
         {
@@ -3340,8 +3338,6 @@ namespace Mocha2023.Controllers
             });
         }
 
-        // Force a snapshot regardless of whether anything changed - the scheduled pass
-        // skips an unchanged database, so this is how you take one on demand.
         [HttpPost("admin/db-backups/run")]
         public IActionResult AdminDbBackupNow()
         {
@@ -3517,13 +3513,15 @@ namespace Mocha2023.Controllers
             [FromQuery] string? search = null,
             [FromQuery] string? type = null,
             [FromQuery] int skip = 0,
-            [FromQuery] int take = 30)
+            [FromQuery] int take = 30,
+            [FromQuery] bool includeHidden = false)
         {
             var admin = AuthStuff.GetCurrentPlayer(Request);
             if (!IsAdmin(admin))
                 return StatusCode(403);
 
-            var (items, total) = APIController.SearchStorefrontCatalog(search, type, skip, take);
+            var (items, total) = APIController.SearchStorefrontCatalog(
+                search, type, skip, take, includeHidden);
             return Ok(new
             {
                 results = items.Select(ToAdminShopItemPayload),
@@ -3588,13 +3586,15 @@ namespace Mocha2023.Controllers
             [FromQuery] string? search = null,
             [FromQuery] string? type = null,
             [FromQuery] int skip = 0,
-            [FromQuery] int take = 50)
+            [FromQuery] int take = 50,
+            [FromQuery] bool includeHidden = true)
         {
             var admin = AuthStuff.GetCurrentPlayer(Request);
             if (!IsAdmin(admin))
                 return StatusCode(403);
 
-            var (catalogItems, total) = APIController.SearchStorefrontCatalog(search, type, skip, take);
+            var (catalogItems, total) = APIController.SearchStorefrontCatalog(
+                search, type, skip, take, includeHidden);
             var items = catalogItems
                 .Select(item => new
                 {

@@ -2008,10 +2008,6 @@ async function renderClubTab(tab, clubId) {
 const GIFT_CONTEXT_DEFS = [['None', -1], ['Default'], ['First_Activity'], ['Game_Drop'], ['All_Daily_Challenges_Complete'], ['All_Weekly_Challenge_Complete'], ['Daily_Challenge_Complete'], ['Weekly_Challenge_Complete'], ['Unassigned_Equipment', 10], ['Unassigned_Avatar'], ['Unassigned_Consumable'], ['Reacquisition', 20], ['Membership'], ['NUX_TokensAndDressUp', 30], ['NUX_Experiment1'], ['NUX_Experiment2'], ['NUX_Experiment3'], ['NUX_Experiment4'], ['NUX_Experiment5'], ['GameRewards', 50], ['GameRewards_Tokens'], ['LevelUp', 100], ['Purchased_Gift_A', 500], ['Purchased_Gift_B'], ['Purchased_Gift_C'], ['Purchased_Gift_D'], ['Holiday', 1000], ['Contest'], ['Promotion'], ['SubscribersOnly'], ['Deprecated', 1100], ['RecRoyale', 1200], ['DEPRECATED_Paintball_ClearCut', 2000], ['DEPRECATED_Paintball_Homestead'], ['DEPRECATED_Paintball_Quarry'], ['DEPRECATED_Paintball_River'], ['DEPRECATED_Paintball_Dam'], ['DEPRECATED_Paintball_DriveIn'], ['Paintball_ClearCut', 2010], ['Paintball_Homestead'], ['Paintball_Quarry'], ['Paintball_River'], ['Paintball_Dam'], ['Paintball_DriveIn'], ['DEPRECATED_Discgolf_Propulsion', 3000], ['DEPRECATED_Discgolf_Lake'], ['Discgolf_Propulsion', 3010], ['Discgolf_Lake'], ['Discgolf_Mode_CoopCatch', 3500], ['Quest_Goblin_A', 4000], ['Quest_Goblin_B'], ['Quest_Goblin_C'], ['Quest_Goblin_S'], ['Quest_Goblin_Consumable'], ['Quest_Cauldron_A', 4010], ['Quest_Cauldron_B'], ['Quest_Cauldron_C'], ['Quest_Cauldron_S'], ['Quest_Cauldron_Consumable'], ['Quest_Pirate1_A', 4100], ['Quest_Pirate1_B'], ['Quest_Pirate1_C'], ['Quest_Pirate1_S'], ['Quest_Pirate1_X'], ['Quest_Pirate1_Consumable'], ['Quest_Dracula1_A', 4200], ['Quest_Dracula1_B'], ['Quest_Dracula1_C'], ['Quest_Dracula1_S'], ['Quest_Dracula1_X'], ['Quest_Dracula1_Consumable'], ['Quest_Dracula1_SS'], ['Quest_SciFi_A', 4500], ['Quest_SciFi_B'], ['Quest_SciFi_C'], ['Quest_SciFi_S'], ['Quest_Scifi_Consumable'], ['DEPRECATED_Charades', 5000], ['Charades'], ['DEPRECATED_Soccer', 6000], ['Soccer'], ['DEPRECATED_Paddleball', 7000], ['Paddleball'], ['DEPRECATED_Dodgeball', 8000], ['Dodgeball'], ['DEPRECATED_Lasertag', 9000], ['Lasertag'], ['DEPRECATED_Bowling', 10000], ['Bowling'], ['StuntRunner_TheMainEvent_A', 11000], ['StuntRunner_TheMainEvent_B'], ['StuntRunner_TheMainEvent_C'], ['StuntRunner_TheMainEvent_D'], ['StuntRunner_TheMainEvent_S'], ['StuntRunner_TheMainEvent_X'], ['StuntRunner_TheMainEvent_Consumable'], ['StuntRunner_TheMainEvent_SS'], ['Store_LaserTag', 100000], ['Store_RecCenter', 100010], ['Consumable', 110000], ['Token', 110100], ['Punchcard_Challenge_Complete', 110200], ['All_Punchcard_Challenges_Complete'], ['Commerce_Purchase', 200000]];
 const GIFT_CONTEXTS = (() => { let next = 0; return GIFT_CONTEXT_DEFS.map(([name, value]) => { const v = value !== undefined ? value : next; next = v + 1; return { name, value: v }; }); })();
 
-// Misc - the operational actions that have no page of their own: the live Coach
-// broadcast, the database snapshots, and two cleanup tools. These all existed on
-// the server already; only the Coach broadcast and the gift/image cleanups were
-// left without a control when the old #admin page was retired.
 async function miscView() {
     app.innerHTML = `
     <h1 class="page-title">Misc</h1>
@@ -2056,7 +2052,6 @@ async function miscView() {
         el.style.color = ok ? 'var(--ok, #4ade80)' : 'var(--danger, #f87171)';
     };
 
-    // Wrap a button so it cannot be double-fired and always reports an outcome.
     const wire = (buttonId, statusId, run) => {
         const button = document.querySelector(`#${buttonId}`);
         const status = document.querySelector(`#${statusId}`);
@@ -2425,6 +2420,7 @@ async function avatarItemsView() {
     <div class="card">
         <h2>Browse Avatar Items</h2>
         <div class="search-row"><input id="avatarBrowseSearch" placeholder="Search name, SKU, or avatar item ID"><button class="btn" id="avatarBrowseSearchGo">Search</button></div>
+        <label style="display:block;margin:6px 0 10px"><input type="checkbox" id="avatarBrowseAll" checked> Include items the shop hides (Custom, Owner, Shirt, Saija, Bishop, Special, underscored) &mdash; about a fifth of the catalog</label>
         <div id="avatarBrowseResults"><p class="field-hint">Search to browse the avatar item catalog.</p></div>
         <div class="search-row" id="avatarBrowsePager" style="margin-top:10px;margin-bottom:0;display:none">
             <button class="btn ghost small" id="avatarBrowsePrev">&larr; Prev</button>
@@ -2442,7 +2438,8 @@ async function avatarItemsView() {
         const query = searchInput.value.trim();
         results.innerHTML = '<div class="loading"><i></i>Loading</div>';
         try {
-            const data = await get(`${API}/admin/gifts/catalog?search=${encodeURIComponent(query)}&type=avatar&skip=${avatarBrowseSkip}&take=${avatarBrowseTake}`);
+            const includeHidden = document.querySelector('#avatarBrowseAll')?.checked !== false;
+            const data = await get(`${API}/admin/gifts/catalog?search=${encodeURIComponent(query)}&type=avatar&skip=${avatarBrowseSkip}&take=${avatarBrowseTake}&includeHidden=${includeHidden}`);
             const items = data.results ?? data;
             const total = data.total ?? items.length;
             results.innerHTML = items.length ? items.map(item => `
@@ -2459,6 +2456,8 @@ async function avatarItemsView() {
             results.innerHTML = `<p class="form-status error">${esc(error.message)}</p>`;
         }
     }
+    const avatarBrowseAll = document.querySelector('#avatarBrowseAll');
+    if (avatarBrowseAll) avatarBrowseAll.addEventListener('change', () => { avatarBrowseSkip = 0; runAvatarBrowse(); });
     const avatarBrowseSearchGo = document.querySelector('#avatarBrowseSearchGo');
     if (avatarBrowseSearchGo) avatarBrowseSearchGo.addEventListener('click', () => { avatarBrowseSkip = 0; runAvatarBrowse(); });
     const avatarBrowseSearchInput = document.querySelector('#avatarBrowseSearch');

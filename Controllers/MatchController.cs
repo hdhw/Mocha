@@ -1513,25 +1513,12 @@ namespace Mocha2023.Controllers
                 heartbeat.errorCode ?? MatchmakingErrorCode.Success);
         }
 
-        // Every matchmake response - refusals included - echoes the request's
-        // CorrelationId back as `correlationId`. The client tags each attempt with a
-        // GUID and fails with "Unable to connect to game session" if it can't match the
-        // response to the attempt. A request that names none gets the all-zero
-        // Guid.Empty rather than null: the client's field is a non-nullable Guid.
-        //
-        // The join code goes out under TWO names - `result`, which the client reads, and
-        // `errorCode`, which this server has always sent. They are the same number and
-        // must never disagree, which is why nothing builds this envelope by hand.
         private async Task<IActionResult> MatchmakeResultAsync(
             Heartbeat? heartbeat,
             MatchmakingErrorCode errorCode)
         {
             string correlationId = await ReadCorrelationIdAsync();
 
-            // A couple of paths answer a different envelope - PascalCase, with no
-            // `result` twin. The shape is chosen here, off the request path, rather
-            // than in the handlers, so the ban gate, a refusal and a success on such a
-            // path all answer in the same shape.
             string path = Request.Path.Value ?? string.Empty;
             if (path.Contains("/matchmake/v2/", StringComparison.OrdinalIgnoreCase) ||
                 path.Contains("/matchmake/invite/", StringComparison.OrdinalIgnoreCase))
@@ -1564,10 +1551,6 @@ namespace Mocha2023.Controllers
             return Ok(envelope);
         }
 
-        // The client sends the correlation id as a query parameter, a header or a body
-        // field depending on the route, so all three are checked. The body may already
-        // have been consumed by another reader on this request, which is why it is only
-        // re-read when the stream can be rewound.
         private async Task<string> ReadCorrelationIdAsync()
         {
             const string empty = "00000000-0000-0000-0000-000000000000";

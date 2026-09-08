@@ -8,23 +8,10 @@ using System.Threading;
 
 namespace Mocha2023.Classes
 {
-    // Periodic snapshot of Data/DBs into Data/DBBackups.
-    //
-    // The tick is cheap and does nothing most of the time: it fingerprints the
-    // database files and returns immediately unless something moved. LiteDB writes
-    // every change through the -log.db companion before it is checkpointed into the
-    // .db, so a new account, a room save, a cheer - anything that touches a
-    // collection - shows up as a length or write-time change on one of those files.
-    // That is the trigger; there is no per-feature bookkeeping to keep in sync.
     public static class DbBackupService
     {
-        // How often the fingerprint is taken. A tick that finds no change costs a
-        // directory listing, so this can be frequent without being expensive.
         private static readonly TimeSpan Interval = TimeSpan.FromMinutes(10);
 
-        // Snapshots kept before the oldest is pruned. A busy server can produce one
-        // every interval, so this is the real disk ceiling: roughly
-        // MaxSnapshots * (size of Data/DBs).
         private const int MaxSnapshots = 48;
 
         private static readonly object Sync = new();
@@ -45,9 +32,6 @@ namespace Mocha2023.Classes
                 if (_timer != null)
                     return;
 
-                // The state on disk at startup is already safe on disk - it is what a
-                // backup would copy. Recording it now means an idle server that is
-                // started and left alone writes nothing.
                 _lastFingerprint = TryFingerprint();
 
                 _timer = new Timer(
@@ -71,8 +55,6 @@ namespace Mocha2023.Classes
             }
         }
 
-        // Run a backup regardless of whether anything changed. Used by the shutdown
-        // path and the admin panel's manual button.
         public static string? BackupNow(string reason)
         {
             lock (Sync)
@@ -97,8 +79,6 @@ namespace Mocha2023.Classes
 
         public static int RetainedSnapshots => MaxSnapshots;
 
-        // Newest first. Used by the admin panel; the sizes are read off disk rather
-        // than remembered, so a snapshot deleted by hand simply stops being listed.
         public static List<SnapshotInfo> ListSnapshots()
         {
             var results = new List<SnapshotInfo>();
@@ -140,8 +120,6 @@ namespace Mocha2023.Classes
                 {
                     string? fingerprint = TryFingerprint();
 
-                    // Unreadable directory, or genuinely nothing new since the last
-                    // snapshot. Either way there is nothing worth writing.
                     if (fingerprint == null || fingerprint == _lastFingerprint)
                         return;
 
@@ -155,9 +133,6 @@ namespace Mocha2023.Classes
             }
         }
 
-        // Name, length and last-write time of every file under Data/DBs. Length and
-        // write time together are what change on a LiteDB write; hashing the files
-        // would be the same answer for several megabytes more work each tick.
         private static string? TryFingerprint()
         {
             try
@@ -201,8 +176,6 @@ namespace Mocha2023.Classes
                     CultureInfo.InvariantCulture);
                 string destination = Path.Combine(BackupRoot, stamp);
 
-                // A second snapshot inside the same second would land on the same
-                // directory; make the name unique rather than merging the two.
                 int suffix = 1;
                 while (Directory.Exists(destination))
                     destination = Path.Combine(BackupRoot, $"{stamp}-{suffix++}");
@@ -222,10 +195,6 @@ namespace Mocha2023.Classes
 
                     Directory.CreateDirectory(Path.GetDirectoryName(target)!);
 
-                    // The databases are open and being written to, so the copy has to
-                    // tolerate the writer's own handle. Both the .db and its -log.db
-                    // are copied, which is the pair LiteDB needs to recover a snapshot
-                    // taken between checkpoints.
                     using (FileStream source = new(
                                path,
                                FileMode.Open,
@@ -259,10 +228,6 @@ namespace Mocha2023.Classes
             }
         }
 
-        // Keep the newest MaxSnapshots directories this service created. Directories
-        // that do not match the stamp format are left alone - Data/DBBackups is the
-        // service's own, but an operator's hand-made folder should not be deleted by
-        // a retention pass.
         private static void Prune()
         {
             try
@@ -288,7 +253,6 @@ namespace Mocha2023.Classes
             }
         }
 
-        // yyyy-MM-dd_HH-mm-ss, optionally with the -N collision suffix.
         private static bool IsSnapshotName(string name)
         {
             string stamp = name;

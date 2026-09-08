@@ -4516,9 +4516,6 @@ namespace Mocha2023.Controllers
             if (accountId == null)
                 return Unauthorized();
 
-            // An unknown or non-account-scoped currency answers a 0 balance rather
-            // than 400: the client treats a failed balance fetch as a load error, and
-            // "you have none of that" is the honest answer anyway.
             int balance = Enum.IsDefined(typeof(CurrencyType), currencyType)
                 ? PlayerDB.GetCurrencyBalance(
                     accountId.Value,
@@ -7968,10 +7965,6 @@ namespace Mocha2023.Controllers
                 $"category={category} anonymous={anonymous} " +
                 $"created={cheer != null}");
 
-            // PascalCase { Success, Message }, with Message NULL on success - NOT the
-            // lowercase { success, error } envelope the reports and warnings use. A
-            // refusal answers 200 with Success false and the reason in Message; the
-            // client shows that message, and treats an error status as a failed call.
             return cheer == null
                 ? Ok(new
                 {
@@ -9378,6 +9371,10 @@ namespace Mocha2023.Controllers
         private static bool IsUnfinishedCatalogItem(CatalogSku item) =>
             item.Rarity <= 0 && !item.HasRealName;
 
+        private static bool IsListableCatalogItem(CatalogSku? item) =>
+            item != null && !string.IsNullOrWhiteSpace(item.FriendlyName) &&
+            (IsAvatarCatalogItem(item) || IsEquipmentSkin(item) || IsConsumableCatalogItem(item));
+
         private static bool IsUsableStoreItem(CatalogSku? item) =>
             item != null && !string.IsNullOrWhiteSpace(item.FriendlyName) &&
             (IsAvatarCatalogItem(item) || IsEquipmentSkin(item) || IsConsumableCatalogItem(item)) &&
@@ -9648,13 +9645,16 @@ namespace Mocha2023.Controllers
             string? search,
             string? type = null,
             int skip = 0,
-            int take = 30)
+            int take = 30,
+            bool includeHidden = false)
         {
             string term = search?.Trim() ?? string.Empty;
             string requestedType = type?.Trim().ToLowerInvariant() ?? string.Empty;
 
             IEnumerable<StorefrontAdminItem> query = GetCatalogSkus()
-                .Where(IsUsableStoreItem)
+                .Where(item => includeHidden
+                    ? IsListableCatalogItem(item)
+                    : IsUsableStoreItem(item))
                 .Where(item => string.IsNullOrWhiteSpace(term) ||
                     item.FriendlyName.Contains(term, StringComparison.OrdinalIgnoreCase) ||
                     item.AvatarItemDesc.Contains(term, StringComparison.OrdinalIgnoreCase) ||

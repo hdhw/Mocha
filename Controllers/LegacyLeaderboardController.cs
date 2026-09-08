@@ -19,9 +19,6 @@ namespace Mocha2023.Controllers
     {
         private static readonly object DbLock = new();
 
-        // The client adds one to Rank before it draws, so ranks are 0-BASED: Rank 0 is
-        // "#1". 0 being a real rank (first place), "not on this board" has to be a large
-        // sentinel rather than 0 - the same 99999 every reference server sends.
         private const int Unranked = 99999;
 
         private const int NoScore = 0;

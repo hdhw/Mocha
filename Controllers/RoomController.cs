@@ -1965,11 +1965,6 @@ namespace Mocha2023.Controllers
             room.DataBlob = roomBlob;
             subRoom.DataBlob = objectBlob;
 
-            // Description here is the SAVE COMMENT for this one revision - it is shown
-            // against the save in .../saves, and it is stored on the save row below.
-            // It is NOT the room's public description, which belongs to
-            // PUT /rooms/{roomId}/description alone: assigning it here silently
-            // replaced the room's description every time anyone saved the room.
             if (payload.Description != null)
             {
                 string description = payload.Description.Trim();
