@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using LiteDB;
 using Mocha2023.Classes;
 using Mocha2023.Classes.DBs.DBClasses;
@@ -996,6 +996,29 @@ namespace Mocha2023.Classes.DBs
                 int removed = pending.RemoveAll(gift => gift.GiftPackageId == giftPackageId);
                 return removed > 0 && Players.Update(player!);
             }
+        }
+
+        // Clear every pending (outgoing/unclaimed) gift box for all players.
+        public static ClearOutgoingGiftsResult ClearAllPendingGiftPackages()
+        {
+            var result = new ClearOutgoingGiftsResult();
+            lock (GiftLock)
+            {
+                foreach (var account in Players.FindAll())
+                {
+                    var pending = account?.Player?.PlayerExtra?.PendingGiftPackages;
+                    if (pending == null || pending.Count == 0)
+                        continue;
+                    int removed = pending.Count;
+                    pending.Clear();
+                    if (Players.Update(account!))
+                    {
+                        result.RemovedBoxes += removed;
+                        result.AffectedPlayers++;
+                    }
+                }
+            }
+            return result;
         }
 
         public static int ClearPendingGiftPackages(long playerId)

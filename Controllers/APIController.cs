@@ -8325,6 +8325,7 @@ namespace Mocha2023.Controllers
                     BalanceUpdates = PlayerDB.GetAllCurrencyBalances(accountId.Value)
                         .Select(entry => new
                         {
+                            UpdateResponse = 0,
                             Result = 0,
                             PurchaseResult = 0,
                             Balance = entry.CurrencyType == PlayerDBClasses.CurrencyType.RecCenterTokens
@@ -8392,6 +8393,7 @@ namespace Mocha2023.Controllers
                 BalanceUpdates = PlayerDB.GetAllCurrencyBalances(accountId.Value)
                     .Select(entry => new
                     {
+                        UpdateResponse = 0,
                         Result = 0,
                         PurchaseResult = 0,
                         Balance = entry.CurrencyType == PlayerDBClasses.CurrencyType.RecCenterTokens

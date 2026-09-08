@@ -1144,6 +1144,14 @@ namespace Mocha2023
                     await HandleMaintenanceAsync(arguments);
                     break;
 
+                case "clear-all-gifts":
+                {
+                    var r = PlayerDB.ClearAllPendingGiftPackages();
+                    ServerLog.Success(
+                        $"Cleared {r.RemovedBoxes} outgoing box(es) across {r.AffectedPlayers} player(s).");
+                    break;
+                }
+
                 case "exit":
                 case "quit":
                     return false;
@@ -1195,6 +1203,7 @@ namespace Mocha2023
             Console.WriteLine("create-account <username> <accountId> <true|false> <platform> <platformId>");
             Console.WriteLine("change-accid <currentAccountId> <newAccountId>");
             Console.WriteLine("maintenance <minutes>");
+            Console.WriteLine("clear-all-gifts - remove every unclaimed outgoing gift box");
             Console.WriteLine("exit");
             Console.WriteLine();
         }
