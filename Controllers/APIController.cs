@@ -8846,7 +8846,7 @@ namespace Mocha2023.Controllers
                 AvatarItemId = item.AvatarItemId,
                 AvatarItemType = item.AvatarItemType,
                 ItemType = item.AvatarItemType,
-                AvatarItemDesc = item.AvatarItemDesc ?? string.Empty,
+                AvatarItemDesc = NormalizeAvatarItemDesc(item.AvatarItemDesc),
                 FriendlyName = friendlyName,
                 Tooltip = item.Tooltip ?? string.Empty,
                 ThumbnailImage = item.ThumbnailImage ?? string.Empty,
@@ -9007,6 +9007,24 @@ namespace Mocha2023.Controllers
             return defaultValue;
         }
 
+        // The client's avatar-item desc is a 4-field composite:
+        // baseGuid,color1,color2,color3. Store items must carry all four fields
+        // (empty when uncolored) or the client can't parse the desc and the item
+        // silently fails to render - which made a full store look empty. Matches
+        // the recflare store format ("guid,,,"). Consumables have no avatar desc
+        // and pass through empty.
+        private static string NormalizeAvatarItemDesc(string? desc)
+        {
+            string[] parts = (desc ?? string.Empty).Split(',');
+            string baseGuid = parts.Length > 0 ? parts[0].Trim() : string.Empty;
+            if (string.IsNullOrEmpty(baseGuid))
+                return string.Empty;
+            string c1 = parts.Length > 1 ? parts[1].Trim() : string.Empty;
+            string c2 = parts.Length > 2 ? parts[2].Trim() : string.Empty;
+            string c3 = parts.Length > 3 ? parts[3].Trim() : string.Empty;
+            return baseGuid + "," + c1 + "," + c2 + "," + c3;
+        }
+
         private static List<CatalogPrice> CreateCatalogPrices(int price) =>
             new()
             {
@@ -9144,7 +9162,7 @@ namespace Mocha2023.Controllers
                     ? $"Avatar Item {item.AvatarItemId}"
                     : item.FriendlyName.Trim(),
                 Tooltip = item.Tooltip ?? string.Empty,
-                AvatarItemDesc = item.AvatarItemDesc ?? string.Empty,
+                AvatarItemDesc = NormalizeAvatarItemDesc(item.AvatarItemDesc),
                 ConsumableItemDesc = string.Empty,
                 EquipmentPrefabName = string.Empty,
                 EquipmentModificationGuid = string.Empty,
@@ -9677,7 +9695,7 @@ namespace Mocha2023.Controllers
                 AvatarItemId = item.AvatarItemId,
                 AvatarItemType = item.AvatarItemType,
                 FriendlyName = item.FriendlyName,
-                AvatarItemDesc = item.AvatarItemDesc,
+                AvatarItemDesc = NormalizeAvatarItemDesc(item.AvatarItemDesc),
                 ConsumableItemDesc = item.ConsumableItemDesc,
                 EquipmentPrefabName = item.EquipmentPrefabName,
                 EquipmentModificationGuid = item.EquipmentModificationGuid,
