@@ -1,0 +1,371 @@
+{
+ "StoreItems": [
+  {
+   "GiftDrop": {
+    "AvatarItemDesc": "ec5255d5-edaf-4888-9fe1-e89ac0e0d300,,,",
+    "AvatarItemType": 0,
+    "ConsumableItemDesc": "",
+    "Context": 0,
+    "Currency": 0,
+    "CurrencyType": 0,
+    "EquipmentModificationGuid": "",
+    "EquipmentPrefabName": "",
+    "FriendlyName": "Astronaut Suit (White)",
+    "GiftDropId": 12402,
+    "IsQuery": false,
+    "ItemSetFriendlyName": "",
+    "ItemSetId": 0,
+    "Rarity": 50,
+    "SubscribersOnly": false,
+    "Tooltip": "",
+    "Unique": true
+   },
+   "IsFeatured": false,
+   "Prices": [
+    {
+     "CurrencyType": 2,
+     "Price": 3000,
+     "StorefrontSaleData": null,
+     "Type": 0
+    }
+   ],
+   "PurchasableItemId": 12402,
+   "SubscriberPrices": [
+    {
+     "CurrencyType": 2,
+     "Price": 2700,
+     "StorefrontSaleData": null,
+     "Type": 0
+    }
+   ],
+   "Type": 0
+  },
+  {
+   "GiftDrop": {
+    "AvatarItemDesc": "f218e2de-46fd-45b9-9e0e-670b6bb905e7,,,",
+    "AvatarItemType": 0,
+    "ConsumableItemDesc": "",
+    "Context": 0,
+    "Currency": 0,
+    "CurrencyType": 0,
+    "EquipmentModificationGuid": "",
+    "EquipmentPrefabName": "",
+    "FriendlyName": "Astronaut Helmet (White)",
+    "GiftDropId": 12496,
+    "IsQuery": false,
+    "ItemSetFriendlyName": "",
+    "ItemSetId": 0,
+    "Rarity": 50,
+    "SubscribersOnly": false,
+    "Tooltip": "",
+    "Unique": true
+   },
+   "IsFeatured": false,
+   "Prices": [
+    {
+     "CurrencyType": 2,
+     "Price": 3000,
+     "StorefrontSaleData": null,
+     "Type": 0
+    }
+   ],
+   "PurchasableItemId": 12496,
+   "SubscriberPrices": [
+    {
+     "CurrencyType": 2,
+     "Price": 2700,
+     "StorefrontSaleData": null,
+     "Type": 0
+    }
+   ],
+   "Type": 0
+  },
+  {
+   "GiftDrop": {
+    "AvatarItemDesc": "88739d79-aeb9-471a-b25b-776f46bba9f6,,,",
+    "AvatarItemType": 0,
+    "ConsumableItemDesc": "",
+    "Context": 0,
+    "Currency": 0,
+    "CurrencyType": 0,
+    "EquipmentModificationGuid": "",
+    "EquipmentPrefabName": "",
+    "FriendlyName": "Astronaut Gloves (White)",
+    "GiftDropId": 11418,
+    "IsQuery": false,
+    "ItemSetFriendlyName": "",
+    "ItemSetId": 0,
+    "Rarity": 50,
+    "SubscribersOnly": false,
+    "Tooltip": "",
+    "Unique": true
+   },
+   "IsFeatured": false,
+   "Prices": [
+    {
+     "CurrencyType": 2,
+     "Price": 3000,
+     "StorefrontSaleData": null,
+     "Type": 0
+    }
+   ],
+   "PurchasableItemId": 11418,
+   "SubscriberPrices": [
+    {
+     "CurrencyType": 2,
+     "Price": 2700,
+     "StorefrontSaleData": null,
+     "Type": 0
+    }
+   ],
+   "Type": 0
+  },
+  {
+   "GiftDrop": {
+    "AvatarItemDesc": "ec5255d5-edaf-4888-9fe1-e89ac0e0d300,9GhnX4Pj4E-wxbPlD8GB-g,YSrGwXybGEqaqHNCS64qOA,",
+    "AvatarItemType": 0,
+    "ConsumableItemDesc": "",
+    "Context": 0,
+    "Currency": 0,
+    "CurrencyType": 0,
+    "EquipmentModificationGuid": "",
+    "EquipmentPrefabName": "",
+    "FriendlyName": "Astronaut Suit (Orange)",
+    "GiftDropId": 12403,
+    "IsQuery": false,
+    "ItemSetFriendlyName": "",
+    "ItemSetId": 0,
+    "Rarity": 50,
+    "SubscribersOnly": false,
+    "Tooltip": "",
+    "Unique": true
+   },
+   "IsFeatured": false,
+   "Prices": [
+    {
+     "CurrencyType": 2,
+     "Price": 3000,
+     "StorefrontSaleData": null,
+     "Type": 0
+    }
+   ],
+   "PurchasableItemId": 12403,
+   "SubscriberPrices": [
+    {
+     "CurrencyType": 2,
+     "Price": 2700,
+     "StorefrontSaleData": null,
+     "Type": 0
+    }
+   ],
+   "Type": 0
+  },
+  {
+   "GiftDrop": {
+    "AvatarItemDesc": "f218e2de-46fd-45b9-9e0e-670b6bb905e7,JFalLDUvm0aMm3wh1UVfVg,iQjkS1xYP0S63ltvKpkz5g,",
+    "AvatarItemType": 0,
+    "ConsumableItemDesc": "",
+    "Context": 0,
+    "Currency": 0,
+    "CurrencyType": 0,
+    "EquipmentModificationGuid": "",
+    "EquipmentPrefabName": "",
+    "FriendlyName": "Astronaut Helmet (Orange)",
+    "GiftDropId": 12497,
+    "IsQuery": false,
+    "ItemSetFriendlyName": "",
+    "ItemSetId": 0,
+    "Rarity": 50,
+    "SubscribersOnly": false,
+    "Tooltip": "",
+    "Unique": true
+   },
+   "IsFeatured": false,
+   "Prices": [
+    {
+     "CurrencyType": 2,
+     "Price": 3000,
+     "StorefrontSaleData": null,
+     "Type": 0
+    }
+   ],
+   "PurchasableItemId": 12497,
+   "SubscriberPrices": [
+    {
+     "CurrencyType": 2,
+     "Price": 2700,
+     "StorefrontSaleData": null,
+     "Type": 0
+    }
+   ],
+   "Type": 0
+  },
+  {
+   "GiftDrop": {
+    "AvatarItemDesc": "88739d79-aeb9-471a-b25b-776f46bba9f6,y_gTbnuYS0GKJmnCs2retw,hjk9OO8CW0KNGR7A6_p84A,",
+    "AvatarItemType": 0,
+    "ConsumableItemDesc": "",
+    "Context": 0,
+    "Currency": 0,
+    "CurrencyType": 0,
+    "EquipmentModificationGuid": "",
+    "EquipmentPrefabName": "",
+    "FriendlyName": "Astronaut Gloves (Orange)",
+    "GiftDropId": 11419,
+    "IsQuery": false,
+    "ItemSetFriendlyName": "",
+    "ItemSetId": 0,
+    "Rarity": 50,
+    "SubscribersOnly": false,
+    "Tooltip": "",
+    "Unique": true
+   },
+   "IsFeatured": false,
+   "Prices": [
+    {
+     "CurrencyType": 2,
+     "Price": 3000,
+     "StorefrontSaleData": null,
+     "Type": 0
+    }
+   ],
+   "PurchasableItemId": 11419,
+   "SubscriberPrices": [
+    {
+     "CurrencyType": 2,
+     "Price": 2700,
+     "StorefrontSaleData": null,
+     "Type": 0
+    }
+   ],
+   "Type": 0
+  },
+  {
+   "GiftDrop": {
+    "GiftDropId": 1978,
+    "FriendlyName": "4-Star Unique Box",
+    "Tooltip": "A random 4-star item that you don't have.",
+    "ConsumableItemDesc": "",
+    "AvatarItemDesc": "",
+    "AvatarItemType": null,
+    "EquipmentPrefabName": "",
+    "EquipmentModificationGuid": "",
+    "IsQuery": true,
+    "QueryRedirectContext": 0,
+    "QueryRedirectRarity": 30,
+    "Unique": true,
+    "SubscribersOnly": false,
+    "Rarity": 30,
+    "Context": 0,
+    "Currency": 0,
+    "CurrencyType": 0,
+    "ItemSetId": 44,
+    "ItemSetFriendlyName": "Star Boxes"
+   },
+   "PurchasableItemId": 539,
+   "Type": 0,
+   "Prices": [
+    {
+     "CurrencyType": 2,
+     "Price": 800,
+     "StorefrontSaleData": null
+    }
+   ],
+   "SubscriberPrices": [
+    {
+     "CurrencyType": 2,
+     "Price": 720,
+     "StorefrontSaleData": null
+    }
+   ],
+   "IsFeatured": false,
+   "NewUntil": null
+  },
+  {
+   "GiftDrop": {
+    "GiftDropId": 1980,
+    "FriendlyName": "2-Star Unique Box",
+    "Tooltip": "A random 2-star item that you don't have.",
+    "ConsumableItemDesc": "",
+    "AvatarItemDesc": "",
+    "AvatarItemType": null,
+    "EquipmentPrefabName": "",
+    "EquipmentModificationGuid": "",
+    "IsQuery": true,
+    "QueryRedirectContext": 0,
+    "QueryRedirectRarity": 10,
+    "Unique": true,
+    "SubscribersOnly": false,
+    "Rarity": 10,
+    "Context": 0,
+    "Currency": 0,
+    "CurrencyType": 0,
+    "ItemSetId": 44,
+    "ItemSetFriendlyName": "Star Boxes"
+   },
+   "PurchasableItemId": 541,
+   "Type": 0,
+   "Prices": [
+    {
+     "CurrencyType": 2,
+     "Price": 200,
+     "StorefrontSaleData": null
+    }
+   ],
+   "SubscriberPrices": [
+    {
+     "CurrencyType": 2,
+     "Price": 180,
+     "StorefrontSaleData": null
+    }
+   ],
+   "IsFeatured": false,
+   "NewUntil": null
+  },
+  {
+   "GiftDrop": {
+    "GiftDropId": 1977,
+    "FriendlyName": "3-Star Unique Box",
+    "Tooltip": "A random 3-star item that you don't have.",
+    "ConsumableItemDesc": "",
+    "AvatarItemDesc": "",
+    "AvatarItemType": null,
+    "EquipmentPrefabName": "",
+    "EquipmentModificationGuid": "",
+    "IsQuery": true,
+    "QueryRedirectContext": 0,
+    "QueryRedirectRarity": 20,
+    "Unique": true,
+    "SubscribersOnly": false,
+    "Rarity": 20,
+    "Context": 0,
+    "Currency": 0,
+    "CurrencyType": 0,
+    "ItemSetId": 44,
+    "ItemSetFriendlyName": "Star Boxes"
+   },
+   "PurchasableItemId": 538,
+   "Type": 0,
+   "Prices": [
+    {
+     "CurrencyType": 2,
+     "Price": 500,
+     "StorefrontSaleData": null
+    }
+   ],
+   "SubscriberPrices": [
+    {
+     "CurrencyType": 2,
+     "Price": 450,
+     "StorefrontSaleData": null
+    }
+   ],
+   "IsFeatured": false,
+   "NewUntil": null
+  }
+ ],
+ "SubscriberDiscountPercent": 10,
+ "StorefrontType": 2,
+ "NextUpdate": "2021-10-06T21:00:00Z",
+ "NewUntil": null
+}

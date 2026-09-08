@@ -146,6 +146,16 @@ namespace Mocha2023.Controllers
         [HttpGet("/api/storefronts/v3/giftdropstore/{storeId:int}")]
         public IActionResult StubGetGiftDropStore([FromRoute] int storeId)
         {
+            // Curated storefronts live as Data/storefronts/sf{id}.json (imported from
+            // the recflare 2023 stores, already in the client's exact shape). Serve the
+            // file verbatim when present; otherwise fall back to the generated store.
+            string storeFile = Path.Combine(
+                Program.dataDir, "storefronts", $"sf{storeId}.json");
+            if (System.IO.File.Exists(storeFile))
+            {
+                Response.Headers.CacheControl = "no-store";
+                return Content(System.IO.File.ReadAllText(storeFile), "application/json");
+            }
 
             List<CatalogSku> storeItems = storeId == 3
                 ? GetWatchStoreSkusWithHairDyes()
