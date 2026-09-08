@@ -8250,6 +8250,7 @@ namespace Mocha2023.Controllers
                 (value.AvatarItemId > 0 && value.AvatarItemId == requestedSkuId.Value) ||
                 (IsConsumableCatalogItem(value) && value.ItemId == requestedSkuId.Value));
 
+            sku ??= ResolveStoreFileSku(requestedSkuId.Value);
             if (sku == null)
                 return NotFound(new { Success = false, Error = "sku_not_found" });
 
@@ -8764,6 +8765,88 @@ namespace Mocha2023.Controllers
             if (refunded.HasValue)
                 newBalance = refunded.Value;
             return false;
+        }
+
+        // Resolve a store item that lives only in an imported storefront file
+        // (Data/storefronts/sf*.json) - those carry recflare's PurchasableItemId /
+        // GiftDropId, which the generated catalog doesn't have, so buyItem 404'd on
+        // them. Builds a CatalogSku from the file's GiftDrop so the normal grant path
+        // (avatar / consumable / equipment, chosen by which desc is set) works.
+        private static CatalogSku? ResolveStoreFileSku(long id)
+        {
+            string dir = Path.Combine(Program.dataDir, "storefronts");
+            if (!Directory.Exists(dir))
+                return null;
+
+            foreach (string file in Directory.EnumerateFiles(dir, "sf*.json"))
+            {
+                JsonElement items;
+                try
+                {
+                    using JsonDocument doc = JsonDocument.Parse(System.IO.File.ReadAllText(file));
+                    if (!doc.RootElement.TryGetProperty("StoreItems", out items) ||
+                        items.ValueKind != JsonValueKind.Array)
+                        continue;
+
+                    foreach (JsonElement it in items.EnumerateArray())
+                    {
+                        long purchasableId = it.TryGetProperty("PurchasableItemId", out var pi) &&
+                            pi.TryGetInt64(out long piv) ? piv : 0;
+                        JsonElement gd = it.TryGetProperty("GiftDrop", out var g) ? g : default;
+                        long giftDropId = gd.ValueKind == JsonValueKind.Object &&
+                            gd.TryGetProperty("GiftDropId", out var gi) &&
+                            gi.TryGetInt64(out long giv) ? giv : 0;
+
+                        if (purchasableId != id && giftDropId != id)
+                            continue;
+
+                        string Str(JsonElement e, string name) =>
+                            e.ValueKind == JsonValueKind.Object &&
+                            e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String
+                                ? (v.GetString() ?? string.Empty) : string.Empty;
+                        int Int(JsonElement e, string name) =>
+                            e.ValueKind == JsonValueKind.Object &&
+                            e.TryGetProperty(name, out var v) && v.TryGetInt32(out int iv) ? iv : 0;
+
+                        var giftDrop = new CatalogGiftDrop
+                        {
+                            GiftDropId = (int)giftDropId,
+                            FriendlyName = Str(gd, "FriendlyName"),
+                            Tooltip = Str(gd, "Tooltip"),
+                            AvatarItemDesc = Str(gd, "AvatarItemDesc"),
+                            ConsumableItemDesc = Str(gd, "ConsumableItemDesc"),
+                            EquipmentPrefabName = Str(gd, "EquipmentPrefabName"),
+                            EquipmentModificationGuid = Str(gd, "EquipmentModificationGuid"),
+                            Rarity = Int(gd, "Rarity"),
+                            Context = Int(gd, "Context")
+                        };
+
+                        return new CatalogSku
+                        {
+                            Id = id,
+                            SkuId = id,
+                            PurchasableItemId = (int)(purchasableId != 0 ? purchasableId : id),
+                            IsFeatured = it.TryGetProperty("IsFeatured", out var f) &&
+                                f.ValueKind == JsonValueKind.True,
+                            ItemId = id,
+                            FriendlyName = giftDrop.FriendlyName,
+                            Tooltip = giftDrop.Tooltip,
+                            AvatarItemDesc = giftDrop.AvatarItemDesc,
+                            ConsumableItemDesc = giftDrop.ConsumableItemDesc,
+                            EquipmentPrefabName = giftDrop.EquipmentPrefabName,
+                            EquipmentModificationGuid = giftDrop.EquipmentModificationGuid,
+                            Rarity = giftDrop.Rarity,
+                            GiftDrop = giftDrop,
+                            GiftDrops = new List<CatalogGiftDrop> { giftDrop }
+                        };
+                    }
+                }
+                catch (JsonException)
+                {
+                    // ignore a malformed store file and keep scanning
+                }
+            }
+            return null;
         }
 
         private static List<CatalogSku> GetCatalogSkus()
