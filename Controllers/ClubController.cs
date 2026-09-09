@@ -117,6 +117,21 @@ namespace Mocha2023.Controllers
                 .Select(club => ClubDB.ToSummary(club))
                 .ToList());
 
+        [HttpGet("~/account/{accountId:long}/clubs")]
+        public IActionResult GetClubsForAccount(long accountId)
+        {
+            long? viewerId = AuthStuff.GetPlayerId(Request);
+
+            List<ClubSummaryDto> results = ClubDB.GetMemberClubs(accountId)
+                .Select(club => ClubDB.ToSummary(club, viewerId ?? accountId))
+                .ToList();
+
+            Console.WriteLine(
+                $"[CLUB ACCOUNT] account={accountId} clubs={results.Count}");
+
+            return Ok(results);
+        }
+
         [HttpGet("mine/member")]
         public IActionResult GetMyMembershipClubs()
         {
@@ -610,6 +625,58 @@ namespace Mocha2023.Controllers
         public async Task<IActionResult> DenyJoinRequest(long clubId) =>
             await ChangePendingMember(clubId, ClubMembershipType.PendingDenied);
 
+        [HttpPost("{clubId:long}/members/acceptrequests")]
+        [HttpPut("{clubId:long}/members/acceptrequests")]
+        [RequestSizeLimit(64 * 1024)]
+        public async Task<IActionResult> AcceptJoinRequests(long clubId) =>
+            await ChangePendingMembers(clubId, ClubMembershipType.Member);
+
+        [HttpPost("{clubId:long}/members/denyrequests")]
+        [HttpPut("{clubId:long}/members/denyrequests")]
+        [RequestSizeLimit(64 * 1024)]
+        public async Task<IActionResult> DenyJoinRequests(long clubId) =>
+            await ChangePendingMembers(clubId, ClubMembershipType.PendingDenied);
+
+        [HttpPost("{clubId:long}/members/invitemembers")]
+        [HttpPut("{clubId:long}/members/invitemembers")]
+        [RequestSizeLimit(64 * 1024)]
+        public async Task<IActionResult> InviteMembers(long clubId)
+        {
+            long? actorId = AuthStuff.GetPlayerId(Request);
+            if (!actorId.HasValue)
+                return Unauthorized();
+            if (!HasPermission(clubId, actorId.Value, ClubMembershipType.Moderator))
+                return StatusCode(403);
+
+            RequestValues values = await ReadRequestValuesAsync();
+            List<long> targets = ReadAccountIds(values);
+            if (targets.Count == 0)
+                return BadRequest(new { success = false, error = "invalid_account" });
+
+            ClubMembershipType invitedType = ParseMembershipType(
+                values.Int("membershipType", "clubMembershipType"),
+                ClubMembershipType.Member);
+            if (invitedType is ClubMembershipType.Moderator or ClubMembershipType.CoOwner)
+                invitedType = ClubMembershipType.Member;
+
+            int invited = 0;
+            foreach (long targetId in targets)
+            {
+                if (PlayerDB.Players.FindById(targetId) == null)
+                    continue;
+                if (ClubDB.GetMembership(clubId, targetId)?.MembershipType >=
+                    ClubMembershipType.Member)
+                {
+                    continue;
+                }
+
+                ClubDB.SetMembership(clubId, targetId, ClubMembershipType.PendingInvited);
+                invited++;
+            }
+
+            return Ok(new { success = true, invited });
+        }
+
         [HttpPost("{clubId:long}/members/changetype")]
         [HttpPut("{clubId:long}/members/changetype")]
         [RequestSizeLimit(16 * 1024)]
@@ -818,9 +885,25 @@ namespace Mocha2023.Controllers
                     message = "You can only use your own saved images."
                 });
             }
-            while (club.AdditionalImages.Count <= imageIndex)
-                club.AdditionalImages.Add(string.Empty);
-            club.AdditionalImages[imageIndex] = imageName;
+            // The gallery is packed - three slots, no gaps. Setting slot 2 when only one
+            // image exists appends rather than padding the list with blanks, and clearing
+            // one shifts the rest up instead of leaving a hole the client renders empty.
+            club.AdditionalImages ??= new List<string>();
+            club.AdditionalImages.RemoveAll(string.IsNullOrWhiteSpace);
+
+            if (string.IsNullOrWhiteSpace(imageName))
+            {
+                if (imageIndex < club.AdditionalImages.Count)
+                    club.AdditionalImages.RemoveAt(imageIndex);
+            }
+            else if (imageIndex < club.AdditionalImages.Count)
+            {
+                club.AdditionalImages[imageIndex] = imageName;
+            }
+            else
+            {
+                club.AdditionalImages.Add(imageName);
+            }
             ClubDB.Update(club);
             return Ok(ClubDB.ToDetails(club, actorId.Value));
         }
@@ -949,6 +1032,60 @@ namespace Mocha2023.Controllers
                 return BadRequest(new { success = false, error = "request_not_found" });
             ClubDB.SetMembership(clubId, targetId.Value, membershipType);
             return Ok(new { success = true });
+        }
+
+        // The bulk forms the client uses when a moderator clears the request queue in one
+        // go. A request that has gone away since the list was drawn is skipped rather than
+        // failing the batch, which would leave the rest unhandled.
+        private async Task<IActionResult> ChangePendingMembers(
+            long clubId,
+            ClubMembershipType membershipType)
+        {
+            long? actorId = AuthStuff.GetPlayerId(Request);
+            if (!actorId.HasValue)
+                return Unauthorized();
+            if (!HasPermission(clubId, actorId.Value, ClubMembershipType.Moderator))
+                return StatusCode(403);
+
+            RequestValues values = await ReadRequestValuesAsync();
+            List<long> targets = ReadAccountIds(values);
+            if (targets.Count == 0)
+                return BadRequest(new { success = false, error = "request_not_found" });
+
+            int changed = 0;
+            foreach (long targetId in targets)
+            {
+                if (ClubDB.GetMembership(clubId, targetId)?.MembershipType !=
+                    ClubMembershipType.PendingRequested)
+                {
+                    continue;
+                }
+
+                ClubDB.SetMembership(clubId, targetId, membershipType);
+                changed++;
+            }
+
+            return Ok(new { success = true, changed });
+        }
+
+        private static List<long> ReadAccountIds(RequestValues values)
+        {
+            var ids = new List<long>();
+
+            foreach (string raw in values.List(
+                         "accountIds", "playerIds", "ids",
+                         "accountId", "playerId", "id"))
+            {
+                foreach (string part in raw.Split(
+                             new[] { ',', ' ', ';' },
+                             StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (long.TryParse(part.Trim(), out long id) && id > 0 && !ids.Contains(id))
+                        ids.Add(id);
+                }
+            }
+
+            return ids;
         }
 
         private async Task<IActionResult> ChangeMemberAsModerator(

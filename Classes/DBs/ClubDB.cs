@@ -1,3 +1,4 @@
+using System.Globalization;
 using LiteDB;
 using static Mocha2023.Classes.DBs.DBClasses.ClubDBClasses;
 
@@ -490,6 +491,40 @@ namespace Mocha2023.Classes.DBs
             }
         }
 
+        // The gallery goes out as whole image records: the client deserializes each entry
+        // into an object, and a bare name fails its parser. An image the table has never
+        // seen still answers a record so the slot renders rather than the whole list
+        // failing.
+        private static ClubImageDto ToClubImage(string imageName, int index)
+        {
+            string normalized = imageName.Replace('\\', '/').TrimStart('/');
+
+            RecNetDB.SavedImage? saved = RecNetDB.SavedImages.FindAll()
+                .FirstOrDefault(image => string.Equals(
+                    image.PhotoPath.Replace('\\', '/').TrimStart('/'),
+                    normalized,
+                    StringComparison.OrdinalIgnoreCase));
+
+            return new ClubImageDto
+            {
+                Id = saved?.ImageId ?? 0,
+                Type = saved?.SavedImageType ?? 0,
+                Accessibility = saved?.Accessibility ?? 0,
+                AccessibilityLocked = false,
+                ImageName = imageName,
+                Description = null,
+                PlayerId = saved?.AccountId ?? 0,
+                TaggedPlayerIds = saved?.TaggedPlayerIds ?? new List<int>(),
+                RoomId = saved?.RoomId,
+                PlayerEventId = saved?.PlayerEventId,
+                CreatedAt = (saved?.CreatedAt ?? DateTime.UtcNow)
+                    .ToString("o", CultureInfo.InvariantCulture),
+                CheerCount = 0,
+                CommentCount = 0,
+                ImageIndex = index
+            };
+        }
+
         public static bool Update(ClubRecord club)
         {
             lock (Sync)
@@ -499,6 +534,7 @@ namespace Mocha2023.Classes.DBs
                 club.MainImageName = NormalizeImageName(club.MainImageName);
                 club.AdditionalImages = (club.AdditionalImages ?? new List<string>())
                     .Select(NormalizeImageName)
+                    .Where(imageName => !string.IsNullOrWhiteSpace(imageName))
                     .ToList();
 
                 string primary = NormalizeCategory(club.PrimaryCategory) ??
@@ -614,11 +650,8 @@ namespace Mocha2023.Classes.DBs
                 Club = ToSummary(club, viewerAccountId),
                 CategoryTags = ToSummary(club).CategoryTags,
                 AdditionalImages = (club.AdditionalImages ?? new List<string>())
-                    .Select((imageName, imageIndex) => new ClubImageDto
-                    {
-                        ImageName = imageName,
-                        ImageIndex = imageIndex
-                    })
+                    .Where(imageName => !string.IsNullOrWhiteSpace(imageName))
+                    .Select(ToClubImage)
                     .ToList(),
                 CreatorPermissions = Permissions(club.ClubId, ClubMembershipType.Creator),
                 CoOwnerPermissions = Permissions(club.ClubId, ClubMembershipType.CoOwner),

@@ -143,7 +143,19 @@ namespace Mocha2023.Classes.DBs.DBClasses
 
         public sealed class ClubImageDto
         {
+            public long Id { get; set; }
+            public int Type { get; set; }
+            public int Accessibility { get; set; }
+            public bool AccessibilityLocked { get; set; }
             public string ImageName { get; set; } = string.Empty;
+            public string? Description { get; set; }
+            public long PlayerId { get; set; }
+            public List<int> TaggedPlayerIds { get; set; } = new();
+            public long? RoomId { get; set; }
+            public long? PlayerEventId { get; set; }
+            public string CreatedAt { get; set; } = string.Empty;
+            public int CheerCount { get; set; }
+            public int CommentCount { get; set; }
             public int ImageIndex { get; set; }
         }
 
