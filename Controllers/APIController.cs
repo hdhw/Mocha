@@ -3650,6 +3650,36 @@ namespace Mocha2023.Controllers
         }
 
         [HttpGet("/api/PlayerReporting/v1/voteToKickReasons")]
+        public IActionResult GetVoteToKickReasons()
+        {
+            if (AuthStuff.GetPlayerId(Request) == null)
+                return Unauthorized();
+
+            // The buttons the vote prompt offers, in the order the client draws them,
+            // each carrying the ReportCategory the report is filed under if the vote
+            // carries: 102 hate, 101 sexual content, 103 griefing, 6 game conduct.
+            // An empty list here left the prompt with nothing to pick, so a vote could
+            // be started and never sent.
+            return Ok(new[]
+            {
+                new { Reason = "Discriminatory language", ReportCategory = 102 },
+                new { Reason = "Discriminatory behavior", ReportCategory = 102 },
+                new { Reason = "Threats or encouraging suicide", ReportCategory = 102 },
+                new { Reason = "Toxic behavior", ReportCategory = 102 },
+                new { Reason = "Sexual behavior in public", ReportCategory = 101 },
+                new { Reason = "Sexual language in public", ReportCategory = 101 },
+                new { Reason = "Non-consensual sexual behavior", ReportCategory = 101 },
+                new { Reason = "Player in walls or floor", ReportCategory = 103 },
+                new { Reason = "Friendly fire", ReportCategory = 103 },
+                new { Reason = "Microphone spam", ReportCategory = 103 },
+                new { Reason = "Abusing bugs or exploits", ReportCategory = 103 },
+                new { Reason = "Spawn camping", ReportCategory = 103 },
+                new { Reason = "Inactive in games (AFK)", ReportCategory = 6 },
+                new { Reason = "Prefab swapping", ReportCategory = 6 },
+                new { Reason = "Not following game rules", ReportCategory = 6 }
+            });
+        }
+
         [HttpGet("/api/images/v2/named")]
         [HttpGet("/api/gamerewards/v1/pending")]
         [HttpGet("/api/roomkeys/v1/mine")]
