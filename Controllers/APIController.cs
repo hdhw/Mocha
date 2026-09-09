@@ -6398,13 +6398,21 @@ namespace Mocha2023.Controllers
         [HttpGet("api/playerevents/v1/filters")]
         public IActionResult GetPlayerEventTagFilters()
         {
-            string[] filters = { "social", "competitive", "creative" };
+            // The activity names the client already carries, in its own casing - the
+            // three lowercase placeholders here before did not match anything it draws.
+            string[] tags =
+            {
+                "Hangout", "Party", "Quest", "Paintball", "Show", "Music",
+                "Art", "Build", "Escape", "Horror", "Meetup", "Social"
+            };
 
+            // Pinned is the set offered as the event's main tag. Left empty, the
+            // picker had nothing in it and an event could not be given one.
             return Ok(new
             {
-                PinnedTags = Array.Empty<string>(),
-                PopularTags = filters,
-                Tags = filters
+                PinnedTags = tags,
+                PopularTags = tags,
+                Tags = tags
             });
         }
 
