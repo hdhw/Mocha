@@ -824,8 +824,8 @@ namespace Mocha2023.Controllers
             return NoContent();
         }
 
-        [HttpGet("/match/player/avoidjuniors")]
         [HttpGet("player/avoidjuniors")]
+        [HttpGet("/api/match/player/avoidjuniors")]
         public IActionResult GetAvoidJuniors()
         {
             var id = AuthStuff.GetPlayerId(Request);
@@ -837,10 +837,10 @@ namespace Mocha2023.Controllers
             return Ok(PlayerDB.GetPlayerFlag((long)id, AvoidJuniorsSettingKey));
         }
 
-        [HttpPut("/match/player/avoidjuniors")]
-        [HttpPost("/match/player/avoidjuniors")]
         [HttpPut("player/avoidjuniors")]
         [HttpPost("player/avoidjuniors")]
+        [HttpPut("/api/match/player/avoidjuniors")]
+        [HttpPost("/api/match/player/avoidjuniors")]
         public async Task<IActionResult> SetAvoidJuniors()
         {
             var id = AuthStuff.GetPlayerId(Request);

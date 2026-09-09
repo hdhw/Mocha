@@ -345,57 +345,6 @@ namespace Mocha2023.Controllers
             return Ok(new { error = string.Empty, success = true, value = (object?)null });
         }
 
-        [HttpGet("~/api/playerevents/v1/club/{clubId}")]
-        public IActionResult GetClubEvents(
-            long clubId,
-            [FromQuery] int skip = 0,
-            [FromQuery] int take = 50,
-            [FromQuery] int count = 50)
-        {
-            if (ClubDB.Get(clubId) == null)
-                return NotFound();
-
-            int requestedCount = Math.Clamp(take > 0 ? take : count, 1, 100);
-            Console.WriteLine(
-                $"[CLUB EVENTS] club={clubId} skip={Math.Max(0, skip)} " +
-                $"take={requestedCount} returned=0");
-
-            return Ok(Array.Empty<object>());
-        }
-
-        [HttpGet("~/api/playerevents/v1/clubs")]
-        public IActionResult GetClubEventsForClubs()
-        {
-            var requestedClubIds = new HashSet<long>();
-
-            foreach (string? rawValue in Request.Query["id"])
-            {
-                if (string.IsNullOrWhiteSpace(rawValue))
-                    continue;
-
-                foreach (string part in rawValue.Split(
-                             ',',
-                             StringSplitOptions.RemoveEmptyEntries |
-                             StringSplitOptions.TrimEntries))
-                {
-                    if (long.TryParse(part, out long clubId) && clubId > 0)
-                        requestedClubIds.Add(clubId);
-                }
-            }
-
-            long[] existingClubIds = requestedClubIds
-                .Where(clubId => ClubDB.Get(clubId) != null)
-                .OrderBy(clubId => clubId)
-                .ToArray();
-
-            Console.WriteLine(
-                $"[CLUB EVENTS BATCH] requested={requestedClubIds.Count} " +
-                $"existing={existingClubIds.Length} " +
-                $"ids={string.Join(',', existingClubIds)} returned=0");
-
-            return Ok(Array.Empty<object>());
-        }
-
         [HttpGet("search")]
         public IActionResult SearchClubs(
             [FromQuery] int sort = 0,

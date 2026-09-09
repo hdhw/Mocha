@@ -1361,7 +1361,28 @@ namespace Mocha2023.Controllers
             if (accountId == null)
                 return Unauthorized();
 
-            var clubIds = ClubDB.GetMemberClubs(accountId.Value).Select(club => club.ClubId).ToHashSet();
+            // The client asks either way: naming the clubs it wants with repeated id
+            // params, or nothing at all to mean "the ones I am in".
+            var clubIds = new HashSet<long>();
+
+            foreach (string? rawValue in Request.Query["id"])
+            {
+                foreach (string part in (rawValue ?? string.Empty).Split(
+                             ',',
+                             StringSplitOptions.RemoveEmptyEntries |
+                             StringSplitOptions.TrimEntries))
+                {
+                    if (long.TryParse(part, out long requestedId) && requestedId > 0)
+                        clubIds.Add(requestedId);
+                }
+            }
+
+            if (clubIds.Count == 0)
+            {
+                clubIds = ClubDB.GetMemberClubs(accountId.Value)
+                    .Select(club => club.ClubId)
+                    .ToHashSet();
+            }
             var events = clubIds
                 .SelectMany(PlayerEventDB.GetByClub)
                 .DistinctBy(evt => evt.EventId)
@@ -7895,18 +7916,6 @@ namespace Mocha2023.Controllers
                 {
                 }
             }
-        }
-
-        [HttpGet("api/customAvatarItems/v1/hot")]
-        public IActionResult GetHotCustomAvatarItems()
-        {
-            var items = new[]
-            {
-        new { itemId = 101, name = "Fire Hoodie", tags = new[] { "hot", "new" } },
-        new { itemId = 102, name = "Drip Sneakers", tags = new[] { "hot" } },
-        new { itemId = 103, name = "Sus Hat", tags = new[] { "trending" } }
-    };
-            return Ok(items);
         }
 
         [HttpGet("/config/categories")]
