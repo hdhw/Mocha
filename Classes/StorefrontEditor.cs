@@ -250,12 +250,82 @@ namespace Mocha2023.Classes
 
                     if (touched)
                     {
-                        SaveStore(storeId, root);
+                        SaveStoreFile(storeId, root);
                         result.StoreIds.Add(storeId);
                     }
                 }
 
                 return result;
+            }
+        }
+
+        public static ApplyResult SaveStore(
+            int storeId,
+            IReadOnlyDictionary<int, int> prices,
+            IEnumerable<int> remove)
+        {
+            lock (Sync)
+            {
+                var result = new ApplyResult();
+                JsonNode? root = LoadStore(storeId);
+
+                if (root == null)
+                {
+                    result.Warnings.Add($"sf{storeId}.json could not be read.");
+                    return result;
+                }
+
+                JsonArray items = ItemsOf(root);
+                var dropping = remove.ToHashSet();
+                int percent = root["SubscriberDiscountPercent"]?.GetValue<int>() ?? 0;
+
+                for (int i = items.Count - 1; i >= 0; i--)
+                {
+                    int id = items[i]?["PurchasableItemId"]?.GetValue<int>() ?? 0;
+
+                    if (dropping.Contains(id))
+                    {
+                        items.RemoveAt(i);
+                        result.ItemsRemoved++;
+                        continue;
+                    }
+
+                    if (items[i] is JsonNode item &&
+                        prices.TryGetValue(id, out int price) &&
+                        FirstPrice(item) != price)
+                    {
+                        SetPrices(item, price, percent);
+                        result.ItemsRepriced++;
+                    }
+                }
+
+                SaveStoreFile(storeId, root);
+                result.StoreIds.Add(storeId);
+                return result;
+            }
+        }
+
+        public static string? AddItem(int storeId, long skuId, int? price)
+        {
+            lock (Sync)
+            {
+                JsonNode? root = LoadStore(storeId);
+                if (root == null)
+                    return $"sf{storeId}.json could not be read.";
+
+                JsonObject? addition = BuildStoreItem(skuId, price);
+                if (addition == null)
+                    return $"SKU {skuId} is not in the catalog.";
+
+                JsonArray items = ItemsOf(root);
+                int newId = addition["PurchasableItemId"]?.GetValue<int>() ?? 0;
+
+                if (items.Any(item => item?["PurchasableItemId"]?.GetValue<int>() == newId))
+                    return "That item is already in this storefront.";
+
+                items.Add(addition);
+                SaveStoreFile(storeId, root);
+                return null;
             }
         }
 
@@ -295,7 +365,7 @@ namespace Mocha2023.Classes
                 if (touched == 0)
                     throw new InvalidOperationException("None of those items are in that storefront.");
 
-                SaveStore(storeId, root);
+                SaveStoreFile(storeId, root);
                 return (setId, touched);
             }
         }
@@ -322,7 +392,7 @@ namespace Mocha2023.Classes
                 }
 
                 if (touched > 0)
-                    SaveStore(storeId, root);
+                    SaveStoreFile(storeId, root);
 
                 return touched;
             }
@@ -432,7 +502,7 @@ namespace Mocha2023.Classes
             }
         }
 
-        private static void SaveStore(int storeId, JsonNode root) =>
+        private static void SaveStoreFile(int storeId, JsonNode root) =>
             WriteAtomic(
                 Path.Combine(StoreRoot, $"sf{storeId}.json"),
                 root.ToJsonString(WriteOptions));

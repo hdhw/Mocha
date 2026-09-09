@@ -3378,6 +3378,69 @@ namespace Mocha2023.Controllers
             });
         }
 
+        [HttpPut("admin/storefronts/{storeId:int}/items")]
+        public IActionResult SaveStorefrontItems(
+            int storeId,
+            [FromBody] AdminStorefrontSaveRequest? request)
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+
+            var prices = new Dictionary<int, int>();
+            foreach (var entry in request?.Items ?? new List<AdminStorefrontItemPrice>())
+            {
+                if (entry.Price < 0 || entry.Price > 1_000_000)
+                    return BadRequest(new { error = "Price must be between 0 and 1,000,000." });
+
+                prices[entry.PurchasableItemId] = entry.Price;
+            }
+
+            var result = Mocha2023.Classes.StorefrontEditor.SaveStore(
+                storeId,
+                prices,
+                request?.Removed ?? new List<int>());
+
+            Console.WriteLine(
+                $"[ADMIN STOREFRONT SAVE] admin={admin!.PlayerId} store={storeId} " +
+                $"repriced={result.ItemsRepriced} removed={result.ItemsRemoved}");
+
+            return Ok(new
+            {
+                success = true,
+                itemsRepriced = result.ItemsRepriced,
+                itemsRemoved = result.ItemsRemoved,
+                message = $"Saved sf{storeId}."
+            });
+        }
+
+        [HttpPost("admin/storefronts/{storeId:int}/items")]
+        public IActionResult AddStorefrontItem(
+            int storeId,
+            [FromBody] AdminStorefrontAddRequest? request)
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+
+            if (request?.SkuId is not > 0)
+                return BadRequest(new { error = "Choose an item to add." });
+
+            string? error = Mocha2023.Classes.StorefrontEditor.AddItem(
+                storeId,
+                request.SkuId,
+                request.Price > 0 ? request.Price : null);
+
+            if (error != null)
+                return BadRequest(new { error });
+
+            Console.WriteLine(
+                $"[ADMIN STOREFRONT ADD] admin={admin!.PlayerId} store={storeId} " +
+                $"sku={request.SkuId}");
+
+            return Ok(new { success = true, message = "Item added." });
+        }
+
         [HttpPost("admin/storefronts/category/{category}/apply")]
         public IActionResult AdminApplyStorefrontCategory(
             string category,
@@ -8892,6 +8955,24 @@ namespace Mocha2023.Controllers
         public class AdminCoachMessageAllRequest
         {
             public string? Message { get; set; }
+        }
+
+        public class AdminStorefrontItemPrice
+        {
+            public int PurchasableItemId { get; set; }
+            public int Price { get; set; }
+        }
+
+        public class AdminStorefrontSaveRequest
+        {
+            public List<AdminStorefrontItemPrice>? Items { get; set; }
+            public List<int>? Removed { get; set; }
+        }
+
+        public class AdminStorefrontAddRequest
+        {
+            public long SkuId { get; set; }
+            public int Price { get; set; }
         }
 
         public class AdminStorefrontSetRequest
