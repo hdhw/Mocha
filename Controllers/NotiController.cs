@@ -1003,6 +1003,39 @@ namespace Mocha2023.Controllers
                 $"{connectedPlayers.Length} connected player(s)");
         }
 
+        // An invite nobody is told about is one the player only finds by browsing to
+        // the club themselves. The tier picks the type - member, moderator and
+        // co-owner each raise their own prompt.
+        public static async Task NotifyClubInviteAsync(
+            long senderPlayerId,
+            long receiverPlayerId,
+            long clubId,
+            int membershipType)
+        {
+            NotificationDB.MessageType type = membershipType switch
+            {
+                30 => NotificationDB.MessageType.ClubCoownerInvited,
+                20 => NotificationDB.MessageType.ClubModeratorInvited,
+                _ => NotificationDB.MessageType.ClubMemberInvited
+            };
+
+            NotificationDB.ClientNotification message =
+                NotificationDB.CreateClubInvite(
+                    senderPlayerId,
+                    receiverPlayerId,
+                    clubId,
+                    type);
+
+            await SendPushEventToPlayerAsync(
+                receiverPlayerId,
+                MessageReceivedTarget,
+                message);
+
+            Console.WriteLine(
+                $"[CLUB INVITE] club={clubId} from={senderPlayerId} " +
+                $"to={receiverPlayerId} type={type}");
+        }
+
         public static async Task NotifyFriendRequestAsync(
             long senderPlayerId,
             long receiverPlayerId)

@@ -615,8 +615,13 @@ namespace Mocha2023.Controllers
             var existing = ClubDB.GetMembership(clubId, accountId.Value);
             if (existing?.MembershipType != ClubMembershipType.PendingInvited)
                 return BadRequest(new { success = false, error = "invite_not_found" });
-            ClubDB.SetMembership(clubId, accountId.Value, ClubMembershipType.Member);
-            return Ok(new { success = true });
+
+            ClubMembershipType granted = existing.InvitedMembershipType;
+            if (granted is not (ClubMembershipType.Moderator or ClubMembershipType.CoOwner))
+                granted = ClubMembershipType.Member;
+
+            ClubDB.SetMembership(clubId, accountId.Value, granted);
+            return Ok(new { success = true, MembershipType = (int)granted });
         }
 
         [HttpPost("{clubId:long}/members/declineinvite")]
@@ -665,6 +670,14 @@ namespace Mocha2023.Controllers
                 ? invitedType
                 : ClubMembershipType.Member;
             ClubDB.SetMembership(clubId, targetId.Value, ClubMembershipType.PendingInvited);
+            ClubDB.SetInvitedMembershipType(clubId, targetId.Value, invitedType);
+
+            await NotiController.NotifyClubInviteAsync(
+                actorId.Value,
+                targetId.Value,
+                clubId,
+                (int)invitedType);
+
             return Ok(new
             {
                 success = true,
@@ -756,6 +769,14 @@ namespace Mocha2023.Controllers
                 }
 
                 ClubDB.SetMembership(clubId, targetId, ClubMembershipType.PendingInvited);
+                ClubDB.SetInvitedMembershipType(clubId, targetId, invitedType);
+
+                await NotiController.NotifyClubInviteAsync(
+                    actorId.Value,
+                    targetId,
+                    clubId,
+                    (int)invitedType);
+
                 invited++;
             }
 

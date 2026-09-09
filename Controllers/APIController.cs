@@ -8387,6 +8387,48 @@ namespace Mocha2023.Controllers
             if (sku == null)
                 return NotFound(new { Success = false, Error = "sku_not_found" });
 
+            // A star box is a query drop: it stands for "a random item of this rarity
+            // that you do not have". Roll it into the concrete item before anything is
+            // charged, so what gets bought, granted and reported is the real item.
+            if (sku.GiftDrop.IsQuery)
+            {
+                int wantedRarity = sku.GiftDrop.QueryRedirectRarity > 0
+                    ? sku.GiftDrop.QueryRedirectRarity
+                    : sku.Rarity;
+
+                CatalogSku? rolled = RollUniqueBoxItem(accountId.Value, wantedRarity);
+
+                if (rolled == null)
+                {
+                    // Nothing of that rarity is left unowned, so there is nothing the box
+                    // could give. Refuse before charging rather than taking the tokens for
+                    // an empty box - the player keeps what the box would have cost.
+                    Console.WriteLine(
+                        $"[STORE BOX EMPTY] buyer={accountId.Value} box={sku.FriendlyName} " +
+                        $"rarity={wantedRarity} refunded={GetStorePriceForRarity(sku.Rarity)}");
+
+                    return Ok(new
+                    {
+                        Success = false,
+                        Result = 0,
+                        PurchaseResult = 0,
+                        Error = "already_owned",
+                        Refunded = true,
+                        Price = GetStorePriceForRarity(sku.Rarity),
+                        Balance = PlayerDB.GetCurrencyBalance(
+                            accountId.Value,
+                            PlayerDBClasses.CurrencyType.RecCenterTokens),
+                        Message = "You already own every item this box can give."
+                    });
+                }
+
+                Console.WriteLine(
+                    $"[STORE BOX ROLL] buyer={accountId.Value} box={sku.FriendlyName} " +
+                    $"rolled={rolled.FriendlyName} rarity={wantedRarity}");
+
+                sku = rolled;
+            }
+
             long recipientId = purchaseRequest.RecipientPlayerId.GetValueOrDefault();
             bool isGift = recipientId > 0 && recipientId != accountId.Value;
 
@@ -8928,6 +8970,40 @@ namespace Mocha2023.Controllers
         // GiftDropId, which the generated catalog doesn't have, so buyItem 404'd on
         // them. Builds a CatalogSku from the file's GiftDrop so the normal grant path
         // (avatar / consumable / equipment, chosen by which desc is set) works.
+        // Everything of that rarity the player does not already own, picked at random.
+        // Null means they own the lot, which is the one case a box cannot be honoured.
+        private static CatalogSku? RollUniqueBoxItem(long accountId, int rarity)
+        {
+            List<CatalogSku> candidates = GetCatalogSkus()
+                .Where(IsUsableStoreItem)
+                .Where(item => item.Rarity == rarity)
+                .Where(item => !item.GiftDrop.IsQuery)
+                .Where(item => !PlayerOwnsCatalogSku(accountId, item))
+                .ToList();
+
+            if (candidates.Count == 0)
+                return null;
+
+            return candidates[Random.Shared.Next(candidates.Count)];
+        }
+
+        private static bool PlayerOwnsCatalogSku(long accountId, CatalogSku sku)
+        {
+            if (IsAvatarCatalogItem(sku))
+                return PlayerDB.OwnsAvatarItem(accountId, sku.AvatarItemDesc);
+
+            if (IsEquipmentSkin(sku))
+            {
+                return OwnsEquipmentItem(
+                    accountId,
+                    sku.EquipmentPrefabName,
+                    sku.EquipmentModificationGuid);
+            }
+
+            // Consumables stack, so one is never already owned in the sense a box means.
+            return false;
+        }
+
         private static CatalogSku? ResolveStoreFileSku(long id)
         {
             string dir = Path.Combine(Program.dataDir, "storefronts");
@@ -8963,6 +9039,9 @@ namespace Mocha2023.Controllers
                         int Int(JsonElement e, string name) =>
                             e.ValueKind == JsonValueKind.Object &&
                             e.TryGetProperty(name, out var v) && v.TryGetInt32(out int iv) ? iv : 0;
+                        bool Bool(JsonElement e, string name) =>
+                            e.ValueKind == JsonValueKind.Object &&
+                            e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.True;
 
                         var giftDrop = new CatalogGiftDrop
                         {
@@ -8974,6 +9053,8 @@ namespace Mocha2023.Controllers
                             EquipmentPrefabName = Str(gd, "EquipmentPrefabName"),
                             EquipmentModificationGuid = Str(gd, "EquipmentModificationGuid"),
                             Rarity = Int(gd, "Rarity"),
+                            IsQuery = Bool(gd, "IsQuery"),
+                            QueryRedirectRarity = Int(gd, "QueryRedirectRarity"),
                             Context = Int(gd, "Context")
                         };
 
@@ -10074,6 +10155,7 @@ namespace Mocha2023.Controllers
             public bool SubscribersOnly { get; set; }
             public int Rarity { get; set; }
             public bool IsQuery { get; set; }
+            public int QueryRedirectRarity { get; set; }
             public bool Unique { get; set; }
             public int Level { get; set; }
             public int Context { get; set; }

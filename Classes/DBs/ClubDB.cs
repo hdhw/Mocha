@@ -436,6 +436,28 @@ namespace Mocha2023.Classes.DBs
             }
         }
 
+        public static bool SetInvitedMembershipType(
+            long clubId,
+            long accountId,
+            ClubMembershipType invitedType)
+        {
+            lock (Sync)
+            {
+                var record = Memberships.FindById(MembershipId(clubId, accountId));
+                if (record == null)
+                    return false;
+
+                record.InvitedMembershipType = invitedType;
+                record.UpdatedAt = DateTime.UtcNow;
+                Memberships.Update(record);
+                return true;
+            }
+        }
+
+        public static ClubMembershipType GetInvitedMembershipType(long clubId, long accountId) =>
+            Memberships.FindById(MembershipId(clubId, accountId))?.InvitedMembershipType
+                ?? ClubMembershipType.Member;
+
         public static bool SetMembership(
             long clubId,
             long accountId,

@@ -328,6 +328,25 @@ namespace Mocha2023.Classes.DBs
                 });
         }
 
+        public static ClientNotification CreateClubInvite(
+            long senderPlayerId,
+            long receiverPlayerId,
+            long clubId,
+            MessageType type)
+        {
+            return Insert(
+                senderPlayerId,
+                receiverPlayerId,
+                type,
+                new
+                {
+                    FromAccountId = checked((int)senderPlayerId),
+                    FromPlayerId = checked((int)senderPlayerId),
+                    ClubId = clubId
+                },
+                clubId: clubId);
+        }
+
         public static ClientNotification CreateFriendAccepted(
             long acceptingPlayerId,
             long receiverPlayerId)
