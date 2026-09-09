@@ -141,6 +141,40 @@ namespace Mocha2023.Classes.DBs.DBClasses
             public bool CanManageClubhouse { get; set; }
         }
 
+        public sealed class ClubAnnouncementRecord
+        {
+            [BsonId]
+            public long AnnouncementId { get; set; }
+            public long ClubId { get; set; }
+            public long AccountId { get; set; }
+            public string Title { get; set; } = string.Empty;
+            public string Body { get; set; } = string.Empty;
+            public string ImageName { get; set; } = string.Empty;
+            public string Meta { get; set; } = string.Empty;
+            public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        }
+
+        public sealed class ClubAnnouncementReadRecord
+        {
+            [BsonId]
+            public string Id { get; set; } = string.Empty;
+            public long ClubId { get; set; }
+            public long AccountId { get; set; }
+            public long LastReadAnnouncementId { get; set; }
+        }
+
+        public sealed class ClubAnnouncementDto
+        {
+            public long AnnouncementId { get; set; }
+            public long ClubId { get; set; }
+            public long AccountId { get; set; }
+            public string Title { get; set; } = string.Empty;
+            public string Body { get; set; } = string.Empty;
+            public string ImageName { get; set; } = string.Empty;
+            public string Meta { get; set; } = string.Empty;
+            public string? CreatedAt { get; set; }
+        }
+
         public sealed class ClubImageDto
         {
             public long Id { get; set; }

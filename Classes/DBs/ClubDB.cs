@@ -17,6 +17,10 @@ namespace Mocha2023.Classes.DBs
             Database.GetCollection<ClubMembershipRecord>("Memberships");
         public static readonly ILiteCollection<HomeClubRecord> HomeClubs =
             Database.GetCollection<HomeClubRecord>("HomeClubs");
+        public static readonly ILiteCollection<ClubAnnouncementRecord> Announcements =
+            Database.GetCollection<ClubAnnouncementRecord>("Announcements");
+        public static readonly ILiteCollection<ClubAnnouncementReadRecord> AnnouncementReads =
+            Database.GetCollection<ClubAnnouncementReadRecord>("AnnouncementReads");
 
         public static readonly IReadOnlyList<string> CategoryTags = new[]
         {
@@ -36,6 +40,8 @@ namespace Mocha2023.Classes.DBs
             Clubs.EnsureIndex(value => value.CreatorAccountId);
             Clubs.EnsureIndex(value => value.Name);
             Clubs.EnsureIndex(value => value.State);
+            Announcements.EnsureIndex(value => value.ClubId);
+            AnnouncementReads.EnsureIndex(value => value.ClubId);
             Memberships.EnsureIndex(value => value.ClubId);
             Memberships.EnsureIndex(value => value.AccountId);
             Memberships.EnsureIndex(value => value.MembershipType);
@@ -524,6 +530,94 @@ namespace Mocha2023.Classes.DBs
                 ImageIndex = index
             };
         }
+
+        public static ClubAnnouncementRecord CreateAnnouncement(
+            long clubId,
+            long accountId,
+            string? title,
+            string? body,
+            string? imageName,
+            string? meta)
+        {
+            lock (Sync)
+            {
+                long nextId = Announcements.Count() == 0
+                    ? 1
+                    : Announcements.Max(value => value.AnnouncementId) + 1;
+
+                var record = new ClubAnnouncementRecord
+                {
+                    AnnouncementId = nextId,
+                    ClubId = clubId,
+                    AccountId = accountId,
+                    Title = (title ?? string.Empty).Trim(),
+                    Body = (body ?? string.Empty).Trim(),
+                    ImageName = NormalizeImageName(imageName ?? string.Empty),
+                    Meta = (meta ?? string.Empty).Trim(),
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                Announcements.Insert(record);
+                return record;
+            }
+        }
+
+        // Newest first: the list's LastAnnouncementId is read off the head of it.
+        public static List<ClubAnnouncementRecord> GetAnnouncements(long clubId) =>
+            Announcements.Find(value => value.ClubId == clubId)
+                .OrderByDescending(value => value.CreatedAt)
+                .ThenByDescending(value => value.AnnouncementId)
+                .ToList();
+
+        public static ClubAnnouncementRecord? GetAnnouncement(long clubId, long announcementId) =>
+            Announcements.FindOne(value =>
+                value.ClubId == clubId && value.AnnouncementId == announcementId);
+
+        public static bool DeleteAnnouncement(long clubId, long announcementId)
+        {
+            lock (Sync)
+            {
+                var record = GetAnnouncement(clubId, announcementId);
+                return record != null && Announcements.Delete(record.AnnouncementId);
+            }
+        }
+
+        public static long GetLastReadAnnouncementId(long clubId, long accountId) =>
+            AnnouncementReads.FindById($"{clubId}:{accountId}")?.LastReadAnnouncementId ?? 0;
+
+        public static void SetLastReadAnnouncementId(
+            long clubId,
+            long accountId,
+            long announcementId)
+        {
+            lock (Sync)
+            {
+                string id = $"{clubId}:{accountId}";
+                var record = AnnouncementReads.FindById(id) ?? new ClubAnnouncementReadRecord
+                {
+                    Id = id,
+                    ClubId = clubId,
+                    AccountId = accountId
+                };
+
+                if (announcementId > record.LastReadAnnouncementId)
+                    record.LastReadAnnouncementId = announcementId;
+
+                AnnouncementReads.Upsert(record);
+            }
+        }
+
+        public static ClubAnnouncementDto ToAnnouncement(ClubAnnouncementRecord record) => new()
+        {
+            AnnouncementId = record.AnnouncementId,
+            ClubId = record.ClubId,
+            AccountId = record.AccountId,
+            Title = record.Title,
+            Body = record.Body,
+            ImageName = record.ImageName,
+            Meta = record.Meta,
+            CreatedAt = record.CreatedAt.ToString("o", CultureInfo.InvariantCulture)
+        };
 
         public static bool Update(ClubRecord club)
         {

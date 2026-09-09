@@ -201,12 +201,148 @@ namespace Mocha2023.Controllers
             if (ClubDB.Get(clubId) == null)
                 return NotFound();
 
+            long? viewerId = AuthStuff.GetPlayerId(Request);
             int requestedCount = Math.Clamp(take > 0 ? take : count, 1, 100);
+
+            List<ClubAnnouncementRecord> all = ClubDB.GetAnnouncements(clubId);
+            List<ClubAnnouncementDto> page = all
+                .Skip(Math.Max(0, skip))
+                .Take(requestedCount)
+                .Select(ClubDB.ToAnnouncement)
+                .ToList();
+
             Console.WriteLine(
                 $"[CLUB ANNOUNCEMENTS] club={clubId} skip={Math.Max(0, skip)} " +
-                $"take={requestedCount} sort={sort} returned=0");
+                $"take={requestedCount} sort={sort} returned={page.Count}");
 
-            return Ok(Array.Empty<object>());
+            return Ok(new
+            {
+                error = string.Empty,
+                success = true,
+                value = new
+                {
+                    Announcements = page,
+                    ClubId = clubId,
+                    LastAnnouncementId = all.Count > 0
+                        ? all[0].AnnouncementId
+                        : (long?)null,
+                    LastReadAnnouncementId = viewerId.HasValue
+                        ? ClubDB.GetLastReadAnnouncementId(clubId, viewerId.Value)
+                        : 0
+                }
+            });
+        }
+
+        [HttpPost("~/announcements/club/{clubId:long}")]
+        [HttpPut("~/announcements/club/{clubId:long}")]
+        [RequestSizeLimit(64 * 1024)]
+        public async Task<IActionResult> PostClubAnnouncement(long clubId)
+        {
+            long? actorId = AuthStuff.GetPlayerId(Request);
+            if (!actorId.HasValue)
+                return Unauthorized();
+
+            if (ClubDB.Get(clubId) == null)
+                return NotFound();
+
+            if (!HasPermission(clubId, actorId.Value, ClubMembershipType.CoOwner))
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new { error = "Insufficient permissions.", success = false, value = (object?)null });
+            }
+
+            RequestValues values = await ReadRequestValuesAsync();
+            string title = values.String("title") ?? string.Empty;
+            string body = values.String("body", "message", "text") ?? string.Empty;
+
+            if (title.Trim().Length == 0 && body.Trim().Length == 0)
+            {
+                return BadRequest(new
+                {
+                    error = "An announcement needs a title or a body.",
+                    success = false,
+                    value = (object?)null
+                });
+            }
+
+            if (title.Length > 200 || body.Length > 4000)
+            {
+                return BadRequest(new
+                {
+                    error = "That announcement is too long.",
+                    success = false,
+                    value = (object?)null
+                });
+            }
+
+            var record = ClubDB.CreateAnnouncement(
+                clubId,
+                actorId.Value,
+                title,
+                body,
+                values.String("imageName", "image"),
+                values.String("meta"));
+
+            Console.WriteLine(
+                $"[CLUB ANNOUNCEMENT POST] club={clubId} by={actorId.Value} " +
+                $"announcement={record.AnnouncementId}");
+
+            return Ok(new
+            {
+                error = string.Empty,
+                success = true,
+                value = record.AnnouncementId
+            });
+        }
+
+        [HttpGet("~/announcements/club/{clubId:long}/{announcementId:long}")]
+        public IActionResult GetClubAnnouncement(long clubId, long announcementId)
+        {
+            var record = ClubDB.GetAnnouncement(clubId, announcementId);
+            if (record == null)
+                return NotFound();
+
+            return Ok(new
+            {
+                error = string.Empty,
+                success = true,
+                value = ClubDB.ToAnnouncement(record)
+            });
+        }
+
+        [HttpPost("~/announcements/club/{clubId:long}/{announcementId:long}/read")]
+        [HttpPut("~/announcements/club/{clubId:long}/{announcementId:long}/read")]
+        public IActionResult MarkClubAnnouncementRead(long clubId, long announcementId)
+        {
+            long? actorId = AuthStuff.GetPlayerId(Request);
+            if (!actorId.HasValue)
+                return Unauthorized();
+
+            ClubDB.SetLastReadAnnouncementId(clubId, actorId.Value, announcementId);
+
+            return Ok(new
+            {
+                error = string.Empty,
+                success = true,
+                value = (object?)null
+            });
+        }
+
+        [HttpDelete("~/announcements/club/{clubId:long}/{announcementId:long}")]
+        public IActionResult DeleteClubAnnouncement(long clubId, long announcementId)
+        {
+            long? actorId = AuthStuff.GetPlayerId(Request);
+            if (!actorId.HasValue)
+                return Unauthorized();
+
+            if (!HasPermission(clubId, actorId.Value, ClubMembershipType.CoOwner))
+                return StatusCode(StatusCodes.Status403Forbidden);
+
+            if (!ClubDB.DeleteAnnouncement(clubId, announcementId))
+                return NotFound();
+
+            return Ok(new { error = string.Empty, success = true, value = (object?)null });
         }
 
         [HttpGet("~/api/playerevents/v1/club/{clubId}")]
