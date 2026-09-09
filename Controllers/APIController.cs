@@ -3445,7 +3445,11 @@ namespace Mocha2023.Controllers
                     var rebuilt = new Dictionary<string, object?>();
                     foreach (KeyValuePair<string, JsonElement> entry in config)
                         rebuilt[entry.Key] = entry.Value;
-                    rebuilt["ServerMaintenance"] = new { StartsInMinutes = remaining };
+
+                    if (remaining > 0)
+                        rebuilt["ServerMaintenance"] = new { StartsInMinutes = remaining };
+                    else
+                        rebuilt.Remove("ServerMaintenance");
 
                     return Content(
                         JsonSerializer.Serialize(

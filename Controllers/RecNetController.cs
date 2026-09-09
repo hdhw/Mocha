@@ -1,3 +1,4 @@
+using System.Globalization;
 ﻿using Mocha2023.Classes.DBs;
 using Mocha2023.Classes.DBs.DBClasses;
 using Mocha2023.Classes;
@@ -7881,6 +7882,9 @@ namespace Mocha2023.Controllers
                 return BadRequest(new { error });
 
             DateTime now = DateTime.UtcNow;
+            if (!TryReadAnnouncementDate(request.CreatedAt, out DateTime createdAt, out string dateError))
+                return BadRequest(new { error = dateError });
+
             var announcement = new RecNetDB.Announcement
             {
                 Title = title,
@@ -7889,7 +7893,7 @@ namespace Mocha2023.Controllers
                 Pinned = request.Pinned,
                 Published = request.Published,
                 CreatedByAccountId = admin!.PlayerId,
-                CreatedAt = now,
+                CreatedAt = createdAt == default ? now : createdAt,
                 UpdatedAt = now
             };
             RecNetDB.Announcements.Insert(announcement);
@@ -7927,6 +7931,13 @@ namespace Mocha2023.Controllers
             announcement.Kind = kind;
             announcement.Pinned = request.Pinned;
             announcement.Published = request.Published;
+
+            if (!TryReadAnnouncementDate(request.CreatedAt, out DateTime createdAt, out string dateError))
+                return BadRequest(new { error = dateError });
+
+            if (createdAt != default)
+                announcement.CreatedAt = createdAt;
+
             announcement.UpdatedAt = DateTime.UtcNow;
             RecNetDB.Announcements.Update(announcement);
 
@@ -7978,6 +7989,37 @@ namespace Mocha2023.Controllers
                 return false;
             }
 
+            return true;
+        }
+
+        private static bool TryReadAnnouncementDate(
+            string? value,
+            out DateTime createdAt,
+            out string error)
+        {
+            createdAt = default;
+            error = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(value))
+                return true;
+
+            if (!DateTime.TryParse(
+                    value,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal,
+                    out createdAt))
+            {
+                error = "The announcement date could not be read.";
+                return false;
+            }
+
+            if (createdAt.Year < 2000 || createdAt > DateTime.UtcNow.AddYears(5))
+            {
+                error = "The announcement date is out of range.";
+                return false;
+            }
+
+            createdAt = DateTime.SpecifyKind(createdAt, DateTimeKind.Utc);
             return true;
         }
 
@@ -8282,6 +8324,7 @@ namespace Mocha2023.Controllers
             public string? Kind { get; set; }
             public bool Pinned { get; set; }
             public bool Published { get; set; } = true;
+            public string? CreatedAt { get; set; }
         }
 
         public class AdminEventRequest

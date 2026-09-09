@@ -1588,6 +1588,11 @@ function simpleMarkdownPreview(markdown) {
 
 const ANNOUNCEMENT_KINDS = ['info', 'update', 'warning', 'maintenance'];
 
+function toLocalInputValue(date) {
+    const pad = value => String(value).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 async function announcementsView() {
     app.innerHTML = `<h1 class="page-title">Announcements</h1>
     <div class="card">
@@ -1596,6 +1601,7 @@ async function announcementsView() {
       <label class="field">Title<input id="annTitle"></label>
       <div class="field-row">
         <label class="field">Kind<select id="annKind">${ANNOUNCEMENT_KINDS.map(k => `<option>${k}</option>`).join('')}</select></label>
+        <label class="field">Date<input type="datetime-local" id="annDate"><small class="field-hint">Local time. Leave blank to post with the current time.</small></label>
       </div>
       <label class="field">Body (markdown)<textarea id="annBody" rows="4"></textarea></label>
       <div class="card" style="background:var(--panel-alt)"><h3>Preview</h3><div id="annPreview" class="field-hint"></div></div>
@@ -1611,6 +1617,7 @@ async function announcementsView() {
     const annPreview = document.querySelector('#annPreview');
     const annPinned = document.querySelector('#annPinned');
     const annPublished = document.querySelector('#annPublished');
+    const annDate = document.querySelector('#annDate');
     const annEditId = document.querySelector('#annEditId');
     const annFormTitle = document.querySelector('#annFormTitle');
     const annCreateBtn = document.querySelector('#annCreate');
@@ -1629,6 +1636,7 @@ async function announcementsView() {
         annPreview.innerHTML = '';
         annPinned.checked = false;
         annPublished.checked = true;
+        annDate.value = toLocalInputValue(new Date());
     }
 
     function editAnnouncement(a) {
@@ -1640,6 +1648,7 @@ async function announcementsView() {
         annKind.value = a.kind;
         annBody.value = a.bodyMarkdown;
         annPreview.innerHTML = simpleMarkdownPreview(a.bodyMarkdown);
+        annDate.value = a.createdAt ? toLocalInputValue(new Date(a.createdAt)) : '';
         annPinned.checked = a.pinned;
         annPublished.checked = a.published;
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1668,6 +1677,11 @@ async function announcementsView() {
         const bodyMarkdown = annBody.value.trim();
         if (!title || !bodyMarkdown) { status.textContent = 'Title and body are required.'; status.classList.add('error'); return; }
         const payload = { title, bodyMarkdown, kind: annKind.value, pinned: annPinned.checked, published: annPublished.checked };
+        if (annDate.value) {
+            const picked = new Date(annDate.value);
+            if (Number.isNaN(picked.getTime())) { status.textContent = 'That date could not be read.'; status.classList.add('error'); return; }
+            payload.createdAt = picked.toISOString();
+        }
         try {
             if (annEditId.value) {
                 await send(`${API}/admin/announcements/${annEditId.value}`, 'PUT', payload);

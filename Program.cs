@@ -2197,7 +2197,10 @@ namespace Mocha2023
                         await NotiController.BroadcastServerMaintenanceAsync((int)remaining);
 
                         if (remaining <= 0)
+                        {
                             StopMaintenanceTicker();
+                            ClearMaintenanceConfig();
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -2207,6 +2210,42 @@ namespace Mocha2023
                 null,
                 TimeSpan.FromMinutes(1),
                 TimeSpan.FromMinutes(1));
+        }
+
+        // A countdown that runs out leaves its node behind otherwise, and config then
+        // serves a zero-minute maintenance for good - every client that connects
+        // afterwards reads that as a maintenance still on.
+        private static void ClearMaintenanceConfig()
+        {
+            try
+            {
+                string configPath = Path.Combine(dataDir, "APIS", "ConfigV2.json");
+                if (!File.Exists(configPath))
+                    return;
+
+                var config = JsonSerializer.Deserialize<Dictionary<string, object?>>(
+                    File.ReadAllText(configPath));
+                if (config == null)
+                    return;
+
+                if (!config.Remove("ServerMaintenance") &&
+                    !config.Remove("ServerMaintainence"))
+                {
+                    return;
+                }
+
+                File.WriteAllText(
+                    configPath,
+                    JsonSerializer.Serialize(
+                        config,
+                        new JsonSerializerOptions { WriteIndented = true }));
+
+                ServerLog.Info("Maintenance countdown finished; config cleared.");
+            }
+            catch (Exception ex)
+            {
+                ServerLog.Error("Maintenance config clear: " + ex.Message);
+            }
         }
 
         private static void StopMaintenanceTicker()
