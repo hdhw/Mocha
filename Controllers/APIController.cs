@@ -8378,13 +8378,25 @@ namespace Mocha2023.Controllers
             if (!requestedSkuId.HasValue)
                 return BadRequest(new { Success = false, Error = "missing_sku" });
 
-            CatalogSku? sku = GetCatalogSkus().FirstOrDefault(value =>
-                value.SkuId == requestedSkuId.Value ||
-                value.PurchasableItemId == requestedSkuId.Value ||
-                (value.AvatarItemId > 0 && value.AvatarItemId == requestedSkuId.Value) ||
-                (IsConsumableCatalogItem(value) && value.ItemId == requestedSkuId.Value));
+            // The storefront files come first. What the client is buying is what it was
+            // served, and a storefront PurchasableItemId shares a number space with the
+            // generated catalog's AvatarItemIds - every cake in sf300 collides with a
+            // scarf or a pair of antlers, so searching the catalog first handed the buyer
+            // whichever avatar item happened to carry that number.
+            CatalogSku? sku = ResolveStoreFileSku(requestedSkuId.Value);
 
-            sku ??= ResolveStoreFileSku(requestedSkuId.Value);
+            // Then the generated catalog, most specific id first. The last two are
+            // fallbacks for older clients that ask by item rather than by sku, and are
+            // exactly the loose matches that collide, so they are only reached when
+            // nothing identifies itself properly.
+            sku ??= GetCatalogSkus().FirstOrDefault(value =>
+                value.SkuId == requestedSkuId.Value);
+            sku ??= GetCatalogSkus().FirstOrDefault(value =>
+                value.PurchasableItemId == requestedSkuId.Value);
+            sku ??= GetCatalogSkus().FirstOrDefault(value =>
+                value.AvatarItemId > 0 && value.AvatarItemId == requestedSkuId.Value);
+            sku ??= GetCatalogSkus().FirstOrDefault(value =>
+                IsConsumableCatalogItem(value) && value.ItemId == requestedSkuId.Value);
             if (sku == null)
                 return NotFound(new { Success = false, Error = "sku_not_found" });
 
@@ -9005,7 +9017,17 @@ namespace Mocha2023.Controllers
             return false;
         }
 
-        private static CatalogSku? ResolveStoreFileSku(long id)
+        // PurchasableItemId and GiftDropId are two separate number spaces - each is
+        // unique on its own, but the same number means different items in each. Matching
+        // either in one pass let a GiftDropId win over the right PurchasableItemId
+        // depending on which file was read first, which is how buying a cake handed the
+        // buyer a shirt. The purchasable id is what the client buys by, so it is asked
+        // for first and the gift-drop id is only a fallback.
+        private static CatalogSku? ResolveStoreFileSku(long id) =>
+            ResolveStoreFileSku(id, byPurchasableId: true) ??
+            ResolveStoreFileSku(id, byPurchasableId: false);
+
+        private static CatalogSku? ResolveStoreFileSku(long id, bool byPurchasableId)
         {
             string dir = Path.Combine(Program.dataDir, "storefronts");
             if (!Directory.Exists(dir))
@@ -9030,7 +9052,7 @@ namespace Mocha2023.Controllers
                             gd.TryGetProperty("GiftDropId", out var gi) &&
                             gi.TryGetInt64(out long giv) ? giv : 0;
 
-                        if (purchasableId != id && giftDropId != id)
+                        if (byPurchasableId ? purchasableId != id : giftDropId != id)
                             continue;
 
                         string Str(JsonElement e, string name) =>
