@@ -2172,7 +2172,7 @@ async function coachGiftingView() {
             <option value="50">Legendary (50)</option>
         </select></label>
         <br><br>
-        <label>Gift context<select id="boxDesign"><option value="2" selected>Game drop (2)</option><option value="100010">Store purchase (100010)</option><option value="110000">Consumable / Friendotron (110000)</option><option value="custom">Custom...</option></select><small class="field-hint">What the client says the gift came from - it picks the box art and the wording.</small></label>
+        <label>Gift context<select id="boxDesign"><option value="2" selected>Game drop (2)</option><option value="500">Store purchase (500)</option><option value="110000">Consumable / Friendotron (110000)</option><option value="custom">Custom...</option></select><small class="field-hint">What the client says the gift came from - it picks the box art and the wording.</small></label>
         <input type="number" id="boxDesignCustom" placeholder="Custom gift context ID" hidden style="margin-top:6px">
         <br><br>
         <label>Message (optional)<input type="text" id="giftMessage" placeholder="Gift message"></label>
@@ -2217,7 +2217,7 @@ async function coachGiftingView() {
     (function populateGiftContexts() {
         const customOption = boxDesign.querySelector('option[value="custom"]');
         for (const { name, value } of GIFT_CONTEXTS) {
-            if (value === 2 || value === 110000 || value === 100010) continue;
+            if (value === 2 || value === 110000 || value === 500) continue;
             const opt = document.createElement('option');
             opt.value = String(value);
             opt.textContent = `${name} (${value})`;

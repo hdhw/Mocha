@@ -4001,9 +4001,10 @@ namespace Mocha2023.Controllers
             return senderId;
         }
 
+        // Default alone gets rewritten - it is the only value that says nothing about
+        // where the gift came from. Anything else is reported as sent.
         private static int NormalizeGiftContext(int context) =>
-            context is (int)PlayerDBClasses.GiftContext.Default
-                or (int)PlayerDBClasses.GiftContext.Store_RecCenter
+            context == (int)PlayerDBClasses.GiftContext.Default
                 ? (int)PlayerDBClasses.GiftContext.Game_Drop
                 : context;
 
@@ -8938,7 +8939,7 @@ namespace Mocha2023.Controllers
                 EquipmentModificationGuid = sku.EquipmentModificationGuid,
                 CurrencyType = (int)PlayerDBClasses.CurrencyType.RecCenterTokens,
                 GiftContext = giftContext == 0
-                    ? (int)PlayerDBClasses.GiftContext.Store_RecCenter
+                    ? (int)PlayerDBClasses.GiftContext.Purchased_Gift_A
                     : giftContext,
                 Rarity = sku.Rarity,
                 Platform = -1,
