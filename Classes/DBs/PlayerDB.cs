@@ -3307,9 +3307,24 @@ namespace Mocha2023.Classes.DBs
 
             return hb;
         }
-        public static int SetRoomInstanceInProgress(
+        public static RoomInstance? FindRoomInstance(long roomInstanceId)
+        {
+            if (roomInstanceId <= 0)
+                return null;
+
+            foreach (var player in Players.FindAll())
+            {
+                var instance = player.Player?.PlayerExtra?.Heartbeat?.roomInstance;
+                if (instance != null && instance.roomInstanceId == roomInstanceId)
+                    return instance;
+            }
+
+            return null;
+        }
+
+        private static int MutateRoomInstance(
             long roomInstanceId,
-            bool inProgress)
+            Action<RoomInstance> change)
         {
             if (roomInstanceId <= 0)
                 return 0;
@@ -3318,23 +3333,31 @@ namespace Mocha2023.Classes.DBs
 
             foreach (var player in Players.FindAll())
             {
-                var heartbeat = player.Player?.PlayerExtra?.Heartbeat;
-                if (heartbeat?.roomInstance == null)
-                    continue;
-                if (heartbeat.roomInstance.roomInstanceId != roomInstanceId)
+                var instance = player.Player?.PlayerExtra?.Heartbeat?.roomInstance;
+                if (instance == null || instance.roomInstanceId != roomInstanceId)
                     continue;
 
-                if (heartbeat.roomInstance.isInProgress != inProgress)
-                {
-                    heartbeat.roomInstance.isInProgress = inProgress;
-                    Players.Update(player);
-                }
-
+                change(instance);
+                Players.Update(player);
                 updated++;
             }
 
             return updated;
         }
+
+        public static int SetRoomInstanceInProgress(
+            long roomInstanceId,
+            bool inProgress) =>
+            MutateRoomInstance(
+                roomInstanceId,
+                instance => instance.isInProgress = inProgress);
+
+        public static int SetRoomInstancePrivate(
+            long roomInstanceId,
+            bool isPrivate) =>
+            MutateRoomInstance(
+                roomInstanceId,
+                instance => instance.isPrivate = isPrivate);
 
         public static Heartbeat? LeaveCurrentRoom(long playerId)
         {

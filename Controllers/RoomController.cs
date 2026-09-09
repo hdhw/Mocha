@@ -2232,12 +2232,12 @@ namespace Mocha2023.Controllers
         private static object ToSubRoomSavePayload(
             RoomDBClasses.SubRoomDataSave save,
             int unityAssetTarget,
-            int unityAssetVersion)
+            int unityAssetVersion,
+            bool includeUnityAssets = true)
         {
-            var selectedAsset = SelectBakedUnityAsset(
-                save,
-                unityAssetTarget,
-                unityAssetVersion);
+            var selectedAsset = includeUnityAssets
+                ? SelectBakedUnityAsset(save, unityAssetTarget, unityAssetVersion)
+                : null;
             object? selectedPayload = selectedAsset == null
                 ? null
                 : ToBakedUnityAssetPayload(selectedAsset);
@@ -2268,9 +2268,11 @@ namespace Mocha2023.Controllers
                 DataSavedAt = save.CreatedAt,
                 UnityAsset = selectedPayload,
                 BakedUnityAsset = selectedPayload,
-                BakedUnityAssets = (save.BakedUnityAssets ?? new List<RoomDBClasses.BakedUnityAsset>())
-                    .Select(ToBakedUnityAssetPayload)
-                    .ToList()
+                BakedUnityAssets = includeUnityAssets
+                    ? (save.BakedUnityAssets ?? new List<RoomDBClasses.BakedUnityAsset>())
+                        .Select(ToBakedUnityAssetPayload)
+                        .ToList()
+                    : new List<object>()
             };
         }
 
@@ -2402,6 +2404,48 @@ namespace Mocha2023.Controllers
                 .ToList();
 
             return Ok(all);
+        }
+
+        [HttpGet("rooms/{roomId}/subrooms/{subRoomId}/saves/no_unity_assets")]
+        public IActionResult GetSubRoomSavesWithoutUnityAssets(
+            long roomId,
+            long subRoomId,
+            [FromQuery] int skip = 0,
+            [FromQuery] int take = 20)
+        {
+            var room = RoomDB.GetRoom(roomId);
+            var subRoom = room?.SubRooms?.FirstOrDefault(value => value.SubRoomId == subRoomId);
+            long? accountId = AuthStuff.GetPlayerId(Request);
+
+            if (room == null || subRoom == null)
+                return Ok(new { Results = Array.Empty<object>(), TotalResults = 0, TotalCount = 0 });
+
+            if (!CanViewSubRoomDirectly(room, subRoom, accountId))
+                return StatusCode(StatusCodes.Status403Forbidden);
+
+            RoomDB.EnsureSubRoomDataSave(room, subRoom);
+
+            var all = RoomDB.SubRoomDataSaves
+                .Find(value => value.RoomId == roomId && value.SubRoomId == subRoomId)
+                .OrderByDescending(value => value.CreatedAt)
+                .ThenByDescending(value => value.SubRoomDataSaveId)
+                .ToList();
+
+            skip = Math.Max(0, skip);
+            take = Math.Clamp(take, 1, 100);
+
+            var page = all
+                .Skip(skip)
+                .Take(take)
+                .Select(save => ToSubRoomSavePayload(save, 0, 1, includeUnityAssets: false))
+                .ToList();
+
+            return Ok(new
+            {
+                Results = page,
+                TotalResults = all.Count,
+                TotalCount = all.Count
+            });
         }
 
         [HttpGet("rooms/{roomId}/subrooms/{subRoomId}/saves/{subRoomDataSaveId}")]
@@ -3889,7 +3933,450 @@ namespace Mocha2023.Controllers
             });
         }
 
-        private static bool CanEditRoom(RoomDBClasses.Room room, long accountId)
+        [HttpGet("rooms/{roomId:long}/bans/{playerId:long}/isBanned")]
+        [HttpGet("/Room_server/rooms/{roomId:long}/bans/{playerId:long}/isBanned")]
+        public IActionResult IsPlayerBannedFromRoomPrefixed(long roomId, long playerId)
+        {
+            return Ok(new
+            {
+                success = true,
+                error = (string?)null,
+                error_id = (string?)null,
+                value = RoomDB.IsPlayerBannedFromRoom(roomId, playerId)
+            });
+        }
+
+        [HttpGet("/rooms/{roomId:long}/bans/{playerId:long}/isBanned")]
+        public IActionResult IsPlayerBannedFromRoomBare(long roomId, long playerId)
+        {
+            return Ok(new
+            {
+                Value = RoomDB.IsPlayerBannedFromRoom(roomId, playerId),
+                Success = true,
+                Error = (string?)null,
+                error_id = (string?)null
+            });
+        }
+
+        [HttpGet("publishState/configs")]
+        [HttpGet("/publishState/configs")]
+        public IActionResult GetPublishStateConfigs()
+        {
+            return Ok(new
+            {
+                value = new
+                {
+                    UpdateMaxCount = 3,
+                    UpdateRollingWindowInDays = 365,
+                    UpdateExpirationInDays = 30,
+                    UpdateCooldownInDays = 45
+                },
+                success = true,
+                error_id = (string?)null,
+                error = (string?)null
+            });
+        }
+
+        [HttpGet("dormroom/me")]
+        [HttpGet("/dormroom/me")]
+        public IActionResult GetMyDormRoom()
+        {
+            var accountId = AuthStuff.GetPlayerId(Request);
+            if (accountId == null)
+                return Unauthorized();
+
+            var dorm = RoomDB.GetOrCreatePlayerDorm(accountId.Value);
+            if (dorm == null)
+                return NotFound();
+
+            return Ok(dorm.RoomId);
+        }
+
+        [HttpPut("rooms/{roomId:long}/loadscreen")]
+        [HttpPost("rooms/{roomId:long}/loadscreen")]
+        public async Task<IActionResult> UpdateRoomLoadScreen(long roomId)
+        {
+            var accountId = AuthStuff.GetPlayerId(Request);
+            if (accountId == null)
+                return Unauthorized(MutationFailure("unauthorized", "Authentication is required."));
+
+            var room = RoomDB.GetRoom(roomId);
+            if (room == null)
+                return Ok(MutationFailure("room_not_found", "This room does not exist!"));
+
+            if (!CanEditRoom(room, accountId.Value))
+                return StatusCode(StatusCodes.Status403Forbidden);
+
+            var fields = await ReadRoomFieldsAsync();
+            string imageName = (Field(fields, "imageName") ?? string.Empty).Trim();
+            if (imageName.Length == 0)
+                return Ok(MutationFailure("invalid_image", "You must provide an image!"));
+
+            room.LoadScreens = new List<RoomDBClasses.LoadScreens>
+            {
+                new()
+                {
+                    ImageName = imageName,
+                    Title = Field(fields, "title") ?? string.Empty,
+                    Subtitle = Field(fields, "subtitle") ?? string.Empty
+                }
+            };
+            room.UgcVersion = Math.Max(1, room.UgcVersion + 1);
+            RoomDB.Rooms.Update(room);
+
+            Console.WriteLine(
+                $"[ROOM LOADSCREEN] room={roomId} image={imageName} by={accountId.Value}");
+
+            return Ok(MutationSuccess(RoomDB.PrepareRoomForClient(room)));
+        }
+
+        [HttpPut("rooms/{roomId:long}/warning")]
+        [HttpPost("rooms/{roomId:long}/warning")]
+        public async Task<IActionResult> UpdateRoomWarning(long roomId)
+        {
+            var accountId = AuthStuff.GetPlayerId(Request);
+            if (accountId == null)
+                return Unauthorized(MutationFailure("unauthorized", "Authentication is required."));
+
+            var room = RoomDB.GetRoom(roomId);
+            if (room == null)
+                return Ok(MutationFailure("room_not_found", "This room does not exist!"));
+
+            if (!CanEditRoom(room, accountId.Value))
+                return StatusCode(StatusCodes.Status403Forbidden);
+
+            var fields = await ReadRoomFieldsAsync();
+            if (!int.TryParse(Field(fields, "warningMask"), out int warningMask))
+                return Ok(MutationFailure("invalid_warning_mask", "You must provide a valid warning mask!"));
+
+            room.WarningMask = (RoomDBClasses.WarningMaskType)warningMask;
+
+            string? customWarning = Field(fields, "customWarning");
+            if (customWarning != null)
+                room.CustomWarning = customWarning;
+
+            room.UgcVersion = Math.Max(1, room.UgcVersion + 1);
+            RoomDB.Rooms.Update(room);
+
+            Console.WriteLine(
+                $"[ROOM WARNING] room={roomId} mask={warningMask} by={accountId.Value}");
+
+            return Ok(MutationSuccess(RoomDB.PrepareRoomForClient(room)));
+        }
+
+        [HttpPut("rooms/{roomId:long}/restrictions")]
+        [HttpPost("rooms/{roomId:long}/restrictions")]
+        public async Task<IActionResult> UpdateRoomRestrictions(long roomId)
+        {
+            var accountId = AuthStuff.GetPlayerId(Request);
+            if (accountId == null)
+                return Unauthorized(MutationFailure("unauthorized", "Authentication is required."));
+
+            var room = RoomDB.GetRoom(roomId);
+            if (room == null)
+                return Ok(MutationFailure("room_not_found", "This room does not exist!"));
+
+            if (!CanEditRoom(room, accountId.Value))
+                return StatusCode(StatusCodes.Status403Forbidden);
+
+            var fields = await ReadRoomFieldsAsync();
+            int changed = 0;
+
+            foreach (var pair in fields)
+            {
+                bool flag = pair.Value.Trim().Trim('"')
+                    .Equals("true", StringComparison.OrdinalIgnoreCase);
+
+                switch (pair.Key.ToLowerInvariant())
+                {
+                    case "supportsscreens": room.SupportsScreens = flag; changed++; break;
+                    case "supportswalkvr": room.SupportsWalkVR = flag; changed++; break;
+                    case "supportsteleportvr": room.SupportsTeleportVR = flag; changed++; break;
+                    case "supportsvrlow": room.SupportsVRLow = flag; changed++; break;
+                    case "supportsquest2": room.SupportsQuest2 = flag; changed++; break;
+                    case "supportsmobile": room.SupportsMobile = flag; changed++; break;
+                    case "supportsjuniors": room.SupportsJuniors = flag; changed++; break;
+                }
+            }
+
+            if (changed > 0)
+            {
+                room.UgcVersion = Math.Max(1, room.UgcVersion + 1);
+                RoomDB.Rooms.Update(room);
+            }
+
+            Console.WriteLine(
+                $"[ROOM RESTRICTIONS] room={roomId} changed={changed} by={accountId.Value}");
+
+            return Ok(MutationSuccess(RoomDB.PrepareRoomForClient(room)));
+        }
+
+        [HttpGet("rooms/{roomId:long}/experience")]
+        public IActionResult GetRoomExperience(long roomId)
+        {
+            return Ok(new { Enabled = false, DailyLimit = 1000 });
+        }
+
+        [HttpGet("rooms/{roomId:long}/experience/player")]
+        public IActionResult GetRoomExperienceForPlayer(long roomId)
+        {
+            return Ok(Array.Empty<object>());
+        }
+
+        [HttpGet("rooms/contributedby/me")]
+        public IActionResult GetContributedByMe(
+            [FromQuery] int skip = 0,
+            [FromQuery] int take = 100)
+        {
+            var accountId = AuthStuff.GetPlayerId(Request);
+            if (accountId == null)
+                return Unauthorized();
+
+            skip = Math.Max(0, skip);
+            take = Math.Clamp(take, 1, 100);
+
+            var rooms = RoomDB.Rooms.Find(room =>
+                    room.CreatorAccountId != accountId.Value)
+                .Where(room => room.Roles?.Any(role =>
+                    role.AccountId == accountId.Value) == true)
+                .Skip(skip)
+                .Take(take)
+                .ToList();
+
+            RoomDB.PrepareRoomsForClient(rooms);
+            return Ok(rooms);
+        }
+
+        [HttpGet("rooms/visitedby/{playerId:long}")]
+        public IActionResult GetVisitedByPlayer(
+            long playerId,
+            [FromQuery] int skip = 0,
+            [FromQuery] int take = 100)
+        {
+            var accountId = AuthStuff.GetPlayerId(Request);
+            if (accountId == null)
+                return Unauthorized();
+
+            if (playerId != accountId.Value && !AreFriends(accountId.Value, playerId))
+                return StatusCode(StatusCodes.Status403Forbidden);
+
+            var target = PlayerDB.Players.FindById(playerId);
+            if (target?.Player == null)
+                return Ok(Array.Empty<object>());
+
+            skip = Math.Max(0, skip);
+            take = Math.Clamp(take, 1, 100);
+
+            var visits = target.Player.PlayerExtra?.RoomVisits?
+                .OrderByDescending(visit => visit.VisitedAt)
+                .ToList() ?? new List<PlayerDBClasses.RoomVisit>();
+
+            var roomMap = RoomDB.Rooms.Find(room =>
+                    visits.Select(visit => visit.RoomId).Contains(room.RoomId))
+                .ToDictionary(room => room.RoomId);
+
+            var rooms = visits
+                .Where(visit => roomMap.ContainsKey(visit.RoomId))
+                .Select(visit => roomMap[visit.RoomId])
+                .Where(room => RoomDB.CanPlayerAccessRoom(room, accountId.Value))
+                .Skip(skip)
+                .Take(take)
+                .ToList();
+
+            RoomDB.PrepareRoomsForClient(rooms);
+            return Ok(rooms);
+        }
+
+        [HttpGet("rooms/autocomplete_search")]
+        public IActionResult AutocompleteRoomSearch(
+            [FromQuery] string? query = null,
+            [FromQuery] int take = 10)
+        {
+            string term = (query ?? string.Empty).Trim();
+            take = Math.Clamp(take, 1, 50);
+
+            if (term.Length == 0)
+                return Ok(Array.Empty<string>());
+
+            var names = RoomDB.Rooms.Find(room =>
+                    room.Name.Contains(term, StringComparison.OrdinalIgnoreCase))
+                .Where(IsPubliclyDiscoverableRoom)
+                .OrderBy(room => room.Name.Length)
+                .ThenBy(room => room.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(room => room.Name)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Take(take)
+                .ToList();
+
+            return Ok(names);
+        }
+
+        [HttpPost("rooms/bulk")]
+        public IActionResult GetRoomsBulk(
+            [FromQuery] List<long>? id = null,
+            [FromQuery] List<string>? name = null)
+        {
+            var ids = (id ?? new List<long>()).Where(value => value > 0).Distinct().ToList();
+            if (ids.Count > 0)
+            {
+                var byId = RoomDB.Rooms.Find(room => ids.Contains(room.RoomId)).ToList();
+                RoomDB.PrepareRoomsForClient(byId);
+                return Ok(byId);
+            }
+
+            return Ok(RoomDB.GetRoomsByNames(name ?? new List<string>()));
+        }
+
+        [HttpPost("rooms/{roomId:long}/leaderboards/{leaderboardId:int}")]
+        [HttpPut("rooms/{roomId:long}/leaderboards/{leaderboardId:int}")]
+        public async Task<IActionResult> UpsertRoomLeaderboard(long roomId, int leaderboardId)
+        {
+            var accountId = AuthStuff.GetPlayerId(Request);
+            if (accountId == null)
+                return Unauthorized();
+
+            var room = RoomDB.GetRoom(roomId);
+            if (room == null)
+                return Ok(LeaderboardEnvelope("This room does not exist!"));
+
+            if (!CanEditRoom(room, accountId.Value))
+                return StatusCode(StatusCodes.Status403Forbidden);
+
+            var fields = await ReadRoomFieldsAsync();
+            if (!int.TryParse(Field(fields, "statFormat"), out int statFormat))
+                statFormat = 0;
+
+            bool sortAscending = (Field(fields, "sortAscending") ?? string.Empty)
+                .Trim().Trim('"').Equals("true", StringComparison.OrdinalIgnoreCase);
+
+            room.Leaderboards ??= new List<RoomDBClasses.RoomLeaderboard>();
+            room.Leaderboards.RemoveAll(board => board.LeaderboardId == leaderboardId);
+            room.Leaderboards.Add(new RoomDBClasses.RoomLeaderboard
+            {
+                RoomId = roomId,
+                LeaderboardId = leaderboardId,
+                LeaderboardTitle = Field(fields, "leaderboardTitle") ?? string.Empty,
+                StatFormat = statFormat,
+                SortAscending = sortAscending
+            });
+
+            RoomDB.Rooms.Update(room);
+
+            Console.WriteLine(
+                $"[ROOM LEADERBOARD] room={roomId} board={leaderboardId} " +
+                $"by={accountId.Value}");
+
+            return Ok(LeaderboardEnvelope(null));
+        }
+
+        [HttpDelete("rooms/{roomId:long}/leaderboards/{leaderboardId:int}")]
+        public IActionResult DeleteRoomLeaderboard(long roomId, int leaderboardId)
+        {
+            var accountId = AuthStuff.GetPlayerId(Request);
+            if (accountId == null)
+                return Unauthorized();
+
+            var room = RoomDB.GetRoom(roomId);
+            if (room == null)
+                return Ok(LeaderboardEnvelope("This room does not exist!"));
+
+            if (!CanEditRoom(room, accountId.Value))
+                return StatusCode(StatusCodes.Status403Forbidden);
+
+            int removed = room.Leaderboards?.RemoveAll(
+                board => board.LeaderboardId == leaderboardId) ?? 0;
+
+            if (removed == 0)
+                return Ok(LeaderboardEnvelope("This room has no such leaderboard!"));
+
+            RoomDB.Rooms.Update(room);
+
+            Console.WriteLine(
+                $"[ROOM LEADERBOARD DELETE] room={roomId} board={leaderboardId} " +
+                $"by={accountId.Value}");
+
+            return Ok(LeaderboardEnvelope(null));
+        }
+
+        private static object LeaderboardEnvelope(string? error) => new
+        {
+            Success = error == null,
+            Error = error,
+            error_id = (string?)null
+        };
+
+        private static bool AreFriends(long playerId, long otherPlayerId)
+        {
+            var player = PlayerDB.Players.FindById(playerId);
+            return player?.Player?.Relationships?.Any(relationship =>
+                relationship.PlayerID == otherPlayerId &&
+                relationship.RelationshipType ==
+                    PlayerDBClasses.RelationshipType.Friend) == true;
+        }
+
+        private static string? Field(Dictionary<string, string> fields, string name) =>
+            fields.TryGetValue(name.ToLowerInvariant(), out string? value) ? value : null;
+
+        private async Task<Dictionary<string, string>> ReadRoomFieldsAsync()
+        {
+            var fields = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var pair in Request.Query)
+            {
+                string? value = pair.Value.FirstOrDefault();
+                if (value != null)
+                    fields[pair.Key.ToLowerInvariant()] = value;
+            }
+
+            if (Request.HasFormContentType)
+            {
+                var form = await Request.ReadFormAsync(HttpContext.RequestAborted);
+                foreach (var pair in form)
+                {
+                    string? value = pair.Value.FirstOrDefault();
+                    if (value != null)
+                        fields[pair.Key.ToLowerInvariant()] = value;
+                }
+
+                return fields;
+            }
+
+            if (Request.ContentLength.GetValueOrDefault() <= 0)
+                return fields;
+
+            using var reader = new StreamReader(
+                Request.Body,
+                System.Text.Encoding.UTF8,
+                detectEncodingFromByteOrderMarks: true,
+                bufferSize: 1_024,
+                leaveOpen: true);
+
+            string body = await reader.ReadToEndAsync(HttpContext.RequestAborted);
+            if (string.IsNullOrWhiteSpace(body))
+                return fields;
+
+            try
+            {
+                using var document = JsonDocument.Parse(body);
+                if (document.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var property in document.RootElement.EnumerateObject())
+                    {
+                        fields[property.Name.ToLowerInvariant()] =
+                            property.Value.ValueKind == JsonValueKind.String
+                                ? property.Value.GetString() ?? string.Empty
+                                : property.Value.ToString();
+                    }
+                }
+            }
+            catch (JsonException)
+            {
+            }
+
+            return fields;
+        }
+
+        internal static bool CanEditRoom(RoomDBClasses.Room room, long accountId)
         {
             return room.CreatorAccountId == accountId ||
                 room.Roles?.Any(role =>

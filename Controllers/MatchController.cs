@@ -963,6 +963,8 @@ namespace Mocha2023.Controllers
         }
 
         [HttpPost("matchmake/room/{roomId}")]
+        [HttpPost("matchmake/v2/room/{roomId}")]
+        [HttpPost("/api/match/matchmake/v2/room/{roomId}")]
         public async Task<IActionResult> MatchmakeRoomRoomId(long roomId)
         {
             var player = AuthStuff.GetCurrentPlayer(Request);
@@ -1421,6 +1423,8 @@ namespace Mocha2023.Controllers
         }
 
         [HttpPost("matchmake/room/{roomId}/{subRoomId}")]
+        [HttpPost("matchmake/v2/room/{roomId}/{subRoomId}")]
+        [HttpPost("/api/match/matchmake/v2/room/{roomId}/{subRoomId}")]
         public async Task<IActionResult> MatchmakeRoomSubRoomId(
             long roomId,
             long subRoomId)
@@ -1531,6 +1535,205 @@ namespace Mocha2023.Controllers
             Console.WriteLine(
                 $"[INSTANCE IN PROGRESS] instance={roomInstanceId} " +
                 $"inProgress={inProgress} players={updated}");
+
+            return Ok();
+        }
+
+        [HttpGet("player/qos")]
+        [HttpGet("/api/match/player/qos")]
+        public IActionResult GetQosRegions()
+        {
+            return Ok(new[]
+            {
+                new { id = "us-west1", address = "34.169.254.144:50000" },
+                new { id = "europe-west1", address = "35.205.141.119:50000" },
+                new { id = "asia-northeast1", address = "35.200.67.228:50000" },
+                new { id = "us-east1", address = "34.73.244.122:50000" },
+                new { id = "us-central1", address = "34.69.179.51:50000" },
+                new { id = "northamerica-northeast1", address = "34.152.4.100:50000" }
+            });
+        }
+
+        [HttpGet("tachyon")]
+        [HttpGet("/api/match/tachyon")]
+        public IActionResult GetTachyonInstance([FromQuery] long id = 0)
+        {
+            if (id <= 0)
+                return Ok(0L);
+
+            var heartbeat = PlayerDB.GetPlayerHeartbeat(id);
+            return Ok(heartbeat?.roomInstance?.roomInstanceId ?? 0L);
+        }
+
+        [HttpGet("rooms/requiring/developer")]
+        [HttpGet("/api/match/rooms/requiring/developer")]
+        [HttpGet("rooms/requiring/rrplus")]
+        [HttpGet("/api/match/rooms/requiring/rrplus")]
+        public IActionResult GetRoomsRequiringEntitlement()
+        {
+            return Ok(Array.Empty<object>());
+        }
+
+        [HttpGet("clubhousesearch/mostactivenow")]
+        [HttpGet("/api/match/clubhousesearch/mostactivenow")]
+        public IActionResult GetMostActiveClubhouses()
+        {
+            long activeAfter = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 90;
+
+            var counts = PlayerDB.Players.FindAll()
+                .Select(player => player.Player?.PlayerExtra?.Heartbeat)
+                .Where(heartbeat =>
+                    heartbeat != null &&
+                    heartbeat.isOnline &&
+                    heartbeat.lastHeartbeatUnixTime >= activeAfter &&
+                    heartbeat.roomInstance != null &&
+                    heartbeat.roomInstance.clubId > 0)
+                .GroupBy(heartbeat => new
+                {
+                    heartbeat!.roomInstance!.roomId,
+                    heartbeat.roomInstance.clubId
+                })
+                .Select(group => new
+                {
+                    RoomId = group.Key.roomId,
+                    ClubId = group.Key.clubId,
+                    PlayerCount = group.Select(hb => hb!.playerId).Distinct().Count()
+                })
+                .OrderByDescending(entry => entry.PlayerCount)
+                .ToList();
+
+            return Ok(counts);
+        }
+
+        [HttpPost("matchmake/player/{playerId:long}")]
+        [HttpPost("matchmake/v2/player/{playerId:long}")]
+        [HttpPost("/api/match/matchmake/player/{playerId:long}")]
+        [HttpPost("/api/match/matchmake/v2/player/{playerId:long}")]
+        public async Task<IActionResult> MatchmakeToPlayer(long playerId)
+        {
+            var player = AuthStuff.GetCurrentPlayer(Request);
+            if (player == null)
+                return Unauthorized();
+
+            if (playerId == player.PlayerId || !IsFriendOf(player.PlayerId, playerId))
+                return await MatchmakeResultAsync(null, MatchmakingErrorCode.NoSuchRoom);
+
+            var target = PlayerDB.GetPlayerHeartbeat(playerId);
+            var instance = target?.roomInstance;
+            if (instance == null)
+                return await MatchmakeResultAsync(null, MatchmakingErrorCode.NoSuchRoom);
+
+            var heartbeat = Sessions.JoinRoomInstance(
+                player.PlayerId,
+                instance.roomInstanceId);
+            if (heartbeat == null)
+                return await MatchmakeResultAsync(null, MatchmakingErrorCode.NoSuchRoom);
+
+            await NotiController.NotifyPlayerPresenceUpdatedAsync(player.PlayerId);
+            return await MatchmakeResultAsync(
+                heartbeat,
+                heartbeat.errorCode ?? MatchmakingErrorCode.Success);
+        }
+
+        [HttpPost("matchmake/club/{clubId:long}")]
+        [HttpPost("/api/match/matchmake/club/{clubId:long}")]
+        public async Task<IActionResult> MatchmakeToClubhouse(long clubId)
+        {
+            var player = AuthStuff.GetCurrentPlayer(Request);
+            if (player == null)
+                return Unauthorized();
+
+            var club = ClubDB.Get(clubId);
+            if (club?.ClubhouseRoomId is not > 0 ||
+                ClubDB.GetMembership(clubId, player.PlayerId) == null)
+            {
+                return await MatchmakeResultAsync(null, MatchmakingErrorCode.NoSuchRoom);
+            }
+
+            bool isPrivate = await ReadPrivateMatchmakingFlagAsync();
+            var heartbeat = Sessions.CreateRoom(
+                player.PlayerId,
+                club.ClubhouseRoomId.Value,
+                isPrivate: isPrivate);
+
+            if (heartbeat == null)
+                return await MatchmakeResultAsync(null, MatchmakingErrorCode.NoSuchRoom);
+
+            await NotiController.NotifyPlayerPresenceUpdatedAsync(player.PlayerId);
+            return await MatchmakeResultAsync(
+                heartbeat,
+                heartbeat.errorCode ?? MatchmakingErrorCode.Success);
+        }
+
+        [HttpPost("matchmake/event/{eventId:long}")]
+        [HttpPost("/api/match/matchmake/event/{eventId:long}")]
+        public async Task<IActionResult> MatchmakeToEvent(long eventId)
+        {
+            var player = AuthStuff.GetCurrentPlayer(Request);
+            if (player == null)
+                return Unauthorized();
+
+            var playerEvent = PlayerEventDB.Get(eventId);
+            if (playerEvent?.RoomId is not > 0)
+                return await MatchmakeResultAsync(null, MatchmakingErrorCode.NoSuchRoom);
+
+            bool open =
+                playerEvent.Accessibility.Equals("Public", StringComparison.OrdinalIgnoreCase) ||
+                playerEvent.Accessibility.Equals("Unlisted", StringComparison.OrdinalIgnoreCase);
+
+            bool invited =
+                playerEvent.CreatorAccountId == player.PlayerId ||
+                PlayerEventDB.GetResponse(eventId, player.PlayerId) != null;
+
+            if (!open && !invited)
+                return await MatchmakeResultAsync(null, MatchmakingErrorCode.NoSuchRoom);
+
+            bool isPrivate = await ReadPrivateMatchmakingFlagAsync();
+            var heartbeat = Sessions.CreateRoom(
+                player.PlayerId,
+                playerEvent.RoomId.Value,
+                isPrivate: isPrivate);
+
+            if (heartbeat == null)
+                return await MatchmakeResultAsync(null, MatchmakingErrorCode.NoSuchRoom);
+
+            await NotiController.NotifyPlayerPresenceUpdatedAsync(player.PlayerId);
+            return await MatchmakeResultAsync(
+                heartbeat,
+                heartbeat.errorCode ?? MatchmakingErrorCode.Success);
+        }
+
+        private static bool IsFriendOf(long playerId, long otherPlayerId)
+        {
+            var player = PlayerDB.Players.FindById(playerId);
+            return player?.Player?.Relationships?.Any(relationship =>
+                relationship.PlayerID == otherPlayerId &&
+                relationship.RelationshipType == RelationshipType.Friend) == true;
+        }
+
+        [HttpPost("roominstance/{roomInstanceId:long}/markprivate")]
+        [HttpPut("roominstance/{roomInstanceId:long}/markprivate")]
+        [HttpPost("/api/match/roominstance/{roomInstanceId:long}/markprivate")]
+        [HttpPut("/api/match/roominstance/{roomInstanceId:long}/markprivate")]
+        public IActionResult MarkRoomInstancePrivate(long roomInstanceId)
+        {
+            long? accountId = AuthStuff.GetPlayerId(Request);
+            if (accountId == null)
+                return Unauthorized();
+
+            var instance = PlayerDB.FindRoomInstance(roomInstanceId);
+            if (instance == null)
+                return NotFound();
+
+            var room = RoomDB.GetRoom(instance.roomId);
+            if (room == null || !RoomController.CanEditRoom(room, accountId.Value))
+                return StatusCode(403);
+
+            int updated = PlayerDB.SetRoomInstancePrivate(roomInstanceId, true);
+
+            Console.WriteLine(
+                $"[INSTANCE MARK PRIVATE] instance={roomInstanceId} " +
+                $"room={instance.roomId} by={accountId.Value} players={updated}");
 
             return Ok();
         }

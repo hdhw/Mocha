@@ -147,6 +147,8 @@ namespace Mocha2023.Classes.DBs.DBClasses
                 = new();
 
             public List<LoadScreens> LoadScreens { get; set; } = new();
+
+            public List<RoomLeaderboard> Leaderboards { get; set; } = new();
         }
 
         public class SubRooms
@@ -501,6 +503,19 @@ namespace Mocha2023.Classes.DBs.DBClasses
             public PromoExternalContentType Type { get; set; }
 
             public string Reference { get; set; } = string.Empty;
+        }
+
+        public class RoomLeaderboard
+        {
+            public long RoomId { get; set; }
+
+            public int LeaderboardId { get; set; }
+
+            public string LeaderboardTitle { get; set; } = string.Empty;
+
+            public int StatFormat { get; set; }
+
+            public bool SortAscending { get; set; }
         }
 
         public class LoadScreens
