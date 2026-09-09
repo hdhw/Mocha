@@ -1313,6 +1313,58 @@ namespace Mocha2023.Controllers
             }
         }
 
+        // A vote is ephemeral: it belongs to the session it was called in, so it is
+        // pushed and never stored. Queued for someone offline it would raise a prompt on
+        // their next connect about a session that ended hours ago.
+        public static async Task<int> NotifyVoteToKickAsync(
+            long fromPlayerId,
+            IEnumerable<long> recipientPlayerIds,
+            string subjectPlayerId,
+            long gameSessionId)
+        {
+            long[] recipients = recipientPlayerIds
+                .Where(playerId => playerId > 0)
+                .Distinct()
+                .ToArray();
+
+            if (recipients.Length == 0)
+                return 0;
+
+            // Data is a STRING on the wire, so the payload goes in escaped. A nested
+            // object is rejected outright by the client's decoder and the whole
+            // notification is lost, not just the field.
+            string data = JsonSerializer.Serialize(new
+            {
+                PlayerId = subjectPlayerId,
+                Response = string.Empty,
+                GameSessionId = gameSessionId
+            });
+
+            int delivered = 0;
+
+            foreach (long toPlayerId in recipients)
+            {
+                await SendPushEventToPlayerAsync(
+                    toPlayerId,
+                    MessageReceivedTarget,
+                    new
+                    {
+                        FromPlayerId = fromPlayerId,
+                        ToPlayerId = toPlayerId,
+                        Type = (int)NotificationDB.MessageType.VoteToKick,
+                        Data = data
+                    });
+
+                delivered++;
+            }
+
+            Console.WriteLine(
+                $"[VOTE TO KICK] from={fromPlayerId} subject={subjectPlayerId} " +
+                $"session={gameSessionId} recipients={delivered}");
+
+            return delivered;
+        }
+
         public static async Task NotifyCheerAsync(
             long receiverPlayerId,
             NotificationDB.ClientNotification notification,

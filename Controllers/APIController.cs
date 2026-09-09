@@ -3699,6 +3699,96 @@ namespace Mocha2023.Controllers
         [HttpPost("/api/AppIntegrity/v1/iospaymentqueuefailed")]
         [HttpPost("/api/PlayerReporting/v1/instantKick")]
         [HttpPost("/api/PlayerReporting/v3/voteToKick")]
+        public async Task<IActionResult> VoteToKick()
+        {
+            long? voterId = AuthStuff.GetPlayerId(Request);
+            if (voterId == null)
+                return Unauthorized();
+
+            var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var queryValue in Request.Query)
+                values[queryValue.Key] = queryValue.Value.ToString();
+
+            if (Request.HasFormContentType)
+            {
+                var form = await Request.ReadFormAsync(HttpContext.RequestAborted);
+                foreach (var formValue in form)
+                    values[formValue.Key] = formValue.Value.ToString();
+            }
+            else if (Request.ContentLength.GetValueOrDefault() > 0)
+            {
+                using var reader = new StreamReader(Request.Body);
+                string body = await reader.ReadToEndAsync();
+
+                if (!string.IsNullOrWhiteSpace(body))
+                {
+                    try
+                    {
+                        using var document = JsonDocument.Parse(body);
+                        AddJsonValues(document.RootElement, values);
+                    }
+                    catch (JsonException)
+                    {
+                        foreach (var bodyValue in
+                            Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(
+                                "?" + body))
+                        {
+                            values[bodyValue.Key] = bodyValue.Value.ToString();
+                        }
+                    }
+                }
+            }
+
+            values.TryGetValue("PlayerId", out string? subjectField);
+            if (string.IsNullOrWhiteSpace(subjectField) ||
+                !long.TryParse(subjectField.Trim(), out long subjectId))
+            {
+                return BadRequest(new { success = false, error = "PlayerId is required" });
+            }
+
+            if (!values.TryGetValue("GameSessionId", out string? sessionField) ||
+                !long.TryParse((sessionField ?? string.Empty).Trim(), out long sessionId))
+            {
+                return BadRequest(new { success = false, error = "GameSessionId is required" });
+            }
+
+            long? gameSessionId = sessionId;
+
+            // The session comes from live presence on both sides, never from the body, so
+            // a client cannot put a vote to a room it is not in or about someone who is
+            // not standing there.
+            if (!PlayerDB.IsPlayerInInstance(voterId.Value, gameSessionId.Value))
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new { success = false, error = "You are not in that game session!" });
+            }
+
+            if (!PlayerDB.IsPlayerInInstance(subjectId, gameSessionId.Value))
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new { success = false, error = "That player is not in that game session!" });
+            }
+
+            // The room votes, so everyone standing there is asked - the player being voted
+            // on included, since a vote is called in front of them. The caller is dropped:
+            // their vote is the one they just posted.
+            long[] audience = PlayerDB
+                .GetActivePlayerIdsInInstance(gameSessionId.Value)
+                .Where(playerId => playerId != voterId.Value)
+                .ToArray();
+
+            await NotiController.NotifyVoteToKickAsync(
+                voterId.Value,
+                audience,
+                subjectField.Trim(),
+                gameSessionId.Value);
+
+            return Ok(new { success = true, error = string.Empty });
+        }
+
         [HttpPost("/api/checklist/v1/complete")]
         [HttpPost("/api/externalfriendinvite/v1/createplatforminvite")]
         [HttpPost("/api/externalfriendinvite/v1/sendtextmessageinvite")]

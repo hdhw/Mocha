@@ -2954,6 +2954,44 @@ namespace Mocha2023.Classes.DBs
                 .ToList();
         }
 
+        public static long[] GetActivePlayerIdsInInstance(long roomInstanceId)
+        {
+            if (roomInstanceId <= 0)
+                return Array.Empty<long>();
+
+            long activeAfter = DateTimeOffset.UtcNow.ToUnixTimeSeconds() -
+                PresenceFreshnessSeconds;
+
+            return Players.FindAll()
+                .Where(account =>
+                {
+                    Heartbeat? heartbeat = account.Player?.PlayerExtra?.Heartbeat;
+
+                    return heartbeat?.isOnline == true &&
+                           heartbeat.lastHeartbeatUnixTime >= activeAfter &&
+                           heartbeat.roomInstance?.roomInstanceId == roomInstanceId;
+                })
+                .Select(account => account.PlayerId)
+                .Distinct()
+                .ToArray();
+        }
+
+        public static bool IsPlayerInInstance(long playerId, long roomInstanceId)
+        {
+            if (playerId <= 0 || roomInstanceId <= 0)
+                return false;
+
+            Heartbeat? heartbeat = Players.FindById(playerId)?
+                .Player?.PlayerExtra?.Heartbeat;
+
+            long activeAfter = DateTimeOffset.UtcNow.ToUnixTimeSeconds() -
+                PresenceFreshnessSeconds;
+
+            return heartbeat?.isOnline == true &&
+                   heartbeat.lastHeartbeatUnixTime >= activeAfter &&
+                   heartbeat.roomInstance?.roomInstanceId == roomInstanceId;
+        }
+
         public static long[] GetActiveSameInstancePlayerIds(long subjectPlayerId)
         {
             if (subjectPlayerId <= 0)
