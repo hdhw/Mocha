@@ -825,14 +825,111 @@ namespace Mocha2023.Controllers
         }
 
         [HttpGet("/match/player/avoidjuniors")]
-        [HttpPut("/match/player/avoidjuniors")]
-        public IActionResult AvoidJuniors()
+        [HttpGet("player/avoidjuniors")]
+        public IActionResult GetAvoidJuniors()
         {
             var id = AuthStuff.GetPlayerId(Request);
             if (id == null)
                 return Unauthorized();
 
-            return Ok(false);
+            // A bare JSON boolean - the whole body is the preference, not an envelope
+            // and not a { value } wrapper.
+            return Ok(PlayerDB.GetPlayerFlag((long)id, AvoidJuniorsSettingKey));
+        }
+
+        [HttpPut("/match/player/avoidjuniors")]
+        [HttpPost("/match/player/avoidjuniors")]
+        [HttpPut("player/avoidjuniors")]
+        [HttpPost("player/avoidjuniors")]
+        public async Task<IActionResult> SetAvoidJuniors()
+        {
+            var id = AuthStuff.GetPlayerId(Request);
+            if (id == null)
+                return Unauthorized();
+
+            bool avoid = await ReadAvoidJuniorsFlagAsync();
+            PlayerDB.SetPlayerFlag((long)id, AvoidJuniorsSettingKey, avoid);
+
+            Console.WriteLine($"[AVOID JUNIORS] player={id} value={avoid}");
+
+            return Ok(avoid);
+        }
+
+        private const string AvoidJuniorsSettingKey = "AvoidJuniors";
+
+        // The client posts avoidJuniors=True. Neither the casing nor the spelling of the
+        // boolean is guaranteed across the client's surfaces, so True/false/1/0/yes/no
+        // all parse.
+        private async Task<bool> ReadAvoidJuniorsFlagAsync()
+        {
+            foreach (string key in new[] { "avoidJuniors", "AvoidJuniors", "value" })
+            {
+                foreach (string? value in Request.Query[key])
+                {
+                    if (TryParseLooseBool(value, out bool parsed))
+                        return parsed;
+                }
+            }
+
+            if (Request.HasFormContentType)
+            {
+                var form = await Request.ReadFormAsync(HttpContext.RequestAborted);
+                foreach (var field in form)
+                {
+                    foreach (string? value in field.Value)
+                    {
+                        if (TryParseLooseBool(value, out bool parsed))
+                            return parsed;
+                    }
+                }
+
+                return false;
+            }
+
+            if (Request.ContentLength.GetValueOrDefault() <= 0)
+                return false;
+
+            using var reader = new StreamReader(Request.Body, leaveOpen: true);
+            string body = await reader.ReadToEndAsync();
+
+            if (string.IsNullOrWhiteSpace(body))
+                return false;
+
+            try
+            {
+                using JsonDocument document = JsonDocument.Parse(body);
+                if (document.RootElement.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                    return document.RootElement.GetBoolean();
+
+                if (document.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (JsonProperty property in document.RootElement.EnumerateObject())
+                    {
+                        if (TryParseLooseBool(property.Value.ToString(), out bool parsed))
+                            return parsed;
+                    }
+                }
+            }
+            catch (JsonException)
+            {
+                return TryParseLooseBool(body, out bool parsed) && parsed;
+            }
+
+            return false;
+        }
+
+        private static bool TryParseLooseBool(string? value, out bool result)
+        {
+            result = false;
+            if (string.IsNullOrWhiteSpace(value))
+                return false;
+
+            switch (value.Trim().Trim('"').ToLowerInvariant())
+            {
+                case "true": case "1": case "yes": result = true; return true;
+                case "false": case "0": case "no": result = false; return true;
+                default: return false;
+            }
         }
 
         [HttpGet("/match/player/connection-info")]

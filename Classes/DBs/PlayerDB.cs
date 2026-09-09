@@ -310,6 +310,55 @@ namespace Mocha2023.Classes.DBs
                 string.Equals(setting.Value, "True", StringComparison.OrdinalIgnoreCase);
         }
 
+        public static bool GetPlayerFlag(long playerId, string key)
+        {
+            var player = Players.FindById(playerId);
+
+            var setting = player?.Player?.PlayerExtra?.Settings?
+                .FirstOrDefault(x => string.Equals(
+                    x.Key,
+                    key,
+                    StringComparison.OrdinalIgnoreCase));
+
+            return setting != null &&
+                string.Equals(setting.Value, "True", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool SetPlayerFlag(long playerId, string key, bool enabled)
+        {
+            if (playerId <= 0)
+                return false;
+
+            var player = Players.FindById(playerId);
+            if (player?.Player == null)
+                return false;
+
+            player.Player.PlayerExtra ??= new PlayerExtra();
+            player.Player.PlayerExtra.Settings ??= new List<Setting>();
+
+            var setting = player.Player.PlayerExtra.Settings
+                .FirstOrDefault(x => string.Equals(
+                    x.Key,
+                    key,
+                    StringComparison.OrdinalIgnoreCase));
+
+            if (setting == null)
+            {
+                player.Player.PlayerExtra.Settings.Add(new Setting
+                {
+                    Key = key,
+                    Value = enabled ? "True" : "False"
+                });
+            }
+            else
+            {
+                setting.Value = enabled ? "True" : "False";
+            }
+
+            Players.Update(player);
+            return true;
+        }
+
         public static bool SetRRPlus(long playerId, bool enabled)
         {
             if (playerId <= 0)

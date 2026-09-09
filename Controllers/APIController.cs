@@ -10579,14 +10579,60 @@ namespace Mocha2023.Controllers
         [HttpGet("/announcements/v2/mine/unread")]
         public IActionResult GetUnreadAnnouncements()
         {
+            long? accountId = AuthStuff.GetPlayerId(Request);
+            if (accountId == null)
+                return Unauthorized();
 
-            return Ok(Array.Empty<object>());
+            return Ok(UnreadClubAnnouncements(accountId.Value, subscriptionOnly: false));
         }
 
         [HttpGet("/announcements/v2/subscription/mine/unread")]
-        public IActionResult GetUnreadSubscriptionAnnouncements()
+        public IActionResult GetUnreadSubscriptionAnnouncements(
+            [FromQuery] bool sendAnnouncements = false)
         {
-            return Ok(Array.Empty<object>());
+            long? accountId = AuthStuff.GetPlayerId(Request);
+            if (accountId == null)
+                return Unauthorized();
+
+            return Ok(UnreadClubAnnouncements(accountId.Value, subscriptionOnly: true));
+        }
+
+        // A club counts as unread when its newest announcement is newer than the last one
+        // this account marked read. The Creator tier is the subscription club the second
+        // feed asks about, which is what separates the two.
+        private static List<object> UnreadClubAnnouncements(
+            long accountId,
+            bool subscriptionOnly)
+        {
+            var results = new List<object>();
+
+            foreach (var club in ClubDB.GetMemberClubs(accountId))
+            {
+                if (subscriptionOnly !=
+                    (club.ClubType == ClubDBClasses.ClubType.Creator))
+                    continue;
+
+                var announcements = ClubDB.GetAnnouncements(club.ClubId);
+                if (announcements.Count == 0)
+                    continue;
+
+                long newest = announcements[0].AnnouncementId;
+                long lastRead = ClubDB.GetLastReadAnnouncementId(club.ClubId, accountId);
+                if (newest <= lastRead)
+                    continue;
+
+                results.Add(new
+                {
+                    ClubId = club.ClubId,
+                    Club = ClubDB.ToSummary(club, accountId),
+                    LastAnnouncementId = newest,
+                    LastReadAnnouncementId = lastRead,
+                    UnreadCount = announcements.Count(
+                        value => value.AnnouncementId > lastRead)
+                });
+            }
+
+            return results;
         }
 
         [HttpGet("/api/announcement/v1/get")]
