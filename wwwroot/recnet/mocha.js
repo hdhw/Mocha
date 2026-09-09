@@ -2172,8 +2172,8 @@ async function coachGiftingView() {
             <option value="50">Legendary (50)</option>
         </select></label>
         <br><br>
-        <label>Box Design<select id="boxDesign"><option value="2" selected>Normal</option><option value="110000">Friendotron</option><option value="custom">Custom...</option></select></label>
-        <input type="number" id="boxDesignCustom" placeholder="Custom box design ID" hidden style="margin-top:6px">
+        <label>Gift context<select id="boxDesign"><option value="2" selected>Game drop (2)</option><option value="100010">Store purchase (100010)</option><option value="110000">Consumable / Friendotron (110000)</option><option value="custom">Custom...</option></select><small class="field-hint">What the client says the gift came from - it picks the box art and the wording.</small></label>
+        <input type="number" id="boxDesignCustom" placeholder="Custom gift context ID" hidden style="margin-top:6px">
         <br><br>
         <label>Message (optional)<input type="text" id="giftMessage" placeholder="Gift message"></label>
         <br><br>
@@ -2217,7 +2217,7 @@ async function coachGiftingView() {
     (function populateGiftContexts() {
         const customOption = boxDesign.querySelector('option[value="custom"]');
         for (const { name, value } of GIFT_CONTEXTS) {
-            if (value === 2 || value === 110000) continue;
+            if (value === 2 || value === 110000 || value === 100010) continue;
             const opt = document.createElement('option');
             opt.value = String(value);
             opt.textContent = `${name} (${value})`;
@@ -2234,8 +2234,7 @@ async function coachGiftingView() {
         skuLabel.style.display = (type === 'avatar' || type === 'equipment' || type === 'consumable') ? '' : 'none';
         amountLabel.style.display = (type === 'tokens' || type === 'xp' || type === 'consumable') ? '' : 'none';
         boxRarityLabel.style.display = type === 'box' ? '' : 'none';
-        boxDesign.parentElement.style.display = type === 'box' ? '' : 'none';
-        boxDesignCustom.hidden = !(type === 'box' && boxDesign.value === 'custom');
+        boxDesignCustom.hidden = boxDesign.value !== 'custom';
     }
     if (giftType) giftType.addEventListener('change', updateFormVisibility);
     if (boxDesign) boxDesign.addEventListener('change', updateFormVisibility);

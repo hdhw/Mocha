@@ -1958,9 +1958,11 @@ namespace Mocha2023.Controllers
             return checked((int)senderPlayerId);
         }
 
+        // Only Default is rewritten, and only because it says nothing about where the
+        // gift came from. Store_RecCenter used to be folded in here too, which meant
+        // everything bought from the store reached the client dressed as a game drop.
         private static int NormalizeGiftContext(int giftContext) =>
-            giftContext is (int)PlayerDBClasses.GiftContext.Default
-                or (int)PlayerDBClasses.GiftContext.Store_RecCenter
+            giftContext == (int)PlayerDBClasses.GiftContext.Default
                 ? (int)PlayerDBClasses.GiftContext.Game_Drop
                 : giftContext;
 
