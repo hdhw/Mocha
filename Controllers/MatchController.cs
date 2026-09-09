@@ -1513,6 +1513,94 @@ namespace Mocha2023.Controllers
                 heartbeat.errorCode ?? MatchmakingErrorCode.Success);
         }
 
+        [HttpPut("roominstance/{roomInstanceId:long}/inprogress")]
+        [HttpPost("roominstance/{roomInstanceId:long}/inprogress")]
+        [HttpPut("/api/match/roominstance/{roomInstanceId:long}/inprogress")]
+        [HttpPost("/api/match/roominstance/{roomInstanceId:long}/inprogress")]
+        public async Task<IActionResult> SetRoomInstanceInProgress(long roomInstanceId)
+        {
+            if (AuthStuff.GetPlayerId(Request) == null)
+                return Unauthorized();
+
+            bool inProgress = await ReadInProgressFlagAsync();
+            int updated = PlayerDB.SetRoomInstanceInProgress(roomInstanceId, inProgress);
+
+            if (updated == 0)
+                return NotFound();
+
+            Console.WriteLine(
+                $"[INSTANCE IN PROGRESS] instance={roomInstanceId} " +
+                $"inProgress={inProgress} players={updated}");
+
+            return Ok();
+        }
+
+        private async Task<bool> ReadInProgressFlagAsync()
+        {
+            foreach (string key in new[] { "inProgress", "InProgress", "inprogress" })
+            {
+                foreach (string? value in Request.Query[key])
+                {
+                    if (!string.IsNullOrWhiteSpace(value))
+                        return IsTruthy(value);
+                }
+            }
+
+            if (Request.HasFormContentType)
+            {
+                var form = await Request.ReadFormAsync(HttpContext.RequestAborted);
+                foreach (var field in form)
+                {
+                    if (field.Key.Equals("inProgress", StringComparison.OrdinalIgnoreCase))
+                    {
+                        foreach (string? value in field.Value)
+                        {
+                            if (!string.IsNullOrWhiteSpace(value))
+                                return IsTruthy(value);
+                        }
+                    }
+                }
+
+                return false;
+            }
+
+            if ((Request.ContentLength ?? 0) <= 0)
+                return false;
+
+            Request.EnableBuffering();
+            if (Request.Body.CanSeek)
+                Request.Body.Position = 0;
+
+            using var reader = new StreamReader(Request.Body, leaveOpen: true);
+            string body = await reader.ReadToEndAsync();
+
+            if (Request.Body.CanSeek)
+                Request.Body.Position = 0;
+
+            if (string.IsNullOrWhiteSpace(body))
+                return false;
+
+            try
+            {
+                using JsonDocument document = JsonDocument.Parse(body);
+                foreach (JsonProperty property in document.RootElement.EnumerateObject())
+                {
+                    if (property.Name.Equals("inProgress", StringComparison.OrdinalIgnoreCase))
+                        return IsTruthy(property.Value.ToString());
+                }
+            }
+            catch (JsonException)
+            {
+                return IsTruthy(body);
+            }
+
+            return false;
+        }
+
+        private static bool IsTruthy(string? value) =>
+            value != null &&
+            value.Trim().Trim('"').Equals("true", StringComparison.OrdinalIgnoreCase);
+
         private async Task<IActionResult> MatchmakeResultAsync(
             Heartbeat? heartbeat,
             MatchmakingErrorCode errorCode)

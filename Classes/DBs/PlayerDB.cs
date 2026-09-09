@@ -3307,6 +3307,35 @@ namespace Mocha2023.Classes.DBs
 
             return hb;
         }
+        public static int SetRoomInstanceInProgress(
+            long roomInstanceId,
+            bool inProgress)
+        {
+            if (roomInstanceId <= 0)
+                return 0;
+
+            int updated = 0;
+
+            foreach (var player in Players.FindAll())
+            {
+                var heartbeat = player.Player?.PlayerExtra?.Heartbeat;
+                if (heartbeat?.roomInstance == null)
+                    continue;
+                if (heartbeat.roomInstance.roomInstanceId != roomInstanceId)
+                    continue;
+
+                if (heartbeat.roomInstance.isInProgress != inProgress)
+                {
+                    heartbeat.roomInstance.isInProgress = inProgress;
+                    Players.Update(player);
+                }
+
+                updated++;
+            }
+
+            return updated;
+        }
+
         public static Heartbeat? LeaveCurrentRoom(long playerId)
         {
             var player = Players.FindById(playerId);
