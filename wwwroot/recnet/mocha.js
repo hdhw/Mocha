@@ -57,7 +57,7 @@ function setActiveNav(view) {
 const DEVELOPER_ONLY_VIEWS = new Set([
     'community-board', 'coach-gifting', 'announcements', 'player-events', 'misc',
     'room-importer', 'logs', 'scanner-logs', 'anticheat-logs', 'config', 'account-creation',
-    'avatar-items', 'ip-bans', 'steam-blacklist', 'shop'
+    'avatar-items', 'ip-bans', 'steam-blacklist', 'shop', 'storefronts'
 ]);
 
 function renderDeveloperOnlyPlaceholder(view) {
@@ -100,6 +100,7 @@ async function route() {
         else if (view === 'coach-gifting') await coachGiftingView();
         else if (view === 'steam-blacklist') await steamBlacklistView();
         else if (view === 'shop') await shopView();
+        else if (view === 'storefronts') await storefrontsView();
         else if (view === 'preferences') await preferencesView();
         else await placeholder(view);
     } catch (error) {
@@ -2878,6 +2879,251 @@ async function steamBlacklistView() {
     });
 
     await loadSteamBlacklist();
+}
+
+async function storefrontsView() {
+    app.innerHTML = `
+    <h1 class="page-title">Storefronts</h1>
+    <div class="card">
+        <h2>Categories</h2>
+        <p class="field-hint">Group storefronts so you can change them together. A storefront belongs to one category.</p>
+        <div id="sfCategoryGrid"><div class="loading"><i></i>Loading storefronts</div></div>
+        <div class="search-row" style="margin-top:10px">
+            <input id="sfNewCategory" placeholder="New category name">
+            <button class="btn ghost small" id="sfAddCategory">Add category</button>
+        </div>
+        <button class="btn" id="sfSaveCategories">Save categories</button>
+        <span class="form-status" id="sfCategoryStatus"></span>
+    </div>
+    <div class="card">
+        <h2>Change a whole category</h2>
+        <label>Category<select id="sfApplyCategory"></select></label>
+        <p class="field-hint" id="sfApplyScope"></p>
+        <label>Set every item's price (blank to leave alone)<input type="number" id="sfApplyPrice" min="0" placeholder="tokens"></label>
+        <br><br>
+        <label>Subscriber discount % (blank to leave alone)<input type="number" id="sfApplyPercent" min="0" max="100" placeholder="e.g. 10"></label>
+        <br><br>
+        <label>Remove item by PurchasableItemId (blank to skip)<input type="number" id="sfApplyRemove" placeholder="e.g. 12402"></label>
+        <br><br>
+        <label>Add item to every storefront in the category<input id="sfApplySearch" placeholder="Search catalog by name, SKU or avatar item ID"></label>
+        <div id="sfApplyResults"></div>
+        <p class="field-hint" id="sfApplyChosen">No item chosen.</p>
+        <button class="btn" id="sfApply">Apply to category</button>
+        <span class="form-status" id="sfApplyStatus"></span>
+    </div>
+    <div class="card">
+        <h2>Item sets</h2>
+        <p class="field-hint">Tick the items that belong together and name them. They get a shared ItemSetId so the game groups them, the way "Astronaut (White)" groups suit, helmet and gloves.</p>
+        <label>Storefront<select id="sfSetStore"></select></label>
+        <div id="sfSetItems"><p class="field-hint">Pick a storefront.</p></div>
+        <div class="search-row" style="margin-top:10px">
+            <input id="sfSetName" placeholder="Set name, e.g. Astronaut (White)">
+            <button class="btn" id="sfCreateSet">Create set</button>
+        </div>
+        <span class="form-status" id="sfSetStatus"></span>
+        <div id="sfExistingSets" style="margin-top:12px"></div>
+    </div>`;
+
+    let storefronts = [];
+    let categories = {};
+    let chosenSku = null;
+
+    const say = (el, message, ok = true) => {
+        if (!el) return;
+        el.textContent = message;
+        el.style.color = ok ? 'var(--ok, #4ade80)' : 'var(--danger, #f87171)';
+    };
+
+    const categoryOf = storeId =>
+        Object.keys(categories).find(name => (categories[name] || []).includes(storeId)) || '';
+
+    function renderCategories() {
+        const grid = document.querySelector('#sfCategoryGrid');
+        const names = Object.keys(categories).sort((a, b) => a.localeCompare(b));
+        grid.innerHTML = `<table><thead><tr><th>Storefront</th><th>Items</th><th>Sets</th><th>Category</th></tr></thead><tbody>${
+            storefronts.map(store => `<tr>
+                <td>sf${store.storeId}</td>
+                <td>${store.items}</td>
+                <td>${store.sets.length ? esc(store.sets.join(', ')) : '<span class="field-hint">-</span>'}</td>
+                <td><select data-store="${store.storeId}" class="sf-cat">
+                    <option value="">(none)</option>
+                    ${names.map(name => `<option value="${esc(name)}"${categoryOf(store.storeId) === name ? ' selected' : ''}>${esc(name)}</option>`).join('')}
+                </select></td>
+            </tr>`).join('')}</tbody></table>`;
+
+        const apply = document.querySelector('#sfApplyCategory');
+        apply.innerHTML = names.map(name => `<option value="${esc(name)}">${esc(name)}</option>`).join('')
+            || '<option value="">(no categories yet)</option>';
+        renderApplyScope();
+
+        const setStore = document.querySelector('#sfSetStore');
+        const current = setStore.value;
+        setStore.innerHTML = storefronts.map(store =>
+            `<option value="${store.storeId}">sf${store.storeId} (${store.items} items)</option>`).join('');
+        if (current) setStore.value = current;
+    }
+
+    function renderApplyScope() {
+        const name = document.querySelector('#sfApplyCategory')?.value || '';
+        const ids = categories[name] || [];
+        const items = storefronts.filter(s => ids.includes(s.storeId)).reduce((sum, s) => sum + s.items, 0);
+        say(document.querySelector('#sfApplyScope'),
+            ids.length ? `${ids.length} storefront(s), ${items} item(s): ${ids.map(id => 'sf' + id).join(' ')}` : 'No storefronts in this category.',
+            ids.length > 0);
+    }
+
+    function collectCategories() {
+        const next = {};
+        Object.keys(categories).forEach(name => { next[name] = []; });
+        document.querySelectorAll('.sf-cat').forEach(select => {
+            const name = select.value;
+            if (!name) return;
+            (next[name] = next[name] || []).push(Number(select.dataset.store));
+        });
+        return next;
+    }
+
+    async function load() {
+        const data = await get(`${API}/admin/storefronts`);
+        storefronts = data.storefronts || [];
+        categories = data.categories || {};
+        renderCategories();
+    }
+
+    async function loadSetItems() {
+        const storeId = Number(document.querySelector('#sfSetStore')?.value);
+        const target = document.querySelector('#sfSetItems');
+        const existing = document.querySelector('#sfExistingSets');
+        if (!storeId) return;
+        target.innerHTML = '<div class="loading"><i></i>Loading items</div>';
+        try {
+            const data = await get(`${API}/admin/storefronts/${storeId}/items`);
+            const items = data.items || [];
+            target.innerHTML = items.length ? items.map(item => `
+                <label style="display:block">
+                    <input type="checkbox" class="sf-set-item" value="${item.purchasableItemId}">
+                    ${esc(item.friendlyName)} <small class="field-hint">${item.price} tokens${item.itemSetFriendlyName ? ' &middot; in ' + esc(item.itemSetFriendlyName) : ''}</small>
+                </label>`).join('') : '<p class="field-hint">This storefront has no items.</p>';
+
+            const sets = {};
+            items.filter(item => item.itemSetId).forEach(item => {
+                (sets[item.itemSetId] = sets[item.itemSetId] || { name: item.itemSetFriendlyName, count: 0 }).count++;
+            });
+            const ids = Object.keys(sets);
+            existing.innerHTML = ids.length
+                ? `<table><thead><tr><th>Set</th><th>Items</th><th></th></tr></thead><tbody>${ids.map(id =>
+                    `<tr><td>${esc(sets[id].name)}</td><td>${sets[id].count}</td><td><button class="btn ghost small sf-clear-set" data-set="${id}">Ungroup</button></td></tr>`).join('')}</tbody></table>`
+                : '<p class="field-hint">No sets in this storefront yet.</p>';
+        } catch (err) {
+            target.innerHTML = `<p class="form-status error">${esc(err.message)}</p>`;
+        }
+    }
+
+    document.querySelector('#sfAddCategory').addEventListener('click', () => {
+        const input = document.querySelector('#sfNewCategory');
+        const name = input.value.trim();
+        if (!name) return;
+        if (!categories[name]) categories[name] = [];
+        input.value = '';
+        renderCategories();
+    });
+
+    document.querySelector('#sfSaveCategories').addEventListener('click', async () => {
+        const status = document.querySelector('#sfCategoryStatus');
+        say(status, 'Saving...');
+        try {
+            const data = await send(`${API}/admin/storefronts/categories`, 'PUT', collectCategories());
+            categories = data.categories || {};
+            await load();
+            say(status, 'Categories saved.');
+        } catch (err) { say(status, err.message, false); }
+    });
+
+    document.querySelector('#sfApplyCategory').addEventListener('change', renderApplyScope);
+
+    let searchTimer;
+    document.querySelector('#sfApplySearch').addEventListener('input', event => {
+        clearTimeout(searchTimer);
+        const query = event.target.value.trim();
+        const results = document.querySelector('#sfApplyResults');
+        if (query.length < 2) { results.innerHTML = ''; return; }
+        searchTimer = setTimeout(async () => {
+            try {
+                const data = await get(`${API}/admin/gifts/catalog?search=${encodeURIComponent(query)}&skip=0&take=10`);
+                results.innerHTML = (data.results || []).map(item =>
+                    `<div class="room-row"><div class="meta"><strong>${esc(item.friendlyName)}</strong><br><small>SKU ${item.skuId}</small></div><button class="btn ghost small sf-pick" data-sku="${item.skuId}" data-name="${esc(item.friendlyName)}">Choose</button></div>`).join('')
+                    || '<p class="field-hint">No matches.</p>';
+            } catch (err) {
+                results.innerHTML = `<p class="form-status error">${esc(err.message)}</p>`;
+            }
+        }, 250);
+    });
+
+    document.querySelector('#sfApplyResults').addEventListener('click', event => {
+        const button = event.target.closest('.sf-pick');
+        if (!button) return;
+        chosenSku = Number(button.dataset.sku);
+        document.querySelector('#sfApplyChosen').textContent = `Will add: ${button.dataset.name} (SKU ${chosenSku})`;
+    });
+
+    document.querySelector('#sfApply').addEventListener('click', async () => {
+        const status = document.querySelector('#sfApplyStatus');
+        const name = document.querySelector('#sfApplyCategory').value;
+        if (!name) { say(status, 'Make a category first.', false); return; }
+        const price = document.querySelector('#sfApplyPrice').value.trim();
+        const percent = document.querySelector('#sfApplyPercent').value.trim();
+        const remove = document.querySelector('#sfApplyRemove').value.trim();
+        const body = {};
+        if (price !== '') body.Price = Number(price);
+        if (percent !== '') body.SubscriberDiscountPercent = Number(percent);
+        if (remove !== '') body.RemovePurchasableItemId = Number(remove);
+        if (chosenSku) body.AddSkuId = chosenSku;
+        if (!Object.keys(body).length) { say(status, 'Nothing to change.', false); return; }
+        say(status, 'Applying...');
+        try {
+            const data = await send(`${API}/admin/storefronts/category/${encodeURIComponent(name)}/apply`, 'POST', body);
+            const r = data.result || {};
+            const parts = [];
+            if (r.itemsRepriced) parts.push(`${r.itemsRepriced} repriced`);
+            if (r.itemsAdded) parts.push(`${r.itemsAdded} added`);
+            if (r.itemsRemoved) parts.push(`${r.itemsRemoved} removed`);
+            say(status, `${data.message} ${parts.join(', ')}`.trim() + ((r.warnings || []).length ? ' - ' + r.warnings.join(' ') : ''), !(r.warnings || []).length);
+            await load();
+        } catch (err) { say(status, err.message, false); }
+    });
+
+    document.querySelector('#sfSetStore').addEventListener('change', loadSetItems);
+
+    document.querySelector('#sfCreateSet').addEventListener('click', async () => {
+        const status = document.querySelector('#sfSetStatus');
+        const storeId = Number(document.querySelector('#sfSetStore').value);
+        const name = document.querySelector('#sfSetName').value.trim();
+        const picked = [...document.querySelectorAll('.sf-set-item:checked')].map(box => Number(box.value));
+        if (!name) { say(status, 'Name the set first.', false); return; }
+        if (!picked.length) { say(status, 'Tick at least one item.', false); return; }
+        say(status, 'Creating...');
+        try {
+            const data = await send(`${API}/admin/storefronts/${storeId}/sets`, 'POST', { Name: name, PurchasableItemIds: picked });
+            document.querySelector('#sfSetName').value = '';
+            say(status, data.message);
+            await loadSetItems();
+            await load();
+        } catch (err) { say(status, err.message, false); }
+    });
+
+    document.querySelector('#sfExistingSets').addEventListener('click', async event => {
+        const button = event.target.closest('.sf-clear-set');
+        if (!button) return;
+        const storeId = Number(document.querySelector('#sfSetStore').value);
+        try {
+            await send(`${API}/admin/storefronts/${storeId}/sets/${button.dataset.set}`, 'DELETE');
+            await loadSetItems();
+            await load();
+        } catch (err) { say(document.querySelector('#sfSetStatus'), err.message, false); }
+    });
+
+    await load();
+    await loadSetItems();
 }
 
 async function shopView() {

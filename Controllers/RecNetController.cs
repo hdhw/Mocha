@@ -3313,6 +3313,127 @@ namespace Mocha2023.Controllers
             });
         }
 
+        [HttpGet("admin/storefronts")]
+        public IActionResult AdminStorefronts()
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+
+            return Ok(new
+            {
+                storefronts = Mocha2023.Classes.StorefrontEditor.List(),
+                categories = Mocha2023.Classes.StorefrontEditor.GetCategories()
+            });
+        }
+
+        [HttpPut("admin/storefronts/categories")]
+        [HttpPost("admin/storefronts/categories")]
+        public IActionResult AdminSaveStorefrontCategories(
+            [FromBody] Dictionary<string, List<int>>? categories)
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+
+            Mocha2023.Classes.StorefrontEditor.SaveCategories(
+                categories ?? new Dictionary<string, List<int>>());
+
+            return Ok(new
+            {
+                success = true,
+                categories = Mocha2023.Classes.StorefrontEditor.GetCategories()
+            });
+        }
+
+        [HttpGet("admin/storefronts/{storeId:int}/items")]
+        public IActionResult AdminStorefrontItems(int storeId)
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+
+            return Ok(new { storeId, items = Mocha2023.Classes.StorefrontEditor.Items(storeId) });
+        }
+
+        [HttpPost("admin/storefronts/category/{category}/apply")]
+        public IActionResult AdminApplyStorefrontCategory(
+            string category,
+            [FromBody] Mocha2023.Classes.StorefrontEditor.CategoryApply? apply)
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+
+            if (apply == null)
+                return BadRequest(new { error = "Nothing to apply." });
+
+            if (apply.Price is int price && (price < 0 || price > 1_000_000))
+                return BadRequest(new { error = "Price must be between 0 and 1,000,000." });
+
+            if (apply.SubscriberDiscountPercent is int percent && (percent < 0 || percent > 100))
+                return BadRequest(new { error = "Subscriber discount must be 0-100%." });
+
+            var result = Mocha2023.Classes.StorefrontEditor.ApplyToCategory(category, apply);
+
+            Console.WriteLine(
+                $"[ADMIN STOREFRONT] admin={admin!.PlayerId} category={category} " +
+                $"stores={result.StoreIds.Count} repriced={result.ItemsRepriced} " +
+                $"added={result.ItemsAdded} removed={result.ItemsRemoved}");
+
+            return Ok(new
+            {
+                success = true,
+                result,
+                message = $"{result.StoreIds.Count} storefront(s) updated."
+            });
+        }
+
+        [HttpPost("admin/storefronts/{storeId:int}/sets")]
+        public IActionResult AdminCreateStorefrontSet(
+            int storeId,
+            [FromBody] AdminStorefrontSetRequest? request)
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+
+            try
+            {
+                var (setId, items) = Mocha2023.Classes.StorefrontEditor.CreateSet(
+                    storeId,
+                    request?.Name ?? string.Empty,
+                    request?.PurchasableItemIds ?? new List<int>());
+
+                Console.WriteLine(
+                    $"[ADMIN ITEM SET] admin={admin!.PlayerId} store={storeId} " +
+                    $"set={setId} items={items}");
+
+                return Ok(new
+                {
+                    success = true,
+                    setId,
+                    items,
+                    message = $"Set '{request!.Name}' created with {items} item(s)."
+                });
+            }
+            catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpDelete("admin/storefronts/{storeId:int}/sets/{setId:int}")]
+        public IActionResult AdminClearStorefrontSet(int storeId, int setId)
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+
+            int cleared = Mocha2023.Classes.StorefrontEditor.ClearSet(storeId, setId);
+            return Ok(new { success = true, cleared, message = $"{cleared} item(s) ungrouped." });
+        }
+
         [HttpGet("admin/db-backups")]
         public IActionResult AdminDbBackups()
         {
@@ -8700,6 +8821,12 @@ namespace Mocha2023.Controllers
         public class AdminCoachMessageAllRequest
         {
             public string? Message { get; set; }
+        }
+
+        public class AdminStorefrontSetRequest
+        {
+            public string? Name { get; set; }
+            public List<int>? PurchasableItemIds { get; set; }
         }
 
         public class AdminMaintenanceRequest
