@@ -10106,8 +10106,103 @@ namespace Mocha2023.Controllers
         [HttpGet("/api/customAvatarItems/v1/featured")]
         public IActionResult GetFeaturedCustomAvatarItems()
         {
-            return Ok(Array.Empty<object>());
+            // Flagged and published, newest first. Accessibility 0 is the unpublished
+            // state, so a flagged item that was never published stays out.
+            return Ok(PublishedCustomAvatarItems()
+                .Where(IsFeaturedCustomAvatarItem)
+                .Take(50)
+                .ToList());
         }
+
+        [HttpGet("/api/customAvatarItems/v1/hot")]
+        public IActionResult GetHotCustomAvatarItems([FromQuery] int take = 50)
+        {
+            // Everything published, newest first - standing in for a trend ranking,
+            // which there is nothing to compute one from yet.
+            return Ok(PublishedCustomAvatarItems()
+                .Take(Math.Clamp(take, 1, 100))
+                .ToList());
+        }
+
+        [HttpGet("/api/customAvatarItems/v1/search")]
+        public IActionResult SearchCustomAvatarItems(
+            [FromQuery] string? query = null,
+            [FromQuery] int skip = 0,
+            [FromQuery] int take = 50)
+        {
+            string term = (query ?? string.Empty).Trim();
+
+            IEnumerable<JsonObject> matches = PublishedCustomAvatarItems();
+
+            if (term.Length > 0)
+            {
+                matches = matches.Where(item =>
+                    (ReadCustomAvatarItemString(item, "Name") ?? string.Empty)
+                        .Contains(term, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // A BARE ARRAY, not the { Results, TotalResults } envelope the owned and
+            // fromCreator forms answer.
+            return Ok(matches
+                .Skip(Math.Max(0, skip))
+                .Take(Math.Clamp(take, 1, 100))
+                .ToList());
+        }
+
+        [HttpGet("/api/customAvatarItems/v1/{customAvatarItemId:guid}")]
+        public IActionResult GetCustomAvatarItem(Guid customAvatarItemId)
+        {
+            string wanted = customAvatarItemId.ToString();
+
+            JsonObject? item = AllCustomAvatarItems().FirstOrDefault(value =>
+                string.Equals(
+                    ReadCustomAvatarItemString(value, "CustomAvatarItemId"),
+                    wanted,
+                    StringComparison.OrdinalIgnoreCase));
+
+            return item == null ? NotFound() : Ok(item);
+        }
+
+        private static List<JsonObject> AllCustomAvatarItems()
+        {
+            string root = Path.Combine(Program.dataDir, "CustomAvatarItems");
+            if (!Directory.Exists(root))
+                return new List<JsonObject>();
+
+            var all = new List<JsonObject>();
+
+            foreach (string directory in Directory.EnumerateDirectories(root))
+            {
+                if (long.TryParse(Path.GetFileName(directory), out long playerId))
+                    all.AddRange(LoadCustomAvatarItems(playerId));
+            }
+
+            return all;
+        }
+
+        private static List<JsonObject> PublishedCustomAvatarItems() =>
+            AllCustomAvatarItems()
+                .Where(item => ReadCustomAvatarItemInt(item, "Accessibility") != 0)
+                .OrderByDescending(item =>
+                    ReadCustomAvatarItemString(item, "CreatedAt") ?? string.Empty,
+                    StringComparer.Ordinal)
+                .ToList();
+
+        private static bool IsFeaturedCustomAvatarItem(JsonObject item)
+        {
+            JsonNode? node = item["IsFeatured"];
+            if (node == null)
+                return false;
+
+            string raw = node.ToString().Trim().Trim('"');
+            return raw.Equals("true", StringComparison.OrdinalIgnoreCase) || raw == "1";
+        }
+
+        private static string? ReadCustomAvatarItemString(JsonObject item, string key) =>
+            item[key]?.ToString().Trim('"');
+
+        private static int ReadCustomAvatarItemInt(JsonObject item, string key) =>
+            int.TryParse(ReadCustomAvatarItemString(item, key), out int value) ? value : 0;
 
         [HttpGet("/api/inventions/v1/{inventionId:long}/version")]
         [HttpGet("/api/inventions/v2/{inventionId:long}/version")]
