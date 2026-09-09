@@ -8349,22 +8349,43 @@ namespace Mocha2023.Controllers
                 });
             }
 
-            bool purchased = TryPurchaseCatalogSku(
+            int selfPrice = GetStorePriceForRarity(sku.Rarity);
+
+            bool purchased = TryPurchaseCatalogSkuAsGift(
+                accountId.Value,
                 accountId.Value,
                 sku,
+                PurchaseGiftMessage,
+                purchaseRequest.GiftContext,
                 out int newBalance,
-                out bool alreadyOwned);
+                out bool alreadyOwned,
+                out GiftPackage? purchaseGift);
 
             if (!purchased)
             {
                 return BadRequest(new
                 {
                     Success = false,
-                    Error = "insufficient_funds",
+                    Error = newBalance >= selfPrice
+                        ? "gift_delivery_failed"
+                        : "insufficient_funds",
                     Balance = newBalance,
-                    Price = GetStorePriceForRarity(sku.Rarity)
+                    Price = selfPrice
                 });
             }
+
+            if (purchaseGift != null)
+            {
+                await NotiController.NotifyGiftAsync(
+                    accountId.Value,
+                    accountId.Value,
+                    purchaseGift);
+            }
+
+            Console.WriteLine(
+                $"[STORE PURCHASE GIFT] buyer={accountId.Value} sku={sku.SkuId} " +
+                $"item={sku.FriendlyName} package={purchaseGift?.GiftPackageId ?? 0} " +
+                $"alreadyOwned={alreadyOwned}");
 
             return Ok(new
             {
@@ -8684,6 +8705,8 @@ namespace Mocha2023.Controllers
 
             return null;
         }
+
+        private const string PurchaseGiftMessage = "Your purchased item!";
 
         private bool TryPurchaseCatalogSkuAsGift(
             long senderAccountId,
