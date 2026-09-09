@@ -3323,7 +3323,15 @@ namespace Mocha2023.Controllers
 
             return Ok(new
             {
-                storefronts = Mocha2023.Classes.StorefrontEditor.List(),
+                storefronts = Mocha2023.Classes.StorefrontEditor.List()
+                    .Select(store => new
+                    {
+                        storeId = store.StoreId,
+                        category = store.Category,
+                        items = store.Items,
+                        subscriberDiscountPercent = store.SubscriberDiscountPercent,
+                        sets = store.Sets
+                    }),
                 categories = Mocha2023.Classes.StorefrontEditor.GetCategories()
             });
         }
@@ -3354,7 +3362,20 @@ namespace Mocha2023.Controllers
             if (!IsAdmin(admin))
                 return StatusCode(403);
 
-            return Ok(new { storeId, items = Mocha2023.Classes.StorefrontEditor.Items(storeId) });
+            return Ok(new
+            {
+                storeId,
+                items = Mocha2023.Classes.StorefrontEditor.Items(storeId)
+                    .Select(item => new
+                    {
+                        purchasableItemId = item.PurchasableItemId,
+                        friendlyName = item.FriendlyName,
+                        price = item.Price,
+                        rarity = item.Rarity,
+                        itemSetId = item.ItemSetId,
+                        itemSetFriendlyName = item.ItemSetFriendlyName
+                    })
+            });
         }
 
         [HttpPost("admin/storefronts/category/{category}/apply")]
@@ -3385,7 +3406,14 @@ namespace Mocha2023.Controllers
             return Ok(new
             {
                 success = true,
-                result,
+                result = new
+                {
+                    storeIds = result.StoreIds,
+                    itemsRepriced = result.ItemsRepriced,
+                    itemsAdded = result.ItemsAdded,
+                    itemsRemoved = result.ItemsRemoved,
+                    warnings = result.Warnings
+                },
                 message = $"{result.StoreIds.Count} storefront(s) updated."
             });
         }

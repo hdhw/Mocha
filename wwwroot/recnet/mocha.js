@@ -1588,6 +1588,16 @@ function simpleMarkdownPreview(markdown) {
 
 const ANNOUNCEMENT_KINDS = ['info', 'update', 'warning', 'maintenance'];
 
+function lowerKeys(value) {
+    if (Array.isArray(value)) return value.map(lowerKeys);
+    if (value === null || typeof value !== 'object') return value;
+    const out = {};
+    for (const [key, inner] of Object.entries(value)) {
+        out[key.charAt(0).toLowerCase() + key.slice(1)] = lowerKeys(inner);
+    }
+    return out;
+}
+
 function toLocalInputValue(date) {
     const pad = value => String(value).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
@@ -2958,7 +2968,7 @@ async function storefrontsView() {
             storefronts.map(store => `<tr>
                 <td>sf${store.storeId}</td>
                 <td>${store.items}</td>
-                <td>${store.sets.length ? esc(store.sets.join(', ')) : '<span class="field-hint">-</span>'}</td>
+                <td>${(store.sets || []).length ? esc((store.sets || []).join(', ')) : '<span class="field-hint">-</span>'}</td>
                 <td><select data-store="${store.storeId}" class="sf-cat">
                     <option value="">(none)</option>
                     ${names.map(name => `<option value="${esc(name)}"${categoryOf(store.storeId) === name ? ' selected' : ''}>${esc(name)}</option>`).join('')}
@@ -2980,7 +2990,7 @@ async function storefrontsView() {
     function renderApplyScope() {
         const name = document.querySelector('#sfApplyCategory')?.value || '';
         const ids = categories[name] || [];
-        const items = storefronts.filter(s => ids.includes(s.storeId)).reduce((sum, s) => sum + s.items, 0);
+        const items = storefronts.filter(s => ids.includes(s.storeId)).reduce((sum, s) => sum + (s.items || 0), 0);
         say(document.querySelector('#sfApplyScope'),
             ids.length ? `${ids.length} storefront(s), ${items} item(s): ${ids.map(id => 'sf' + id).join(' ')}` : 'No storefronts in this category.',
             ids.length > 0);
@@ -2998,7 +3008,7 @@ async function storefrontsView() {
     }
 
     async function load() {
-        const data = await get(`${API}/admin/storefronts`);
+        const data = lowerKeys(await get(`${API}/admin/storefronts`));
         storefronts = data.storefronts || [];
         categories = data.categories || {};
         renderCategories();
@@ -3011,7 +3021,7 @@ async function storefrontsView() {
         if (!storeId) return;
         target.innerHTML = '<div class="loading"><i></i>Loading items</div>';
         try {
-            const data = await get(`${API}/admin/storefronts/${storeId}/items`);
+            const data = lowerKeys(await get(`${API}/admin/storefronts/${storeId}/items`));
             const items = data.items || [];
             target.innerHTML = items.length ? items.map(item => `
                 <label style="display:block">
@@ -3095,7 +3105,7 @@ async function storefrontsView() {
         if (!Object.keys(body).length) { say(status, 'Nothing to change.', false); return; }
         say(status, 'Applying...');
         try {
-            const data = await send(`${API}/admin/storefronts/category/${encodeURIComponent(name)}/apply`, 'POST', body);
+            const data = lowerKeys(await send(`${API}/admin/storefronts/category/${encodeURIComponent(name)}/apply`, 'POST', body));
             const r = data.result || {};
             const parts = [];
             if (r.itemsRepriced) parts.push(`${r.itemsRepriced} repriced`);
