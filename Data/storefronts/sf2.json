@@ -3159,6 +3159,166 @@
           "Type": 0
         }
       ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "f527ffaf-da03-4519-82ed-46a9cb981dc3,sxUE0iOSZEmezm54T7xI3Q,tlpa7195x0CkmSjpR1RArQ,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Square Glasses (Gay, custom)",
+        "GiftDropId": 1003079,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Square Glasses Set",
+        "ItemSetId": 13,
+        "Rarity": 20,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003079,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 500,
+          "StorefrontSaleData": null,
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 450,
+          "StorefrontSaleData": null,
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "f527ffaf-da03-4519-82ed-46a9cb981dc3,D_Xmo0rOzkS-kgq1CYXt3g,tnCJp2eDI0SwjVfJMhk3LQ,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Square Glasses (Trans, custom)",
+        "GiftDropId": 1003080,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Square Glasses Set",
+        "ItemSetId": 13,
+        "Rarity": 20,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003080,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 500,
+          "StorefrontSaleData": null,
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 450,
+          "StorefrontSaleData": null,
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "f527ffaf-da03-4519-82ed-46a9cb981dc3,adwzLAQEykK8D5hZGQ6yiA,0Nca5nBUpUquFhExd5dxcQ,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Square Glasses (Ruby, custom)",
+        "GiftDropId": 1003081,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Square Glasses Set",
+        "ItemSetId": 13,
+        "Rarity": 20,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003081,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 500,
+          "StorefrontSaleData": null,
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 450,
+          "StorefrontSaleData": null,
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "f527ffaf-da03-4519-82ed-46a9cb981dc3,wZC46s7Id0CUICN_XOK-Rg,knKB2ETYmUupbvBwlleZRw,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Square Glasses (Femboy Pink, custom)",
+        "GiftDropId": 1003082,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Square Glasses Set",
+        "ItemSetId": 13,
+        "Rarity": 20,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003082,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 500,
+          "StorefrontSaleData": null,
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 450,
+          "StorefrontSaleData": null,
+          "Type": 0
+        }
+      ]
     }
   ],
   "SubscriberDiscountPercent": 10,
