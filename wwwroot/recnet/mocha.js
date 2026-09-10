@@ -2327,7 +2327,7 @@ async function coachGiftingView() {
         const type = catalogType.value;
         results.innerHTML = '<div class="loading"><i></i>Loading catalog</div>';
         try {
-            const data = await get(`${API}/admin/gifts/catalog?search=${encodeURIComponent(search)}&type=${type}&skip=${catalogSkip}&take=${catalogTake}`);
+            const data = await get(`${API}/admin/gifts/catalog?search=${encodeURIComponent(search)}&type=${type}&skip=${catalogSkip}&take=${catalogTake}&includeHidden=true`);
             const items = data.results ?? data;
             const total = data.total ?? items.length;
             if (!items.length) { results.innerHTML = '<p class="field-hint">No items found.</p>'; }
@@ -3100,7 +3100,7 @@ async function storefrontsView() {
         if (query.length < 2) { el('sfAddResults').innerHTML = ''; return; }
         addTimer = setTimeout(async () => {
             try {
-                const data = lowerKeys(await get(`${API}/admin/gifts/catalog?search=${encodeURIComponent(query)}&skip=0&take=8`));
+                const data = lowerKeys(await get(`${API}/admin/gifts/catalog?search=${encodeURIComponent(query)}&skip=0&take=8&includeHidden=true`));
                 el('sfAddResults').innerHTML = (data.results || []).map(item =>
                     `<div class="room-row"><div class="meta"><strong>${esc(item.friendlyName)}</strong><br><small>SKU ${item.skuId}</small></div><button class="btn ghost small sf-pick" data-sku="${item.skuId}">Add</button></div>`).join('')
                     || '<p class="field-hint">No matches.</p>';
