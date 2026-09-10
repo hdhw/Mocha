@@ -22,6 +22,18 @@ namespace Mocha2023.Classes.DBs
         private const int RoomLevelSeconds = 15 * 60;
         private const int MaximumLevel = 50;
         private const int MaximumCreditableHeartbeatGapSeconds = 120;
+        private const int LaserTagTicketSeconds = 5 * 60;
+        private const int LaserTagTicketAmount = 100;
+        private static readonly string[] LaserTagRoomNames =
+        {
+            "LaserTag",
+            "LaserTagCyberJunk",
+            "Hangar",
+            "CyberJunkCity",
+            "TheRiseofJumbotron"
+        };
+        private static readonly object LaserTagRoomLock = new();
+        private static HashSet<long>? LaserTagRoomIds;
         private const int PresenceFreshnessSeconds = 120;
         private const int MaximumPendingGiftPackages = 200;
         public const int CheerCreditLimit = 15;
@@ -3483,6 +3495,8 @@ namespace Mocha2023.Classes.DBs
             int? oldProgressionLevel = null;
             int? newProgressionLevel = null;
             int progressionXp = 0;
+            int awardedLaserTagTickets = 0;
+            int laserTagTicketBalance = 0;
             Heartbeat? result;
 
             lock (ProgressionLock)
@@ -3539,6 +3553,17 @@ namespace Mocha2023.Classes.DBs
                     progressionXp = player.Player.XP;
                 }
 
+                if (player.Player != null &&
+                    ApplyLaserTagTicketTime(
+                        player.Player,
+                        now,
+                        out int awardedTickets,
+                        out int ticketBalance))
+                {
+                    awardedLaserTagTickets = awardedTickets;
+                    laserTagTicketBalance = ticketBalance;
+                }
+
                 Players.Update(player);
                 if (oldOnline != heartbeat.isOnline ||
                     oldErrorCode != heartbeat.errorCode)
@@ -3548,6 +3573,15 @@ namespace Mocha2023.Classes.DBs
                 }
 
                 result = heartbeat;
+            }
+
+            if (awardedLaserTagTickets > 0)
+            {
+                Console.WriteLine(
+                    $"[LASER TAG TICKETS] player={playerId} " +
+                    $"granted={awardedLaserTagTickets} " +
+                    $"balance={laserTagTicketBalance} " +
+                    $"interval={LaserTagTicketSeconds}s");
             }
 
             if (oldProgressionLevel.HasValue &&
@@ -3802,6 +3836,121 @@ namespace Mocha2023.Classes.DBs
             }
 
             Players.Update(player);
+        }
+
+        private static bool IsLaserTagRoom(long roomId)
+        {
+            if (roomId <= 0)
+                return false;
+
+            lock (LaserTagRoomLock)
+            {
+                if (LaserTagRoomIds == null)
+                {
+                    LaserTagRoomIds = new HashSet<long>();
+                    foreach (string name in LaserTagRoomNames)
+                    {
+                        var room = RoomDB.GetRoomByName(name);
+                        if (room != null)
+                            LaserTagRoomIds.Add(room.RoomId);
+                    }
+                }
+
+                return LaserTagRoomIds.Contains(roomId);
+            }
+        }
+
+        private static bool ApplyLaserTagTicketTime(
+            Player player,
+            long now,
+            out int ticketsAwarded,
+            out int ticketBalance)
+        {
+            ticketsAwarded = 0;
+            ticketBalance = 0;
+
+            player.PlayerExtra ??= new PlayerExtra();
+            Heartbeat heartbeat = player.PlayerExtra.Heartbeat ??=
+                new Heartbeat();
+
+            long roomInstanceId =
+                heartbeat.isOnline &&
+                IsLaserTagRoom(heartbeat.roomInstance?.roomId ?? 0)
+                    ? heartbeat.roomInstance?.roomInstanceId ?? 0
+                    : 0;
+
+            if (roomInstanceId <= 0)
+            {
+                ResetLaserTagTicketTimer(player.PlayerExtra, 0, 0);
+                return false;
+            }
+
+            if (player.PlayerExtra.LaserTagRoomInstanceId != roomInstanceId)
+            {
+                ResetLaserTagTicketTimer(
+                    player.PlayerExtra,
+                    roomInstanceId,
+                    now);
+                return false;
+            }
+
+            long previous =
+                player.PlayerExtra.LaserTagLastHeartbeatUnixTime;
+            player.PlayerExtra.LaserTagLastHeartbeatUnixTime = now;
+
+            if (previous <= 0 || now <= previous)
+                return false;
+
+            long elapsed = now - previous;
+            if (elapsed > MaximumCreditableHeartbeatGapSeconds)
+                return false;
+
+            player.PlayerExtra.LaserTagRoomActiveSeconds +=
+                checked((int)elapsed);
+
+            int intervals =
+                player.PlayerExtra.LaserTagRoomActiveSeconds /
+                LaserTagTicketSeconds;
+
+            if (intervals <= 0)
+                return false;
+
+            player.PlayerExtra.LaserTagRoomActiveSeconds -=
+                intervals * LaserTagTicketSeconds;
+            ticketsAwarded = intervals * LaserTagTicketAmount;
+
+            player.PlayerExtra.Currencies ??= new List<PlayerCurrency>();
+            var tickets = player.PlayerExtra.Currencies.FirstOrDefault(value =>
+                value.CurrencyType == CurrencyType.LaserTagTickets);
+
+            if (tickets == null)
+            {
+                tickets = new PlayerCurrency
+                {
+                    CurrencyType = CurrencyType.LaserTagTickets,
+                    BalanceType = BalanceType.NonPurchasedDefault
+                };
+                player.PlayerExtra.Currencies.Add(tickets);
+            }
+
+            tickets.Balance = (int)Math.Clamp(
+                (long)tickets.Balance + ticketsAwarded,
+                0L,
+                int.MaxValue);
+            ticketBalance = tickets.Balance;
+
+            return true;
+        }
+
+        private static void ResetLaserTagTicketTimer(
+            PlayerExtra playerExtra,
+            long roomInstanceId,
+            long lastHeartbeatUnixTime)
+        {
+            playerExtra.LaserTagRoomInstanceId = roomInstanceId;
+            playerExtra.LaserTagRoomActiveSeconds = 0;
+            playerExtra.LaserTagLastHeartbeatUnixTime =
+                lastHeartbeatUnixTime;
         }
 
         private static void ResetRoomLevelTimer(

@@ -164,6 +164,10 @@ namespace Mocha2023.Classes.DBs.DBClasses
             public int LevelingRoomActiveSeconds { get; set; }
             public long LevelingLastHeartbeatUnixTime { get; set; }
 
+            public long LaserTagRoomInstanceId { get; set; }
+            public int LaserTagRoomActiveSeconds { get; set; }
+            public long LaserTagLastHeartbeatUnixTime { get; set; }
+
             public long PartyId { get; set; }
             public long PartyLeaderPlayerId { get; set; }
             public List<long> PartyMemberPlayerIds { get; set; } = new();

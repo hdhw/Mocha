@@ -1256,6 +1256,36 @@ namespace Mocha2023.Controllers
                 $"profileImage={account.profileImage}");
         }
 
+        public static async Task<int> NotifyAvatarRefreshAsync(
+            long playerId,
+            string eventId)
+        {
+            string[] connections = PlayerConnections.TryGetValue(
+                    playerId,
+                    out var sockets)
+                ? sockets.Keys
+                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                    .Distinct(StringComparer.Ordinal)
+                    .ToArray()
+                : Array.Empty<string>();
+
+            if (connections.Length == 0)
+            {
+                Console.WriteLine(
+                    $"[AVATAR REFRESH] player={playerId} event={eventId} " +
+                    "sockets=0 sent=no");
+                return 0;
+            }
+
+            await SendPushEventToConnectionIdsAsync(connections, eventId, null!);
+
+            Console.WriteLine(
+                $"[AVATAR REFRESH] player={playerId} event={eventId} " +
+                $"sockets={connections.Length}");
+
+            return connections.Length;
+        }
+
         public static async Task NotifyPlayerPresenceUpdatedAsync(long playerId)
         {
             string[] recipientConnections =

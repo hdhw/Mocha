@@ -702,7 +702,7 @@
 
 .admin-quick-balance {
     display: grid;
-    grid-template-columns: minmax(120px,1fr) minmax(110px,150px) auto auto;
+    grid-template-columns: minmax(120px,1fr) minmax(130px,180px) minmax(110px,150px) auto auto;
     align-items: center;
     gap: 8px;
     padding: 11px 12px;
@@ -723,6 +723,16 @@
 }
 
 .admin-quick-balance .admin-balance-amount {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #65468a;
+    border-radius: var(--radius-sm);
+    background: #100b15;
+    color: #fff;
+    font: inherit;
+}
+
+.admin-quick-balance .admin-balance-currency {
     width: 100%;
     padding: 9px 10px;
     border: 1px solid #65468a;
@@ -760,6 +770,7 @@
     .admin-quick-balance-title {
         grid-column: 1/-1;
     }
+    .admin-quick-balance .admin-balance-currency,
     .admin-quick-balance .admin-balance-amount {
         grid-column: 1/-1;
     }
@@ -2281,4 +2292,26 @@
     .admin-gift-layout {
         grid-template-columns: 1fr;
     }
+}
+
+.admin-avatar-section .admin-avatar-string {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #65468a;
+    border-radius: var(--radius-sm);
+    background: #100b15;
+    color: #fff;
+    font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    resize: vertical;
+    word-break: break-all;
+}
+
+.admin-avatar-section .admin-avatar-meta {
+    display: block;
+    margin: 6px 0 9px;
+    font-size: 12px;
+}
+
+.admin-avatar-section .admin-avatar-status:empty {
+    display: none;
 }

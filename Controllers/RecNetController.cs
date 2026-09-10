@@ -539,6 +539,7 @@ namespace Mocha2023.Controllers
                         balance = PlayerDB.GetCurrencyBalance(
                             x.PlayerId,
                             PlayerDBClasses.CurrencyType.RecCenterTokens),
+                        balances = CurrencyBalancePayload(x.PlayerId),
                         platforms = x.PlatformIds.Select(p => new { platform = p.Platform.ToString(), platformId = p.PlatformId.ToString() }),
                         roles = x.PlayerRoles.Select(r => r.ToString()),
                         ban = nativeBan == null ? null : new
@@ -3857,8 +3858,12 @@ namespace Mocha2023.Controllers
             if (giftType == "tokens" && request.Amount == 0)
                 return BadRequest(new
                 {
-                    error = "Token gifts must be a non-zero signed 32-bit amount. Use a negative amount to deduct tokens."
+                    error = "Currency gifts must be a non-zero signed 32-bit amount. Use a negative amount to deduct currency."
                 });
+            if (giftType == "tokens" &&
+                (!Enum.IsDefined(typeof(PlayerDBClasses.CurrencyType), request.CurrencyType) ||
+                 request.CurrencyType == (int)PlayerDBClasses.CurrencyType.Invalid))
+                return BadRequest(new { error = "That currency type does not exist." });
             if (giftType == "xp" && request.Amount is < 1 or > 1000000)
                 return BadRequest(new
                 {
@@ -3991,7 +3996,9 @@ namespace Mocha2023.Controllers
                         : giftType == "box"
                             ? boxRoll!.ThumbnailImage
                             : string.Empty,
-                    CurrencyType = (int)PlayerDBClasses.CurrencyType.RecCenterTokens,
+                    CurrencyType = giftType == "tokens"
+                        ? request.CurrencyType
+                        : (int)PlayerDBClasses.CurrencyType.RecCenterTokens,
                     Currency = giftType == "tokens" ? request.Amount : 0,
                     XP = giftType == "xp" ? request.Amount : 0,
                     GiftContext = request.BoxDesign,
@@ -4080,7 +4087,9 @@ namespace Mocha2023.Controllers
 
             string giftName = giftType switch
             {
-                "tokens" => $"{request.Amount:N0} tokens",
+                "tokens" =>
+                    $"{request.Amount:N0} " +
+                    $"{(PlayerDBClasses.CurrencyType)request.CurrencyType}",
                 "xp" => $"{request.Amount:N0} XP",
                 "consumable" => $"{catalogItem!.FriendlyName} x{Math.Clamp(request.Amount, 1, 100000):N0}",
                 "box" => $"a rarity {request.BoxRarity} box",
@@ -4186,6 +4195,154 @@ namespace Mocha2023.Controllers
             PlayerDB.Players.Update(account);
             await NotiController.NotifyPlayerProfileUpdatedAsync(accountId);
             return Ok(new { success = true });
+        }
+
+        [HttpGet("admin/accounts/{accountId:long}/avatar")]
+        public IActionResult AdminGetAvatar(long accountId)
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsStaff(admin))
+                return StatusCode(403);
+
+            var account = PlayerDB.Players.FindById(accountId);
+            if (account?.Player == null)
+                return NotFound(new { error = "Account not found." });
+
+            account.Player.PlayerExtra ??= new PlayerDBClasses.PlayerExtra();
+            var avatar = account.Player.PlayerExtra.Avatar ?? new PlayerDBClasses.Avatar();
+            var items = account.Player.PlayerExtra.AvatarItems ?? new List<string>();
+
+            return Ok(new
+            {
+                accountId,
+                outfitSelections = avatar.OutfitSelections,
+                faceFeatures = avatar.FaceFeatures,
+                skinColor = avatar.SkinColor,
+                hairColor = avatar.HairColor,
+                itemCount = items.Count,
+                avatarString = EncodeAvatarString(avatar, items)
+            });
+        }
+
+        [HttpPost("admin/accounts/{accountId:long}/avatar")]
+        public async Task<IActionResult> AdminSetAvatar(
+            long accountId,
+            [FromBody] AdminAvatarChange request)
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+
+            var target = PlayerDB.Players.FindById(accountId);
+            if (target?.Player == null)
+                return NotFound(new { error = "Account not found." });
+            if (IsDeveloper(target) && !IsDeveloper(admin))
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new { error = "Moderators cannot edit Developer profiles." });
+
+            AvatarStringPayload? payload = DecodeAvatarString(request?.AvatarString);
+            if (payload == null)
+                return BadRequest(new { error = "That avatar string could not be read." });
+
+            target.Player.PlayerExtra ??= new PlayerDBClasses.PlayerExtra();
+            target.Player.PlayerExtra.Avatar = new PlayerDBClasses.Avatar
+            {
+                OutfitSelections = payload.OutfitSelections ?? string.Empty,
+                FaceFeatures = payload.FaceFeatures ?? string.Empty,
+                SkinColor = payload.SkinColor ?? string.Empty,
+                HairColor = payload.HairColor ?? string.Empty
+            };
+
+            var targetItems = target.Player.PlayerExtra.AvatarItems ??= new List<string>();
+            int granted = 0;
+            foreach (string item in payload.AvatarItems ?? new List<string>())
+            {
+                if (!string.IsNullOrWhiteSpace(item) && !targetItems.Contains(item))
+                {
+                    targetItems.Add(item);
+                    granted++;
+                }
+            }
+
+            PlayerDB.Players.Update(target);
+            await NotiController.NotifyPlayerProfileUpdatedAsync(accountId);
+
+            int refreshedSockets = 0;
+            if (request?.ApplyLive == true)
+            {
+                refreshedSockets = await NotiController.NotifyAvatarRefreshAsync(
+                    accountId,
+                    string.IsNullOrWhiteSpace(request.RefreshEvent)
+                        ? "RefreshLogin"
+                        : request.RefreshEvent.Trim());
+            }
+
+            Console.WriteLine(
+                $"[ADMIN SET AVATAR] admin={admin!.PlayerId} target={accountId} " +
+                $"grantedItems={granted} referenced={payload.AvatarItems?.Count ?? 0} " +
+                $"applyLive={request?.ApplyLive == true} sockets={refreshedSockets}");
+
+            return Ok(new
+            {
+                success = true,
+                granted,
+                itemCount = targetItems.Count,
+                refreshedSockets
+            });
+        }
+
+        private const string AvatarStringPrefix = "MOCHAFIT1:";
+
+        private sealed class AvatarStringPayload
+        {
+            public string? OutfitSelections { get; set; }
+            public string? FaceFeatures { get; set; }
+            public string? SkinColor { get; set; }
+            public string? HairColor { get; set; }
+            public List<string>? AvatarItems { get; set; }
+        }
+
+        private static string EncodeAvatarString(
+            PlayerDBClasses.Avatar avatar,
+            List<string> avatarItems)
+        {
+            var payload = new AvatarStringPayload
+            {
+                OutfitSelections = avatar.OutfitSelections ?? string.Empty,
+                FaceFeatures = avatar.FaceFeatures ?? string.Empty,
+                SkinColor = avatar.SkinColor ?? string.Empty,
+                HairColor = avatar.HairColor ?? string.Empty,
+                AvatarItems = avatarItems
+                    .Where(item => !string.IsNullOrWhiteSpace(item))
+                    .Distinct()
+                    .ToList()
+            };
+
+            return AvatarStringPrefix + Convert.ToBase64String(
+                System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload)));
+        }
+
+        private static AvatarStringPayload? DecodeAvatarString(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return null;
+
+            string trimmed = value.Trim();
+            if (trimmed.StartsWith(AvatarStringPrefix, StringComparison.OrdinalIgnoreCase))
+                trimmed = trimmed[AvatarStringPrefix.Length..];
+
+            try
+            {
+                return JsonSerializer.Deserialize<AvatarStringPayload>(
+                    System.Text.Encoding.UTF8.GetString(
+                        Convert.FromBase64String(trimmed)));
+            }
+            catch (Exception exception) when (
+                exception is FormatException or JsonException)
+            {
+                return null;
+            }
         }
 
         // Copy another account's current outfit onto this one. accountId is the
@@ -5215,6 +5372,7 @@ namespace Mocha2023.Controllers
                 balance = PlayerDB.GetCurrencyBalance(
                     accountId,
                     PlayerDBClasses.CurrencyType.RecCenterTokens),
+                balances = CurrencyBalancePayload(accountId),
                 platforms = account.PlatformIds.Select(p => new { platform = p.Platform.ToString(), platformId = p.PlatformId.ToString() }),
                 roles = account.PlayerRoles.Select(r => r.ToString()),
                 twoFactorEnabled = account.TwoFactorEnabled,
@@ -5693,18 +5851,46 @@ namespace Mocha2023.Controllers
                 return StatusCode(StatusCodes.Status403Forbidden,
                     new { error = "Moderators cannot change a Developer's balance." });
             if (request.Amount < 0)
-                return BadRequest(new { error = "Token amount cannot be negative." });
+                return BadRequest(new { error = "Currency amount cannot be negative." });
+            if (!Enum.IsDefined(typeof(PlayerDBClasses.CurrencyType), request.CurrencyType) ||
+                request.CurrencyType == (int)PlayerDBClasses.CurrencyType.Invalid)
+                return BadRequest(new { error = "That currency type does not exist." });
 
+            var currencyType = (PlayerDBClasses.CurrencyType)request.CurrencyType;
             int? balance = PlayerDB.SetCurrencyBalance(
                 accountId,
-                PlayerDBClasses.CurrencyType.RecCenterTokens,
+                currencyType,
                 request.Amount,
                 request.Add);
 
-            return balance.HasValue
-                ? Ok(new { success = true, balance = balance.Value })
-                : StatusCode(StatusCodes.Status500InternalServerError,
-                    new { error = "The token balance could not be saved." });
+            if (!balance.HasValue)
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { error = "The currency balance could not be saved." });
+
+            Console.WriteLine(
+                $"[ADMIN BALANCE] admin={admin!.PlayerId} account={accountId} " +
+                $"currency={currencyType} balance={balance.Value}");
+
+            return Ok(new
+            {
+                success = true,
+                balance = balance.Value,
+                currencyType = (int)currencyType,
+                currencyName = currencyType.ToString(),
+                balances = CurrencyBalancePayload(accountId)
+            });
+        }
+
+        private static List<object> CurrencyBalancePayload(long accountId)
+        {
+            return PlayerDB.GetAllCurrencyBalances(accountId)
+                .Select(entry => (object)new
+                {
+                    currencyType = (int)entry.CurrencyType,
+                    currencyName = entry.CurrencyType.ToString(),
+                    balance = entry.Balance
+                })
+                .ToList();
         }
 
         [HttpPost("admin/accounts/{accountId:long}/moderation-lock")]
@@ -8903,10 +9089,18 @@ namespace Mocha2023.Controllers
             public string? ConsumableItemDesc { get; set; }
             public int Quantity { get; set; }
         }
+        public class AdminAvatarChange
+        {
+            public string? AvatarString { get; set; }
+            public bool ApplyLive { get; set; }
+            public string? RefreshEvent { get; set; }
+        }
         public class AdminBalanceChange
         {
             public int Amount { get; set; }
             public bool Add { get; set; }
+            public int CurrencyType { get; set; } =
+                (int)PlayerDBClasses.CurrencyType.RecCenterTokens;
         }
         public class WebsiteShopPurchase
         {
@@ -8930,6 +9124,8 @@ namespace Mocha2023.Controllers
             public long SkuId { get; set; }
             public int Amount { get; set; } = 1;
             public int BoxRarity { get; set; }
+            public int CurrencyType { get; set; } =
+                (int)PlayerDBClasses.CurrencyType.RecCenterTokens;
 
             public int BoxDesign { get; set; } = (int)PlayerDBClasses.GiftContext.Game_Drop;
             public string? Message { get; set; }

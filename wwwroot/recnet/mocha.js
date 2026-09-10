@@ -9,6 +9,11 @@ let currentUser = null;
 
 const esc = s => String(s ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
 
+const CURRENCY_LABELS = { 1: 'Laser Tag Tickets', 2: 'Tokens', 100: 'Lost Skulls Gold', 101: 'Dracula Silver', 200: 'Rec Royale Season 1', 300: 'Room Currency' };
+const currencyName = type => CURRENCY_LABELS[Number(type)] || `Currency ${type}`;
+const currencyList = account => Array.isArray(account.balances) && account.balances.length ? account.balances : [{ currencyType: 2, balance: Number(account.balance || 0) }];
+const currencyOptions = account => currencyList(account).map(c => `<option value="${Number(c.currencyType)}"${Number(c.currencyType) === 2 ? ' selected' : ''}>${esc(currencyName(c.currencyType))} (${Number(c.balance) || 0})</option>`).join('');
+
 function fetchJson(url, init = {}) {
     return fetch(url, { ...init, credentials: 'same-origin', headers: { 'Content-Type': 'application/json', ...(init.headers || {}) } });
 }
@@ -122,7 +127,7 @@ async function playersList() {
             const stats = await get(`${API}/admin/overview`);
             const entries = [
                 ['Accounts', stats.accounts], ['Admins', stats.admins], ['Mod Locks', stats.moderationLocks],
-                ['Verified', stats.verified], ['RR+', stats.rrPlus], ['Rooms', stats.rooms],
+                ['Influencer', stats.verified], ['RR+', stats.rrPlus], ['Rooms', stats.rooms],
                 ['Photos', stats.photos], ['Cheers', stats.cheers], ['Comments', stats.comments]
             ];
             overview.innerHTML = entries.map(([label, value]) => `<div class="stat-pill"><strong>${value}</strong><span>${esc(label)}</span></div>`).join('');
@@ -196,10 +201,13 @@ async function playerDetail(accountIdRaw) {
         </div>
         <div class="profile-actions" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
           <select id="roleSelect" style="width:auto">
+            <option value="Screenshare">Screenshare</option>
             <option value="Moderator">Moderator</option>
             <option value="Developer">Developer</option>
+            <option value="Influencer">Influencer</option>
             <option value="RRPlus">RRPlus</option>
-            <option value="Verified">Verified</option>
+            <option value="Keepsake">Keepsake</option>
+            <option value="CommunityTeam">CommunityTeam</option>
           </select>
           <button class="btn ghost" data-act="add-role">Add Role</button>
           <button class="btn ghost" data-act="clear-roles">Clear Roles</button>
@@ -431,14 +439,35 @@ async function renderPlayerTab(tab, accountId) {
     if (tab === 'settings') {
         body.innerHTML = `<h2 class="page-title" style="font-size:16px">Settings</h2>
         <div class="card">
-          <h2>Token Balance</h2>
+          <h2>Currency Balances</h2>
           <p class="field-hint" id="balanceCurrent">Loading...</p>
           <div class="field-row">
+            <label class="field">Currency<select id="balanceCurrency"></select></label>
             <label class="field">Amount<input type="number" id="balanceAmount" min="0" value="0"></label>
             <label class="field">Mode<select id="balanceMode"><option value="set">Set to</option><option value="add">Add</option></select></label>
           </div>
           <button class="btn" id="applyBalance">Apply</button>
           <span class="form-status" id="balanceStatus"></span>
+        </div>
+        <div class="card">
+          <h2>Avatar</h2>
+          <p class="field-hint">Copy pulls this player's current fit. Set writes a pasted fit on and grants any items it references.</p>
+          <textarea id="avatarString" rows="3" spellcheck="false" style="width:100%;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;word-break:break-all" placeholder="Paste a fit string here, or hit Copy to read this one out"></textarea>
+          <div class="profile-actions" style="margin-top:8px">
+            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="avatarApplyLive" checked> Apply live</label>
+            <select id="avatarRefreshEvent" style="width:auto">
+              <option value="RefreshLogin">RefreshLogin (5)</option>
+              <option value="SubscriptionUpdateProfile">SubscriptionUpdateProfile (11)</option>
+              <option value="5">raw 5</option>
+              <option value="11">raw 11</option>
+              <option value="RefreshAvatar">RefreshAvatar</option>
+            </select>
+          </div>
+          <div class="profile-actions" style="margin-top:8px">
+            <button class="btn ghost" id="copyAvatar">Copy Avatar String</button>
+            <button class="btn" id="setAvatar">Set Avatar</button>
+          </div>
+          <span class="form-status" id="avatarStatus"></span>
         </div>
         <div class="card">
           <h2>Linked Platforms</h2>
@@ -457,7 +486,8 @@ async function renderPlayerTab(tab, accountId) {
             const balanceCurrent = document.querySelector('#balanceCurrent');
             try {
                 const account = await get(`${API}/admin/accounts/${accountId}`);
-                balanceCurrent.textContent = `Current balance: ${account.balance} tokens.`;
+                document.querySelector('#balanceCurrency').innerHTML = currencyOptions(account);
+                balanceCurrent.textContent = currencyList(account).map(c => `${currencyName(c.currencyType)}: ${Number(c.balance) || 0}`).join(' · ');
                 renderPlatforms(account.platforms);
             } catch (error) {
                 balanceCurrent.textContent = error.message;
@@ -483,12 +513,44 @@ async function renderPlayerTab(tab, accountId) {
             const status = document.querySelector('#balanceStatus');
             const amount = Number(document.querySelector('#balanceAmount').value);
             const add = document.querySelector('#balanceMode').value === 'add';
+            const currencyType = Number(document.querySelector('#balanceCurrency').value) || 2;
             if (amount < 0) { status.textContent = 'Amount cannot be negative.'; status.classList.add('error'); return; }
             try {
-                const r = await send(`${API}/admin/accounts/${accountId}/balance`, 'POST', { amount, add });
-                status.textContent = `Balance is now ${r.balance} tokens.`;
+                const r = await send(`${API}/admin/accounts/${accountId}/balance`, 'POST', { amount, add, currencyType });
+                status.textContent = `${currencyName(currencyType)} is now ${r.balance}.`;
                 status.classList.remove('error');
-                document.querySelector('#balanceCurrent').textContent = `Current balance: ${r.balance} tokens.`;
+                document.querySelector('#balanceCurrency').innerHTML = currencyOptions(r);
+                document.querySelector('#balanceCurrency').value = String(currencyType);
+                document.querySelector('#balanceCurrent').textContent = currencyList(r).map(c => `${currencyName(c.currencyType)}: ${Number(c.balance) || 0}`).join(' · ');
+            } catch (error) { status.textContent = error.message; status.classList.add('error'); }
+        });
+
+        const copyAvatarBtn = document.querySelector('#copyAvatar');
+        if (copyAvatarBtn) copyAvatarBtn.addEventListener('click', async () => {
+            const status = document.querySelector('#avatarStatus');
+            const box = document.querySelector('#avatarString');
+            status.classList.remove('error');
+            try {
+                const data = await get(`${API}/admin/accounts/${accountId}/avatar`);
+                box.value = data.avatarString || '';
+                box.select();
+                let copied = false;
+                try { await navigator.clipboard.writeText(box.value); copied = true; } catch { }
+                status.textContent = `${copied ? 'Copied' : 'Ready to copy'} - ${Number(data.itemCount) || 0} items referenced.`;
+            } catch (error) { status.textContent = error.message; status.classList.add('error'); }
+        });
+
+        const setAvatarBtn = document.querySelector('#setAvatar');
+        if (setAvatarBtn) setAvatarBtn.addEventListener('click', async () => {
+            const status = document.querySelector('#avatarStatus');
+            const avatarString = document.querySelector('#avatarString').value.trim();
+            if (!avatarString) { status.textContent = 'Paste an avatar string first.'; status.classList.add('error'); return; }
+            status.classList.remove('error');
+            try {
+                const applyLive = document.querySelector('#avatarApplyLive').checked;
+                const refreshEvent = document.querySelector('#avatarRefreshEvent').value;
+                const r = await send(`${API}/admin/accounts/${accountId}/avatar`, 'POST', { avatarString, applyLive, refreshEvent });
+                status.textContent = `Avatar set - granted ${Number(r.granted) || 0} new item${Number(r.granted) === 1 ? '' : 's'}${applyLive ? ` - nudged ${Number(r.refreshedSockets) || 0} socket${Number(r.refreshedSockets) === 1 ? '' : 's'} with ${refreshEvent}` : ''}.`;
             } catch (error) { status.textContent = error.message; status.classList.add('error'); }
         });
 
@@ -2153,7 +2215,7 @@ async function coachGiftingView() {
             <option value="avatar">Avatar Item</option>
             <option value="equipment">Equipment</option>
             <option value="consumable">Consumable</option>
-            <option value="tokens">Tokens</option>
+            <option value="tokens">Currency</option>
             <option value="xp">XP</option>
             <option value="box">Mystery Box</option>
         </select></label>
@@ -2161,6 +2223,15 @@ async function coachGiftingView() {
         <label>Recipient Account IDs (comma-separated, or leave empty to send to all)<input type="text" id="recipientIds" placeholder="e.g. 123,456,789"></label>
         <br><br>
         <label id="skuLabel">SKU ID<input type="number" id="skuId" placeholder="Search catalog below"></label>
+        <br><br>
+        <label id="giftCurrencyLabel">Currency<select id="giftCurrency">
+            <option value="2" selected>Tokens</option>
+            <option value="1">Laser Tag Tickets</option>
+            <option value="100">Lost Skulls Gold</option>
+            <option value="101">Dracula Silver</option>
+            <option value="200">Rec Royale Season 1</option>
+            <option value="300">Room Currency</option>
+        </select></label>
         <br><br>
         <label id="amountLabel">Amount<input type="number" id="amount" value="1"></label>
         <br><br>
@@ -2233,6 +2304,7 @@ async function coachGiftingView() {
         const type = giftType.value;
         skuLabel.style.display = (type === 'avatar' || type === 'equipment' || type === 'consumable') ? '' : 'none';
         amountLabel.style.display = (type === 'tokens' || type === 'xp' || type === 'consumable') ? '' : 'none';
+        giftCurrencyLabel.style.display = type === 'tokens' ? '' : 'none';
         boxRarityLabel.style.display = type === 'box' ? '' : 'none';
         boxDesignCustom.hidden = boxDesign.value !== 'custom';
     }
@@ -2311,6 +2383,7 @@ async function coachGiftingView() {
             if (giftType.value === 'consumable') request.Amount = Number(amount.value) || 1;
         } else if (giftType.value === 'tokens' || giftType.value === 'xp') {
             request.Amount = Number(amount.value) || 0;
+            if (giftType.value === 'tokens') request.CurrencyType = Number(document.querySelector('#giftCurrency').value) || 2;
         } else if (giftType.value === 'box') {
             request.BoxRarity = Number(boxRarity.value) || 10;
             request.BoxDesign = resolveBoxDesign() || 2;

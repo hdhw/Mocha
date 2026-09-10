@@ -48,6 +48,8 @@ namespace Mocha2023.Controllers
         private static DateTime ConsumableCatalogCacheTimestampUtc;
         private static List<CatalogSku> CatalogCache = new();
         private static readonly object StorefrontAdminLock = new();
+        private static readonly object StoreFileIdentityLock = new();
+        private static HashSet<string>? StoreFileIdentityCache;
         private static StorefrontAdminState? StorefrontAdminCache;
         private static readonly FriendotronConsumableReward[]
             FriendotronConsumableRewards =
@@ -8987,10 +8989,14 @@ namespace Mocha2023.Controllers
         // Null means they own the lot, which is the one case a box cannot be honoured.
         private static CatalogSku? RollUniqueBoxItem(long accountId, int rarity)
         {
+            HashSet<string> served = GetStoreFileIdentities();
+
             List<CatalogSku> candidates = GetCatalogSkus()
                 .Where(IsUsableStoreItem)
                 .Where(item => item.Rarity == rarity)
                 .Where(item => !item.GiftDrop.IsQuery)
+                .Where(item => served.Count == 0 ||
+                    served.Contains(GetCatalogIdentity(item)))
                 .Where(item => !PlayerOwnsCatalogSku(accountId, item))
                 .ToList();
 
@@ -8998,6 +9004,75 @@ namespace Mocha2023.Controllers
                 return null;
 
             return candidates[Random.Shared.Next(candidates.Count)];
+        }
+
+        private static HashSet<string> GetStoreFileIdentities()
+        {
+            lock (StoreFileIdentityLock)
+            {
+                if (StoreFileIdentityCache != null)
+                    return StoreFileIdentityCache;
+
+                var identities = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                string dir = Path.Combine(Program.dataDir, "storefronts");
+
+                if (!Directory.Exists(dir))
+                {
+                    StoreFileIdentityCache = identities;
+                    return identities;
+                }
+
+                foreach (string file in Directory.EnumerateFiles(dir, "sf*.json"))
+                {
+                    try
+                    {
+                        using JsonDocument doc = JsonDocument.Parse(
+                            System.IO.File.ReadAllText(file));
+
+                        if (!doc.RootElement.TryGetProperty("StoreItems", out JsonElement items) ||
+                            items.ValueKind != JsonValueKind.Array)
+                            continue;
+
+                        foreach (JsonElement it in items.EnumerateArray())
+                        {
+                            if (!it.TryGetProperty("GiftDrop", out JsonElement gd) ||
+                                gd.ValueKind != JsonValueKind.Object)
+                                continue;
+
+                            string Str(string name) =>
+                                gd.TryGetProperty(name, out JsonElement value) &&
+                                value.ValueKind == JsonValueKind.String
+                                    ? value.GetString() ?? string.Empty
+                                    : string.Empty;
+
+                            string prefab = Str("EquipmentPrefabName");
+                            string modification = Str("EquipmentModificationGuid");
+                            string consumable = Str("ConsumableItemDesc");
+                            string avatar = Str("AvatarItemDesc");
+
+                            if (!string.IsNullOrWhiteSpace(prefab) &&
+                                !string.IsNullOrWhiteSpace(modification))
+                                identities.Add($"equipment|{prefab}|{modification}");
+                            else if (!string.IsNullOrWhiteSpace(consumable))
+                                identities.Add($"consumable|{consumable}");
+                            else if (!string.IsNullOrWhiteSpace(avatar))
+                                identities.Add($"avatar|{avatar}");
+                        }
+                    }
+                    catch (JsonException exception)
+                    {
+                        Console.WriteLine(
+                            $"[STORE FILE IDENTITIES] file={Path.GetFileName(file)} " +
+                            $"error={exception.Message}");
+                    }
+                }
+
+                Console.WriteLine(
+                    $"[STORE FILE IDENTITIES] served={identities.Count}");
+
+                StoreFileIdentityCache = identities;
+                return identities;
+            }
         }
 
         private static bool PlayerOwnsCatalogSku(long accountId, CatalogSku sku)
@@ -9046,10 +9121,12 @@ namespace Mocha2023.Controllers
                     foreach (JsonElement it in items.EnumerateArray())
                     {
                         long purchasableId = it.TryGetProperty("PurchasableItemId", out var pi) &&
+                            pi.ValueKind == JsonValueKind.Number &&
                             pi.TryGetInt64(out long piv) ? piv : 0;
                         JsonElement gd = it.TryGetProperty("GiftDrop", out var g) ? g : default;
                         long giftDropId = gd.ValueKind == JsonValueKind.Object &&
                             gd.TryGetProperty("GiftDropId", out var gi) &&
+                            gi.ValueKind == JsonValueKind.Number &&
                             gi.TryGetInt64(out long giv) ? giv : 0;
 
                         if (byPurchasableId ? purchasableId != id : giftDropId != id)
@@ -9059,9 +9136,14 @@ namespace Mocha2023.Controllers
                             e.ValueKind == JsonValueKind.Object &&
                             e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String
                                 ? (v.GetString() ?? string.Empty) : string.Empty;
+                        // The kind has to be checked before the value is read: these
+                        // fields are present-but-null on a couple of hundred store items,
+                        // and TryGetInt32 throws on a null rather than answering false.
                         int Int(JsonElement e, string name) =>
                             e.ValueKind == JsonValueKind.Object &&
-                            e.TryGetProperty(name, out var v) && v.TryGetInt32(out int iv) ? iv : 0;
+                            e.TryGetProperty(name, out var v) &&
+                            v.ValueKind == JsonValueKind.Number &&
+                            v.TryGetInt32(out int iv) ? iv : 0;
                         bool Bool(JsonElement e, string name) =>
                             e.ValueKind == JsonValueKind.Object &&
                             e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.True;
