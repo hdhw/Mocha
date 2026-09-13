@@ -50,12 +50,16 @@ namespace Mocha2023.Controllers
             [FromQuery] string? query = null,
             [FromQuery] string? q = null,
             [FromQuery] string? tag = null,
+            [FromQuery] long creatorId = 0,
+            [FromQuery] long creatorAccountId = 0,
             [FromQuery] int skip = 0,
             [FromQuery] int take = 100)
         {
             string? search = string.IsNullOrWhiteSpace(query) ? q : query;
+            long creator = creatorId > 0 ? creatorId : creatorAccountId;
             var rows = CreatorFeatureDB.SearchInventions(
                     search,
+                    creatorAccountId: creator > 0 ? creator : null,
                     tag: tag,
                     skip: skip,
                     take: take)
