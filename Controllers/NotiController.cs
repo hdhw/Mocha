@@ -2124,6 +2124,8 @@ namespace Mocha2023.Controllers
                     platforms = account.platforms,
                     personalPronouns = account.personalPronouns,
                     identityFlags = account.identityFlags,
+                    level = fullPlayer?.Player?.Level ?? 1,
+                    xp = fullPlayer?.Player?.XP ?? 0,
                     createdAt = account.createdAt
                 };
             }
@@ -2140,6 +2142,8 @@ namespace Mocha2023.Controllers
                 platforms = account.platforms,
                 personalPronouns = account.personalPronouns,
                 identityFlags = account.identityFlags,
+                level = fullPlayer?.Player?.Level ?? 1,
+                xp = fullPlayer?.Player?.XP ?? 0,
                 createdAt = account.createdAt
             };
         }
