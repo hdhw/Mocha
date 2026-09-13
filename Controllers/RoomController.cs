@@ -3271,9 +3271,15 @@ namespace Mocha2023.Controllers
                 });
             }
 
-            if (source.IsDorm ||
-                source.Name.Contains("RecCenter", StringComparison.OrdinalIgnoreCase) ||
-                source.Name.Contains("Rec Center", StringComparison.OrdinalIgnoreCase))
+            string canonName = new string((source.Name ?? string.Empty)
+                .Where(char.IsLetterOrDigit)
+                .Select(char.ToLowerInvariant)
+                .ToArray());
+            bool isRecCenterUgc = canonName == "reccenterugc";
+            if (!isRecCenterUgc &&
+                (source.IsDorm ||
+                 canonName == "reccenter" ||
+                 RoomDB.IsCanonicalBaseRoom(source)))
             {
                 Console.WriteLine(
                     $"[ROOM CLONE BLOCKED] room={source.RoomId} name={source.Name} " +
