@@ -80,8 +80,10 @@ namespace Mocha2023.Controllers
                     : creatorPlayerId > 0
                         ? creatorPlayerId
                         : creatorId;
+            if (effectiveCreatorId <= 0)
+                return Ok(Array.Empty<object>());
             var rows = CreatorFeatureDB.SearchInventions(
-                    creatorAccountId: effectiveCreatorId > 0 ? effectiveCreatorId : null,
+                    creatorAccountId: effectiveCreatorId,
                     skip: skip,
                     take: take)
                 .Select(CreatorFeatureDB.ToClientInvention)

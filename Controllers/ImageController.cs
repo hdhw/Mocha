@@ -357,6 +357,62 @@ namespace Mocha2023.Controllers
             return File(data, contentType);
         }
 
+        [HttpGet("/api/images/v6/{id:long}")]
+        public IActionResult GetImageV6ById(long id)
+        {
+            if (id <= 0)
+                return BadRequest();
+
+            var savedImage = RecNetDB.SavedImages.FindOne(image => image.ImageId == id);
+            if (savedImage == null &&
+                PhotoPathsByImageId.TryGetValue(id, out string? mappedPath))
+            {
+                savedImage = RecNetDB.SavedImages.FindOne(image =>
+                    image.PhotoPath == mappedPath);
+            }
+
+            string baseImagesPath = Path.Combine(Program.dataDir, "Images");
+            if (savedImage == null ||
+                !TryResolveContainedPath(baseImagesPath, savedImage.PhotoPath, out string found) ||
+                !System.IO.File.Exists(found))
+            {
+                LogImageIssue(
+                    $"v6-id-missing:{id}",
+                    $"[ImageV6] Missing saved image metadata or file for id: {id}");
+                return NotFound();
+            }
+
+            int cheerCount = RecNetDB.CountPhotoCheers(savedImage.PhotoPath);
+            int commentCount = RecNetDB.PhotoComments.FindAll()
+                .Count(comment => string.Equals(
+                    comment.PhotoPath,
+                    savedImage.PhotoPath,
+                    StringComparison.OrdinalIgnoreCase));
+            long? callerAccountId = AuthStuff.GetPlayerId(Request);
+            bool cheered = callerAccountId.HasValue &&
+                RecNetDB.HasPhotoCheer(savedImage.PhotoPath, callerAccountId.Value);
+            long imageId = GetOrCreateSavedImageId(savedImage);
+
+            return Ok(new
+            {
+                Id = imageId,
+                ImageName = Path.GetFileName(savedImage.PhotoPath),
+                PlayerId = checked((int)savedImage.AccountId),
+                AccountId = checked((int)savedImage.AccountId),
+                RoomId = savedImage.RoomId,
+                PlayerEventId = savedImage.PlayerEventId,
+                Accessibility = savedImage.Accessibility,
+                IsDeleted = false,
+                SavedImageType = savedImage.SavedImageType,
+                CreatedAt = savedImage.CreatedAt,
+                TaggedPlayerIds = savedImage.TaggedPlayerIds ?? new List<int>(),
+                CheerCount = cheerCount,
+                Cheered = cheered,
+                IsCheered = cheered,
+                CommentCount = commentCount
+            });
+        }
+
         [HttpGet("/api/images/v6")]
         public IActionResult GetImageV6(string name)
         {
