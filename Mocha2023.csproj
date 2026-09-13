@@ -15,8 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
+
     <Compile Remove="Auth\Classes\**\*.cs" />
     <Compile Remove="Auth\Controllers\**\*.cs" />
   </ItemGroup>
-  
+
 </Project>

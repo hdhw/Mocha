@@ -77,9 +77,6 @@ namespace Mocha2023.Classes.DBs.DBClasses
             public long AccountId { get; set; }
             public ClubMembershipType MembershipType { get; set; }
 
-            // The tier the invite was for, kept while MembershipType is PendingInvited
-            // so accepting lands the player where they were invited rather than always
-            // as a plain member.
             public ClubMembershipType InvitedMembershipType { get; set; } =
                 ClubMembershipType.Member;
 
@@ -225,6 +222,7 @@ namespace Mocha2023.Classes.DBs.DBClasses
             public ClubPermissionsDto CreatorPermissions { get; set; } = new();
             public ClubPermissionsDto CoOwnerPermissions { get; set; } = new();
             public ClubPermissionsDto ModeratorPermissions { get; set; } = new();
+            public ClubPermissionsDto MemberPermissions { get; set; } = new();
             public int MyMembershipType { get; set; }
         }
     }

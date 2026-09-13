@@ -174,12 +174,6 @@ namespace Mocha2023.Controllers
                     return false;
                 }
 
-                // Reserve the quota here, inside the same lock as the check.
-                // Recording it only after the upload finished left a TOCTOU
-                // gap: an account firing multiple uploads at once (the
-                // "room-blob-upload" policy allows 3 concurrent) could pass
-                // this check several times before any of them recorded
-                // usage, multiplying its effective hourly/daily budget.
                 usage.Enqueue(new RoomBlobUsage
                 {
                     CreatedAtUtc = now,
@@ -1144,13 +1138,6 @@ namespace Mocha2023.Controllers
             if (!canEdit)
                 return StatusCode(403);
 
-            // [FromForm] only bound when the client sent form-encoded data; this client
-            // also sends plain JSON, which left `description` null on every request -
-            // silently skipping the [ApiController] action (it auto-400s a non-nullable
-            // string parameter that fails to bind) so Rooms.Update(room) never ran and
-            // the field stayed permanently null, papered over by PrepareRoomForClient's
-            // placeholder text on every read. Same flexible reader every other room
-            // settings endpoint in this file uses.
             RoomSettingsPayload payload = await ReadRoomSettingsPayloadAsync();
             string description = (ReadFlexibleString(payload.Values, "description", "Description") ?? string.Empty).Trim();
             if (description.Length > 1_000 || description.Any(ch => ch == '\0'))
@@ -2854,13 +2841,6 @@ namespace Mocha2023.Controllers
 
             RoomDB.PrepareRoomsForClient(allRooms);
 
-            // The client rejected the bare {Results, TotalResults} shape here -
-            // confirmed in Player log:
-            //   Malformed Response: '{"Results":[...],"TotalResults":1}'
-            // The MutationSuccess envelope was the wrong replacement though: that one
-            // is for room MUTATIONS. Every "my rooms" list answers a plain array of
-            // rooms - no paging wrapper, no envelope - which is what the deserializer
-            // was actually asking for.
             return Ok(allRooms.Skip(skip).Take(take).ToList());
         }
 
@@ -3136,11 +3116,6 @@ namespace Mocha2023.Controllers
                 $"[ROOM CLONING] room={roomId} account={accountId.Value} " +
                 $"allowed={room.CloningAllowed}");
 
-            // Every other room-mutation endpoint answers the {Value, Success, ErrorId,
-            // Error, LocalizationContext} envelope (MutationSuccess); this was the one
-            // exception, and the client's response handler throws a bare exception when
-            // that shape is missing - which is why a full room save (which does use the
-            // envelope) silently fixes whatever this endpoint failed to apply.
             return Ok(MutationSuccess(new
             {
                 RoomId = room.RoomId,
@@ -3296,6 +3271,23 @@ namespace Mocha2023.Controllers
                 });
             }
 
+            if (source.IsDorm ||
+                source.Name.Contains("RecCenter", StringComparison.OrdinalIgnoreCase) ||
+                source.Name.Contains("Rec Center", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine(
+                    $"[ROOM CLONE BLOCKED] room={source.RoomId} name={source.Name} " +
+                    $"by={player.PlayerId} reason=system-room");
+                return BadRequest(new
+                {
+                    Value = (object?)null,
+                    Success = false,
+                    ErrorId = "room_cloning_disabled",
+                    Error = "This room cannot be cloned.",
+                    LocalizationContext = (object?)null
+                });
+            }
+
             if (!source.CloningAllowed)
             {
                 return BadRequest(new
@@ -3418,11 +3410,6 @@ namespace Mocha2023.Controllers
             return Ok(response);
         }
 
-        // The home-screen "rooms from creators you follow" carousel. The 2023 client
-        // calls /roomserver/rooms/fromcreators?id=<accountId>&skip&take, with id=0
-        // meaning the caller. Rooms are the public, non-dorm rooms created by any
-        // creator the player subscribes to. Same { Results, TotalResults } carousel
-        // envelope as rooms/hot and rooms/carousel/rising.
         [HttpGet("rooms/fromcreators")]
         public IActionResult GetRoomsFromCreators(
             [FromQuery] long id = 0,
@@ -5337,10 +5324,6 @@ namespace Mocha2023.Controllers
             if (!accountId.HasValue)
                 return Unauthorized();
 
-            // Role's underlying type is byte (RoomDBClasses.cs:558); Enum.IsDefined throws
-            // ArgumentException when the value's runtime type doesn't exactly match the
-            // enum's underlying type, which an `int` never does - this threw on every
-            // single call regardless of roleId's actual value.
             if (roleId < byte.MinValue || roleId > byte.MaxValue ||
                 !Enum.IsDefined(typeof(RoomDBClasses.Role), (byte)roleId))
                 return BadRequest(MutationFailure("invalid_role", "That room role is invalid."));
@@ -5392,10 +5375,6 @@ namespace Mocha2023.Controllers
             if (!callerId.HasValue)
                 return Unauthorized();
 
-            // Role's underlying type is byte (RoomDBClasses.cs:558); Enum.IsDefined throws
-            // ArgumentException when the value's runtime type doesn't exactly match the
-            // enum's underlying type, which an `int` never does - this threw on every
-            // single call regardless of roleId's actual value.
             if (roleId < byte.MinValue || roleId > byte.MaxValue ||
                 !Enum.IsDefined(typeof(RoomDBClasses.Role), (byte)roleId))
                 return BadRequest(MutationFailure("invalid_role", "That room role is invalid."));

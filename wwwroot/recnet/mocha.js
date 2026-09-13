@@ -62,7 +62,7 @@ function setActiveNav(view) {
 const DEVELOPER_ONLY_VIEWS = new Set([
     'community-board', 'coach-gifting', 'announcements', 'player-events', 'misc',
     'room-importer', 'logs', 'scanner-logs', 'anticheat-logs', 'config', 'account-creation',
-    'avatar-items', 'ip-bans', 'steam-blacklist', 'shop', 'storefronts'
+    'avatar-items', 'ip-bans', 'steam-blacklist', 'shop', 'storefronts', 'weekly'
 ]);
 
 function renderDeveloperOnlyPlaceholder(view) {
@@ -107,6 +107,7 @@ async function route() {
         else if (view === 'shop') await shopView();
         else if (view === 'storefronts') await storefrontsView();
         else if (view === 'preferences') await preferencesView();
+        else if (view === 'weekly') await weeklyView();
         else await placeholder(view);
     } catch (error) {
         app.innerHTML = `<div class="card"><p class="form-status error">${esc(error.message)}</p></div>`;
@@ -2386,8 +2387,8 @@ async function coachGiftingView() {
             if (giftType.value === 'tokens') request.CurrencyType = Number(document.querySelector('#giftCurrency').value) || 2;
         } else if (giftType.value === 'box') {
             request.BoxRarity = Number(boxRarity.value) || 10;
-            request.BoxDesign = resolveBoxDesign() || 2;
         }
+        request.BoxDesign = resolveBoxDesign() || 2;
 
         status.textContent = 'Sending...';
         status.classList.remove('error');
@@ -3243,7 +3244,7 @@ async function shopView() {
         const pager = document.querySelector('#shopSearchPager');
         if (!query) { searchResults.innerHTML = ''; pager.style.display = 'none'; return; }
         try {
-            const data = await get(`${API}/admin/shop/catalog?search=${encodeURIComponent(query)}&skip=${shopSearchSkip}&take=${shopSearchTake}`);
+            const data = await get(`${API}/admin/shop/catalog?search=${encodeURIComponent(query)}&skip=${shopSearchSkip}&take=${shopSearchTake}&includeHidden=true`);
             const items = data.results ?? data;
             const total = data.total ?? items.length;
             if (!items.length) { searchResults.innerHTML = '<p class="field-hint">No items found.</p>'; }
@@ -3755,3 +3756,40 @@ async function checkSystemStatus() {
     } catch {}
 }
 boot();
+
+
+async function weeklyView() {
+    app.innerHTML = `<h1 class="page-title">Weekly Challenge</h1><p class="field-hint">One weekly challenge, served to every client from Data/weekly.json. Changes save instantly (no rebuild).</p><div id="weeklyForm"><div class="loading"><i></i>Loading</div></div>`;
+    const c = document.querySelector('#weeklyForm');
+    let w;
+    try { w = await get(`${API}/admin/weekly`); }
+    catch (e) { c.innerHTML = `<p class="form-status error">${esc(e.message)}</p>`; return; }
+    const row = (id, label, value, type) => `<label class="field"><span>${esc(label)}</span><input id="${id}"${type ? ` type="${type}"` : ''} value="${esc(value)}"></label>`;
+    c.innerHTML = `<div class="card">
+        ${row('wTitle', 'Title', w.title)}
+        ${row('wDescription', 'Description', w.description)}
+        ${row('wTooltip', 'Tooltip', w.tooltip)}
+        ${row('wConfig', 'Config (raw JSON string)', w.config)}
+        ${row('wGoal', 'Goal', w.goal, 'number')}
+        ${row('wPrefab', 'Reward equipment prefab', w.rewardEquipmentPrefab)}
+        ${row('wGuid', 'Reward modification GUID', w.rewardModificationGuid)}
+        ${row('wXp', 'Reward XP', w.rewardXp, 'number')}
+        ${row('wGift', 'Gift drop id', w.giftDropId, 'number')}
+        ${row('wTheme', 'Theme string', w.themeString)}
+        <div class="settings-add-row"><button class="btn" id="wSave">Save weekly</button><span id="wStatus" class="form-status"></span></div>
+    </div>`;
+    const val = id => document.querySelector('#' + id).value;
+    document.querySelector('#wSave').addEventListener('click', async () => {
+        const status = document.querySelector('#wStatus');
+        const body = {
+            Id: w.id,
+            Title: val('wTitle'), Description: val('wDescription'), Tooltip: val('wTooltip'),
+            Config: val('wConfig'), Goal: Number(val('wGoal')) || 1,
+            RewardEquipmentPrefab: val('wPrefab'), RewardModificationGuid: val('wGuid'),
+            RewardXp: Number(val('wXp')) || 0, GiftDropId: Number(val('wGift')) || 0,
+            ThemeString: val('wTheme')
+        };
+        try { await send(`${API}/admin/weekly`, 'PUT', body); status.textContent = 'Saved.'; status.className = 'form-status ok'; }
+        catch (e) { status.textContent = e.message; status.className = 'form-status error'; }
+    });
+}

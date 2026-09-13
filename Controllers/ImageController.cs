@@ -257,10 +257,8 @@ namespace Mocha2023.Controllers
 
         private static bool WantsP1Signature(string? signature)
         {
-            return string.Equals(
-                signature?.Trim(),
-                "p1",
-                StringComparison.OrdinalIgnoreCase);
+
+            return true;
         }
 
         private static string BuildImageEtag(FileInfo file, string variant)
@@ -536,10 +534,6 @@ namespace Mocha2023.Controllers
                         ? parsedRoomId
                         : null;
 
-                // Share Camera photos claim "I took this in room X" - without
-                // checking the uploader is actually, currently present in that
-                // room, anyone could stamp any content (including this) onto
-                // any room's public photo gallery just by knowing its ID.
                 if (savedImageType == ShareCameraImageType &&
                     taggedRoomId.HasValue &&
                     !RoomDB.IsPlayerCurrentlyInRoom(taggedRoomId.Value, player.PlayerId))

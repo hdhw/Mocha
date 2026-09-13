@@ -22,25 +22,20 @@ namespace Mocha2023.Controllers
         private const int AdCarouselRotationSize = 6;
         private const int ThemedStoreRotationSize = 16;
 
-        // StorefrontTypes values from the real client. RecCenter/Watch/None
-        // (and anything unrecognized) fall through to the general "show
-        // everything" store; every other activity kiosk only sells a random
-        // rotating selection of consumables matching any of its theme
-        // keywords (an item needs to match just one, not all).
         private static readonly Dictionary<int, string[]> StorefrontThemeKeywords = new()
         {
-            [1] = new[] { "laser tag", "cyber", "jumbotron" },       // LaserTag
-            [2] = new[] { "unique box" },                           // RecCenter - just the Star Boxes
-            [100] = new[] { "lost skulls" },                        // Quest_LostSkulls (room: IsleOfTheLostSkulls)
-            [101] = new[] { "dracula", "crescendo", "aristocrat" }, // Quest_Dracula
-            [200] = new[] { "royale" },                             // RecRoyale
-            [300] = new[] { "cafe" },   // Cafe (its items also appear in RecCenter, which shows everything)
-            [500] = new[] { "bowling" }                             // Bowling
+            [1] = new[] { "laser tag", "cyber", "jumbotron" },       
+            [2] = new[] { "unique box" },                           
+            [100] = new[] { "lost skulls" },                        
+            [101] = new[] { "dracula", "crescendo", "aristocrat" }, 
+            [200] = new[] { "royale" },                             
+            [300] = new[] { "cafe" },   
+            [500] = new[] { "bowling" }                             
         };
         private const int FriendotronGiftContext = (int)PlayerDBClasses.GiftContext.Consumable;
-        private const string WeeklyChallengeRewardEquipmentPrefab = "[Basketball]";
+        private const string WeeklyChallengeRewardEquipmentPrefab = "[Longbow]";
         private const string WeeklyChallengeRewardModificationGuid =
-            "WOWwmg7jg0mH2g4LJUp6fA";
+            "XpxqrY6RYkafs-sd3Z0ZLw";
         private static readonly object CatalogLock = new();
         private static readonly object EquipmentInventoryLock = new();
         private static DateTime CatalogCacheTimestampUtc;
@@ -148,9 +143,7 @@ namespace Mocha2023.Controllers
         [HttpGet("/api/storefronts/v3/giftdropstore/{storeId:int}")]
         public IActionResult StubGetGiftDropStore([FromRoute] int storeId)
         {
-            // Curated storefronts live as Data/storefronts/sf{id}.json (imported from
-            // the recflare 2023 stores, already in the client's exact shape). Serve the
-            // file verbatim when present; otherwise fall back to the generated store.
+
             string storeFile = Path.Combine(
                 Program.dataDir, "storefronts", $"sf{storeId}.json");
             if (System.IO.File.Exists(storeFile))
@@ -189,68 +182,28 @@ namespace Mocha2023.Controllers
         {
             var (challengeMapId, startsAt, endsAt) = RecNetDB.GetCurrentChallengeWindow();
             long accountId = AuthStuff.GetPlayerId(Request) ?? 0;
+            var w = Mocha2023.Classes.WeeklyChallenge.Load();
+
             object[] challenges =
             {
                 CurrentChallenge(
                     accountId: accountId,
                     challengeMapId: challengeMapId,
-                    id: 1,
-                    title: "Complete Crimson Cauldron",
-                    description: "Complete Curse of the Crimson Cauldron.",
-                    tooltip: "Complete ^CrimsonCauldron.",
-                    config: "{\"ct\":6,\"vs\":[2],\"ex\":true,\"in\":true}",
-                    goal: 1),
-                CurrentChallenge(
-                    accountId: accountId,
-                    challengeMapId: challengeMapId,
-                    id: 2,
-                    title: "Complete Quest for the Golden Trophy",
-                    description: "Complete Quest for the Golden Trophy.",
-                    tooltip: "Complete ^GoldenTrophy.",
-                    config: "{\"ct\":6,\"vs\":[2],\"ex\":true,\"in\":true}",
-                    goal: 1),
-                CurrentChallenge(
-                    accountId: accountId,
-                    challengeMapId: challengeMapId,
-                    id: 3,
-                    title: "Beat the Rise of the Jumbotron",
-                    description: "Complete The Rise of Jumbotron.",
-                    tooltip: "Complete ^TheRiseOfJumbotron.",
-                    config: "{\"ct\":6,\"vs\":[2],\"ex\":true,\"in\":true}",
-                    goal: 1),
-                CurrentChallenge(
-                    accountId: accountId,
-                    challengeMapId: challengeMapId,
-                    id: 4,
-                    title: "Complete 5 games of Paintball",
-                    description: "Complete 5 games of Paintball.",
-                    tooltip: "Finish 5 full games in ^Paintball.",
-                    config: "{\"ct\":1,\"ctc\":[{\"ct\":6,\"vs\":[2],\"ex\":true,\"in\":true}],\"cc\":5}",
-                    goal: 5),
-                CurrentChallenge(
-                    accountId: accountId,
-                    challengeMapId: challengeMapId,
-                    id: 5,
-                    title: "Complete 5 games of Dodgeball",
-                    description: "Complete 5 games of Dodgeball.",
-                    tooltip: "Finish 5 full games in ^Dodgeball.",
-                    config: "{\"ct\":1,\"ctc\":[{\"ct\":6,\"vs\":[2],\"ex\":true,\"in\":true}],\"cc\":5}",
-                    goal: 5)
+                    id: w.Id,
+                    title: w.Title,
+                    description: w.Description,
+                    tooltip: w.Tooltip,
+                    config: w.Config,
+                    goal: w.Goal)
             };
 
-            int completedChallengeCount = Enumerable.Range(1, 5)
-                .Count(id => RecNetDB.GetChallengeProgress(
-                    accountId,
-                    challengeMapId,
-                    id,
-                    ChallengeGoal(id)).Complete);
-
-            if (accountId > 0 && completedChallengeCount >= 3)
+            if (accountId > 0 &&
+                RecNetDB.GetChallengeProgress(accountId, challengeMapId, w.Id, w.Goal).Complete)
             {
                 GrantPlayerEquipment(
                     accountId,
-                    WeeklyChallengeRewardEquipmentPrefab,
-                    WeeklyChallengeRewardModificationGuid);
+                    w.RewardEquipmentPrefab,
+                    w.RewardModificationGuid);
             }
 
             Response.Headers.CacheControl = "private, max-age=30";
@@ -263,14 +216,14 @@ namespace Mocha2023.Controllers
                 Challenges = challenges,
                 Gift = new
                 {
-                    GiftDropId = 52,
+                    GiftDropId = w.GiftDropId,
                     AvatarItemDesc = string.Empty,
-                    Xp = 750,
+                    Xp = w.RewardXp,
                     Level = 0,
-                    EquipmentPrefabName = WeeklyChallengeRewardEquipmentPrefab,
-                    EquipmentModificationGuid = WeeklyChallengeRewardModificationGuid
+                    EquipmentPrefabName = w.RewardEquipmentPrefab,
+                    EquipmentModificationGuid = w.RewardModificationGuid
                 },
-                ChallengeThemeString = "Mocha Weekly Challenges"
+                ChallengeThemeString = w.ThemeString
             });
         }
 
@@ -288,16 +241,23 @@ namespace Mocha2023.Controllers
             return new
             {
                 ChallengeId = id,
+                ChallengeMapId = challengeMapId,
                 Name = title,
                 Config = config,
                 Description = description,
                 Tooltip = tooltip,
+                Progress = progress.Progress,
+                CurrentProgress = progress.Progress,
+                Goal = progress.Goal,
                 Complete = progress.Complete
             };
         }
 
-        private static int ChallengeGoal(int challengeId) =>
-            challengeId is 4 or 5 ? 5 : 1;
+        private static int ChallengeGoal(int challengeId)
+        {
+            var w = Mocha2023.Classes.WeeklyChallenge.Load();
+            return challengeId == w.Id ? w.Goal : 1;
+        }
 
         [HttpPost("/api/challenge/v2/updateProgress")]
         [HttpPut("/api/challenge/v2/updateProgress")]
@@ -310,7 +270,7 @@ namespace Mocha2023.Controllers
             var (currentMapId, _, _) = RecNetDB.GetCurrentChallengeWindow();
             int challengeMapId = FindJsonInt(body, "ChallengeMapId") ?? currentMapId;
             int challengeId = FindJsonInt(body, "ChallengeId") ?? 0;
-            if (challengeId is < 1 or > 5)
+            if (challengeId != Mocha2023.Classes.WeeklyChallenge.Load().Id)
                 return BadRequest(new { success = false, error = "invalid_challenge" });
 
             int goal = ChallengeGoal(challengeId);
@@ -1363,8 +1323,6 @@ namespace Mocha2023.Controllers
             if (accountId == null)
                 return Unauthorized();
 
-            // The client asks either way: naming the clubs it wants with repeated id
-            // params, or nothing at all to mean "the ones I am in".
             var clubIds = new HashSet<long>();
 
             foreach (string? rawValue in Request.Query["id"])
@@ -3449,10 +3407,6 @@ namespace Mocha2023.Controllers
 
             string raw = System.IO.File.ReadAllText(path);
 
-            // ServerMaintenance carries an absolute EndsAtUnixTime (written by
-            // SetMaintenanceCountdownAsync). Recompute StartsInMinutes against the
-            // clock on every read so the config-driven countdown actually ticks down,
-            // and strip EndsAtUnixTime so the client sees only the field it expects.
             try
             {
                 var config = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(raw);
@@ -3483,7 +3437,7 @@ namespace Mocha2023.Controllers
             }
             catch
             {
-                // Fall through and serve the file as-is on any parse trouble.
+
             }
 
             return Content(raw, "application/json");
@@ -3678,11 +3632,6 @@ namespace Mocha2023.Controllers
             if (AuthStuff.GetPlayerId(Request) == null)
                 return Unauthorized();
 
-            // The buttons the vote prompt offers, in the order the client draws them,
-            // each carrying the ReportCategory the report is filed under if the vote
-            // carries: 102 hate, 101 sexual content, 103 griefing, 6 game conduct.
-            // An empty list here left the prompt with nothing to pick, so a vote could
-            // be started and never sent.
             return Ok(new[]
             {
                 new { Reason = "Discriminatory language", ReportCategory = 102 },
@@ -3769,7 +3718,7 @@ namespace Mocha2023.Controllers
                 foreach (var formValue in form)
                     values[formValue.Key] = formValue.Value.ToString();
             }
-            else if (Request.ContentLength.GetValueOrDefault() > 0)
+            else
             {
                 using var reader = new StreamReader(Request.Body);
                 string body = await reader.ReadToEndAsync();
@@ -3793,24 +3742,41 @@ namespace Mocha2023.Controllers
                 }
             }
 
-            values.TryGetValue("PlayerId", out string? subjectField);
+            Console.WriteLine(
+                $"[INSTANTKICK DEBUG] ct={Request.ContentType ?? "null"} " +
+                $"cl={Request.ContentLength?.ToString() ?? "null"} " +
+                $"keys=[{string.Join(",", values.Keys)}] " +
+                $"vals=[{string.Join(",", values.Select(kv => kv.Key + "=" + kv.Value))}] " +
+                $"voter={voterId.Value}");
+
+            string? subjectField = null;
+            foreach (var subjectKey in new[]
+                     { "PlayerId", "AccountId", "SubjectPlayerId", "TargetPlayerId", "KickedPlayerId" })
+            {
+                if (values.TryGetValue(subjectKey, out subjectField) &&
+                    !string.IsNullOrWhiteSpace(subjectField))
+                    break;
+            }
             if (string.IsNullOrWhiteSpace(subjectField) ||
                 !long.TryParse(subjectField.Trim(), out long subjectId))
             {
                 return BadRequest(new { success = false, error = "PlayerId is required" });
             }
 
+            long sessionId;
             if (!values.TryGetValue("GameSessionId", out string? sessionField) ||
-                !long.TryParse((sessionField ?? string.Empty).Trim(), out long sessionId))
+                !long.TryParse((sessionField ?? string.Empty).Trim(), out sessionId))
             {
-                return BadRequest(new { success = false, error = "GameSessionId is required" });
+
+                var callerInstance =
+                    PlayerDB.GetPlayerHeartbeat(voterId.Value)?.roomInstance;
+                if (callerInstance == null || callerInstance.roomInstanceId <= 0)
+                    return BadRequest(new { success = false, error = "GameSessionId is required" });
+                sessionId = callerInstance.roomInstanceId;
             }
 
             long? gameSessionId = sessionId;
 
-            // The session comes from live presence on both sides, never from the body, so
-            // a client cannot put a vote to a room it is not in or about someone who is
-            // not standing there.
             if (!PlayerDB.IsPlayerInInstance(voterId.Value, gameSessionId.Value))
             {
                 return StatusCode(
@@ -3825,9 +3791,6 @@ namespace Mocha2023.Controllers
                     new { success = false, error = "That player is not in that game session!" });
             }
 
-            // The room votes, so everyone standing there is asked - the player being voted
-            // on included, since a vote is called in front of them. The caller is dropped:
-            // their vote is the one they just posted.
             long[] audience = PlayerDB
                 .GetActivePlayerIdsInInstance(gameSessionId.Value)
                 .Where(playerId => playerId != voterId.Value)
@@ -4003,8 +3966,6 @@ namespace Mocha2023.Controllers
             return senderId;
         }
 
-        // Default alone gets rewritten - it is the only value that says nothing about
-        // where the gift came from. Anything else is reported as sent.
         private static int NormalizeGiftContext(int context) =>
             context == (int)PlayerDBClasses.GiftContext.Default
                 ? (int)PlayerDBClasses.GiftContext.Game_Drop
@@ -6401,16 +6362,13 @@ namespace Mocha2023.Controllers
         [HttpGet("api/playerevents/v1/filters")]
         public IActionResult GetPlayerEventTagFilters()
         {
-            // The activity names the client already carries, in its own casing - the
-            // three lowercase placeholders here before did not match anything it draws.
+
             string[] tags =
             {
                 "Hangout", "Party", "Quest", "Paintball", "Show", "Music",
                 "Art", "Build", "Escape", "Horror", "Meetup", "Social"
             };
 
-            // Pinned is the set offered as the event's main tag. Left empty, the
-            // picker had nothing in it and an event could not be given one.
             return Ok(new
             {
                 PinnedTags = tags,
@@ -6639,10 +6597,7 @@ namespace Mocha2023.Controllers
             }
 
             object messageDto = BuildChatMessageDto(message);
-            // Notify the sender too. The client does not fold the HTTP response into
-            // its local thread cache, so without a self-targeted push your own outgoing
-            // message does not appear until the thread is refetched. The thread-creation
-            // path below already pushes to every member for the same reason.
+
             long[] recipients = thread.MemberIds
                 .Where(id => id > 0)
                 .Distinct()
@@ -6831,10 +6786,7 @@ namespace Mocha2023.Controllers
             }
 
             object messageDto = BuildChatMessageDto(message);
-            // Notify the sender too. The client does not fold the HTTP response into
-            // its local thread cache, so without a self-targeted push your own outgoing
-            // message does not appear until the thread is refetched. The thread-creation
-            // path below already pushes to every member for the same reason.
+
             long[] recipients = thread.MemberIds
                 .Where(id => id > 0)
                 .Distinct()
@@ -8080,11 +8032,6 @@ namespace Mocha2023.Controllers
                     notification,
                     (int)category);
 
-                // The cheered player's own record changed, so they get their frame
-                // directly. The audience is read from the GIVER's presence rather than
-                // anything the client sent, so a client cannot play its effect in
-                // someone else's room; the cheered player is excluded because they were
-                // already sent it above.
                 await NotiController.NotifyReputationUpdatedAsync(
                     receiverId,
                     new[] { receiverId });
@@ -8098,7 +8045,6 @@ namespace Mocha2023.Controllers
                     receiverId,
                     audience);
 
-                // The giver's own record moved too - their cheer credit was spent.
                 await NotiController.NotifyReputationUpdatedAsync(
                     (long)id,
                     new[] { (long)id });
@@ -8380,17 +8326,8 @@ namespace Mocha2023.Controllers
             if (!requestedSkuId.HasValue)
                 return BadRequest(new { Success = false, Error = "missing_sku" });
 
-            // The storefront files come first. What the client is buying is what it was
-            // served, and a storefront PurchasableItemId shares a number space with the
-            // generated catalog's AvatarItemIds - every cake in sf300 collides with a
-            // scarf or a pair of antlers, so searching the catalog first handed the buyer
-            // whichever avatar item happened to carry that number.
             CatalogSku? sku = ResolveStoreFileSku(requestedSkuId.Value);
 
-            // Then the generated catalog, most specific id first. The last two are
-            // fallbacks for older clients that ask by item rather than by sku, and are
-            // exactly the loose matches that collide, so they are only reached when
-            // nothing identifies itself properly.
             sku ??= GetCatalogSkus().FirstOrDefault(value =>
                 value.SkuId == requestedSkuId.Value);
             sku ??= GetCatalogSkus().FirstOrDefault(value =>
@@ -8402,9 +8339,6 @@ namespace Mocha2023.Controllers
             if (sku == null)
                 return NotFound(new { Success = false, Error = "sku_not_found" });
 
-            // A star box is a query drop: it stands for "a random item of this rarity
-            // that you do not have". Roll it into the concrete item before anything is
-            // charged, so what gets bought, granted and reported is the real item.
             if (sku.GiftDrop.IsQuery)
             {
                 int wantedRarity = sku.GiftDrop.QueryRedirectRarity > 0
@@ -8415,9 +8349,7 @@ namespace Mocha2023.Controllers
 
                 if (rolled == null)
                 {
-                    // Nothing of that rarity is left unowned, so there is nothing the box
-                    // could give. Refuse before charging rather than taking the tokens for
-                    // an empty box - the player keeps what the box would have cost.
+
                     Console.WriteLine(
                         $"[STORE BOX EMPTY] buyer={accountId.Value} box={sku.FriendlyName} " +
                         $"rarity={wantedRarity} refunded={GetStorePriceForRarity(sku.Rarity)}");
@@ -8536,8 +8468,6 @@ namespace Mocha2023.Controllers
                                         AvatarItemDesc = sku.AvatarItemDesc,
                                         FriendlyName = sku.FriendlyName,
                                         Quantity = 1,
-                                        Amount = 1,
-                                        CurrencyType = (int)PlayerDBClasses.CurrencyType.RecCenterTokens,
                                         Result = 0
                                     }
                                 }
@@ -8554,7 +8484,8 @@ namespace Mocha2023.Controllers
                 accountId.Value,
                 sku,
                 PurchaseGiftMessage,
-                purchaseRequest.GiftContext,
+
+                500,
                 out int newBalance,
                 out bool alreadyOwned,
                 out GiftPackage? purchaseGift);
@@ -8625,8 +8556,6 @@ namespace Mocha2023.Controllers
                                     AvatarItemDesc = sku.AvatarItemDesc,
                                     FriendlyName = sku.FriendlyName,
                                     Quantity = 1,
-                                    Amount = 1,
-                                    CurrencyType = (int)PlayerDBClasses.CurrencyType.RecCenterTokens,
                                     Result = 0
                                 }
                             }
@@ -8916,9 +8845,15 @@ namespace Mocha2023.Controllers
             out bool alreadyOwned,
             out GiftPackage? giftPackage)
         {
+
+            var purchaseCurrency =
+                giftContext == (int)PlayerDBClasses.GiftContext.Store_LaserTag
+                    ? PlayerDBClasses.CurrencyType.LaserTagTickets
+                    : PlayerDBClasses.CurrencyType.RecCenterTokens;
+
             newBalance = PlayerDB.GetCurrencyBalance(
                 senderAccountId,
-                PlayerDBClasses.CurrencyType.RecCenterTokens);
+                purchaseCurrency);
             giftPackage = null;
 
             alreadyOwned = IsAvatarCatalogItem(sku)
@@ -8936,7 +8871,7 @@ namespace Mocha2023.Controllers
             int price = GetStorePriceForRarity(sku.Rarity);
             if (!PlayerDB.TrySpendCurrency(
                     senderAccountId,
-                    PlayerDBClasses.CurrencyType.RecCenterTokens,
+                    purchaseCurrency,
                     price,
                     out newBalance))
             {
@@ -8951,7 +8886,7 @@ namespace Mocha2023.Controllers
                 ConsumableItemDesc = sku.ConsumableItemDesc,
                 EquipmentPrefabName = sku.EquipmentPrefabName,
                 EquipmentModificationGuid = sku.EquipmentModificationGuid,
-                CurrencyType = (int)PlayerDBClasses.CurrencyType.RecCenterTokens,
+                CurrencyType = (int)purchaseCurrency,
                 GiftContext = giftContext == 0
                     ? (int)PlayerDBClasses.GiftContext.Purchased_Gift_A
                     : giftContext,
@@ -8972,7 +8907,7 @@ namespace Mocha2023.Controllers
 
             int? refunded = PlayerDB.SetCurrencyBalance(
                 senderAccountId,
-                PlayerDBClasses.CurrencyType.RecCenterTokens,
+                purchaseCurrency,
                 price,
                 add: true);
             if (refunded.HasValue)
@@ -8980,13 +8915,6 @@ namespace Mocha2023.Controllers
             return false;
         }
 
-        // Resolve a store item that lives only in an imported storefront file
-        // (Data/storefronts/sf*.json) - those carry recflare's PurchasableItemId /
-        // GiftDropId, which the generated catalog doesn't have, so buyItem 404'd on
-        // them. Builds a CatalogSku from the file's GiftDrop so the normal grant path
-        // (avatar / consumable / equipment, chosen by which desc is set) works.
-        // Everything of that rarity the player does not already own, picked at random.
-        // Null means they own the lot, which is the one case a box cannot be honoured.
         private static CatalogSku? RollUniqueBoxItem(long accountId, int rarity)
         {
             HashSet<string> served = GetStoreFileIdentities();
@@ -9088,16 +9016,9 @@ namespace Mocha2023.Controllers
                     sku.EquipmentModificationGuid);
             }
 
-            // Consumables stack, so one is never already owned in the sense a box means.
             return false;
         }
 
-        // PurchasableItemId and GiftDropId are two separate number spaces - each is
-        // unique on its own, but the same number means different items in each. Matching
-        // either in one pass let a GiftDropId win over the right PurchasableItemId
-        // depending on which file was read first, which is how buying a cake handed the
-        // buyer a shirt. The purchasable id is what the client buys by, so it is asked
-        // for first and the gift-drop id is only a fallback.
         private static CatalogSku? ResolveStoreFileSku(long id) =>
             ResolveStoreFileSku(id, byPurchasableId: true) ??
             ResolveStoreFileSku(id, byPurchasableId: false);
@@ -9136,9 +9057,7 @@ namespace Mocha2023.Controllers
                             e.ValueKind == JsonValueKind.Object &&
                             e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String
                                 ? (v.GetString() ?? string.Empty) : string.Empty;
-                        // The kind has to be checked before the value is read: these
-                        // fields are present-but-null on a couple of hundred store items,
-                        // and TryGetInt32 throws on a null rather than answering false.
+
                         int Int(JsonElement e, string name) =>
                             e.ValueKind == JsonValueKind.Object &&
                             e.TryGetProperty(name, out var v) &&
@@ -9185,7 +9104,7 @@ namespace Mocha2023.Controllers
                 }
                 catch (JsonException)
                 {
-                    // ignore a malformed store file and keep scanning
+
                 }
             }
             return null;
@@ -9434,12 +9353,6 @@ namespace Mocha2023.Controllers
             return defaultValue;
         }
 
-        // The client's avatar-item desc is a 4-field composite:
-        // baseGuid,color1,color2,color3. Store items must carry all four fields
-        // (empty when uncolored) or the client can't parse the desc and the item
-        // silently fails to render - which made a full store look empty. Matches
-        // the recflare store format ("guid,,,"). Consumables have no avatar desc
-        // and pass through empty.
         private static string NormalizeAvatarItemDesc(string? desc)
         {
             string[] parts = (desc ?? string.Empty).Split(',');
@@ -9665,9 +9578,7 @@ namespace Mocha2023.Controllers
 
             if (StorefrontThemeKeywords.TryGetValue(storeId, out string[]? themeKeywords))
             {
-                // Activity kiosks (Bowling, Cafe, LaserTag, etc.) only sell a
-                // random rotating selection of consumables matching their
-                // theme - not the full catalog.
+
                 List<CatalogSku> themedPool = catalog
                     .Where(IsUsableStoreItem)
                     .Where(IsConsumableCatalogItem)
@@ -9684,9 +9595,6 @@ namespace Mocha2023.Controllers
                     rarityOf: item => item.Rarity);
             }
 
-            // RecCenter/Watch/None (and anything unrecognized) show every
-            // eligible item, unfiltered by rotation - only the storefront
-            // (website) and ad carousel rotate/randomize.
             return catalog
                 .Where(IsUsableStoreItem)
                 .GroupBy(GetCatalogIdentity, StringComparer.OrdinalIgnoreCase)
@@ -9721,6 +9629,16 @@ namespace Mocha2023.Controllers
         private static bool IsUnfinishedCatalogItem(CatalogSku item) =>
             item.Rarity <= 0 && !item.HasRealName;
 
+        private static readonly System.Text.RegularExpressions.Regex ExcludedRareOrSpecialPattern =
+            new System.Text.RegularExpressions.Regex(
+                @"\b(contest|gilded|aurora|golden|gold|serial|prototype|owner|custom|special|test)\b|\(studio\)",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase |
+                System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        private static bool IsExcludedRareOrSpecial(string? friendlyName) =>
+            !string.IsNullOrWhiteSpace(friendlyName) &&
+            ExcludedRareOrSpecialPattern.IsMatch(friendlyName);
+
         private static bool IsListableCatalogItem(CatalogSku? item) =>
             item != null && !string.IsNullOrWhiteSpace(item.FriendlyName) &&
             (IsAvatarCatalogItem(item) || IsEquipmentSkin(item) || IsConsumableCatalogItem(item));
@@ -9729,11 +9647,9 @@ namespace Mocha2023.Controllers
             item != null && !string.IsNullOrWhiteSpace(item.FriendlyName) &&
             (IsAvatarCatalogItem(item) || IsEquipmentSkin(item) || IsConsumableCatalogItem(item)) &&
             !(IsAvatarCatalogItem(item) && IsExcludedAvatarItemName(item.FriendlyName)) &&
+            !IsExcludedRareOrSpecial(item.FriendlyName) &&
             !IsUnfinishedCatalogItem(item);
 
-        // Rarity is stored on a 0/10/20/30/40/50 (0-5 star) scale, with a
-        // separate 5 tier reserved for ultra-rare serial/gilded/aurora items
-        // that sit above 5 star.
         private static int GetStorePriceForRarity(int rarity) => rarity switch
         {
             5 => 1500,
@@ -9745,15 +9661,10 @@ namespace Mocha2023.Controllers
             _ => 50
         };
 
-        // Weekends only feature 5-star items; other days mix every rarity.
         private static bool IsWeekendRotation() =>
             DateTime.Today.DayOfWeek == DayOfWeek.Saturday ||
             DateTime.Today.DayOfWeek == DayOfWeek.Sunday;
 
-        // Deterministic per-day shuffle so a rotation stays stable across
-        // requests within the same day but changes daily. Folding in the
-        // admin's RotationNonce lets "refresh rotation" force a reshuffle
-        // on demand.
         private static List<T> GetDailyRotation<T>(
             List<T> pool,
             int count,
@@ -9918,16 +9829,6 @@ namespace Mocha2023.Controllers
                 .Select(ToStorefrontAdminItem)
                 .ToList();
 
-        // The public-facing "/shop" rotation: admin-pinned items always show,
-        // topped up with a daily random selection (5-star only on weekends).
-        // The storefront only ever draws from items an admin has explicitly
-        // pinned (StorefrontAdminState.CustomSkuIds, managed via the admin
-        // panel's Add/RemoveCustomStoreItem) - it does not top up with a
-        // random draw from the full catalog. "The store" already shows every
-        // eligible item, so a random fill here would just be a subset of
-        // that same list; the storefront is meant to be a distinct, curated
-        // selection instead. This still rotates/shuffles daily and applies
-        // the weekend 5-star-only filter, just scoped to the curated pool.
         public static List<StorefrontAdminItem> GetRotatingWebsiteStorefrontItems(
             int count = WebsiteStorefrontRotationSize)
         {
@@ -10310,8 +10211,7 @@ namespace Mocha2023.Controllers
         [HttpGet("/api/customAvatarItems/v1/featured")]
         public IActionResult GetFeaturedCustomAvatarItems()
         {
-            // Flagged and published, newest first. Accessibility 0 is the unpublished
-            // state, so a flagged item that was never published stays out.
+
             return Ok(PublishedCustomAvatarItems()
                 .Where(IsFeaturedCustomAvatarItem)
                 .Take(50)
@@ -10321,8 +10221,7 @@ namespace Mocha2023.Controllers
         [HttpGet("/api/customAvatarItems/v1/hot")]
         public IActionResult GetHotCustomAvatarItems([FromQuery] int take = 50)
         {
-            // Everything published, newest first - standing in for a trend ranking,
-            // which there is nothing to compute one from yet.
+
             return Ok(PublishedCustomAvatarItems()
                 .Take(Math.Clamp(take, 1, 100))
                 .ToList());
@@ -10345,8 +10244,6 @@ namespace Mocha2023.Controllers
                         .Contains(term, StringComparison.OrdinalIgnoreCase));
             }
 
-            // A BARE ARRAY, not the { Results, TotalResults } envelope the owned and
-            // fromCreator forms answer.
             return Ok(matches
                 .Skip(Math.Max(0, skip))
                 .Take(Math.Clamp(take, 1, 100))
@@ -10490,7 +10387,9 @@ namespace Mocha2023.Controllers
             long accountId,
             [FromQuery] int sort = 0)
         {
+            bool isOwner = AuthStuff.GetPlayerId(Request) == accountId;
             var images = RecNetDB.SavedImages.Find(value => value.AccountId == accountId)
+                .Where(value => isOwner || value.Accessibility == 1 )
                 .OrderByDescending(value => value.CreatedAt)
                 .Select(ToSavedImageDto)
                 .ToList();
@@ -10549,9 +10448,6 @@ namespace Mocha2023.Controllers
 
             RecNetDB.SavedImages.Delete(path);
 
-            // This used to only drop the database index entry - the actual
-            // file stayed on disk and remained fetchable forever via its
-            // known path through /imageserver, regardless of "deletion".
             string imageRoot = Path.Combine(Program.dataDir, "Images");
             if (ImageController.TryResolveContainedPath(
                     imageRoot,
@@ -10926,9 +10822,6 @@ namespace Mocha2023.Controllers
             return Ok(UnreadClubAnnouncements(accountId.Value, subscriptionOnly: true));
         }
 
-        // A club counts as unread when its newest announcement is newer than the last one
-        // this account marked read. The Creator tier is the subscription club the second
-        // feed asks about, which is what separates the two.
         private static List<object> UnreadClubAnnouncements(
             long accountId,
             bool subscriptionOnly)
@@ -11232,11 +11125,7 @@ namespace Mocha2023.Controllers
 
                 if (thumbnailImage is { Length: > 0 })
                 {
-                    // Don't trust the client-supplied Content-Type to pick an
-                    // extension/serve-as type - decode the bytes and verify
-                    // they're actually a real, reasonably-sized image first
-                    // (mirrors the validation ImageController.UploadSaved
-                    // already does for other uploads).
+
                     byte[] imageBytes;
                     await using (var buffer = new MemoryStream())
                     {
@@ -11532,7 +11421,7 @@ namespace Mocha2023.Controllers
         {
             return SetRelationshipFlag(
                 RelationshipFlag.Favorited,
-                forcedEnabled: null);
+                forcedEnabled: true);
         }
 
         [HttpPost("/api/relationships/v1/unfavorite")]

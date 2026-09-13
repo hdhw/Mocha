@@ -832,8 +832,6 @@ namespace Mocha2023.Controllers
             if (id == null)
                 return Unauthorized();
 
-            // A bare JSON boolean - the whole body is the preference, not an envelope
-            // and not a { value } wrapper.
             return Ok(PlayerDB.GetPlayerFlag((long)id, AvoidJuniorsSettingKey));
         }
 
@@ -857,9 +855,6 @@ namespace Mocha2023.Controllers
 
         private const string AvoidJuniorsSettingKey = "AvoidJuniors";
 
-        // The client posts avoidJuniors=True. Neither the casing nor the spelling of the
-        // boolean is guaranteed across the client's surfaces, so True/false/1/0/yes/no
-        // all parse.
         private async Task<bool> ReadAvoidJuniorsFlagAsync()
         {
             foreach (string key in new[] { "avoidJuniors", "AvoidJuniors", "value" })
@@ -1156,19 +1151,13 @@ namespace Mocha2023.Controllers
                 roomId);
             if (heartbeat?.roomInstance == null)
             {
+
                 Console.WriteLine(
                     $"[PRIVATE INVITE FALLBACK MISS] player={playerId} " +
-                    $"room={roomId} invite={inviteId} instance={roomInstanceId}");
-                return NotFound(new
-                {
-                    success = false,
-                    error = "invited_room_instance_not_found_or_full",
-                    errorMessage =
-                        "The invited private instance is no longer available or is full.",
-                    roomId,
-                    inviteId,
-                    roomInstanceId
-                });
+                    $"room={roomId} invite={inviteId} instance={roomInstanceId} " +
+                    "action=fallthrough-to-normal-matchmaking");
+                NotificationDB.ConsumeRoomInvite(playerId, inviteId);
+                return null;
             }
 
             PlayerDB.RecordRoomVisit(playerId, roomId);

@@ -45,7 +45,46 @@ namespace Mocha2023.Classes.DBs
             "MakerRoom",
             "Park",
             "Lounge",
-            "RecCenter"
+            "3DCharades",
+            "Legacy3DCharades",
+            "TheInkSpace",
+            "DiscGolfLake",
+            "DiscGolfPropulsion",
+            "Dodgeball",
+            "Paddleball",
+            "Paintball",
+            "PaintballVR",
+            "GoldenTrophy",
+            "Orientation",
+            "TheRiseofJumbotron",
+            "CrimsonCauldron",
+            "IsleOfLostSkulls",
+            "Soccer",
+            "LaserTag",
+            "LaserTagCyberJunk",
+            "RecRoyaleSquads",
+            "RecRoyaleSolos",
+            "River",
+            "Homestead",
+            "Quarry",
+            "Clearcut",
+            "Spillway",
+            "Lake",
+            "PropulsionTestRange",
+            "Gym",
+            "Stadium",
+            "Hangar",
+            "CyberJunkCity",
+            "DodgeballVR",
+            "Crescendo",
+            "Bowling",
+            "BowlingAlley",
+            "StuntRunner",
+            "StuntRunnerBaseRoom",
+            "Registration",
+            "ARRoom",
+            "DriveIn",
+            "RecCenterUGC"
         };
 
         static RoomDB()
@@ -168,9 +207,6 @@ namespace Mocha2023.Classes.DBs
             return Sessions.IsConfirmedParticipant(accountId, instance.roomInstanceId);
         }
 
-        // Used to gate anything that claims "I took this in room X" (e.g.
-        // Share Camera uploads) so an account can't tag content onto a room
-        // it isn't actually, currently present in.
         public static bool IsPlayerCurrentlyInRoom(long roomId, long accountId)
         {
             if (roomId <= 0 || accountId <= 0)
@@ -1495,10 +1531,7 @@ namespace Mocha2023.Classes.DBs
                     IsDorm = false,
                     MaxPlayerCalculationMode = source.MaxPlayerCalculationMode,
                     MaxPlayers = source.MaxPlayers,
-                    // A clone does NOT inherit clonability. Without this, one
-                    // cloneable room lets clones-of-clones stay cloneable
-                    // forever, letting anyone chain-spam endless copies under
-                    // arbitrary names. The new owner must opt back in.
+
                     CloningAllowed = false,
                     DisableMicAutoMute = source.DisableMicAutoMute,
                     DisableRoomComments = source.DisableRoomComments,

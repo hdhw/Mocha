@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Mocha2023.Classes;
@@ -488,7 +488,11 @@ namespace Mocha2023.Classes.DBs.DBClasses
             RRPlus,
             Keepsake,
 
-            CommunityTeam
+            CommunityTeam,
+
+            ContentCreator,
+            Helper,
+            Admin
         }
 
         public enum ReportCategory

@@ -69,16 +69,19 @@ namespace Mocha2023.Controllers
             [FromQuery] long creatorAccountId = 0,
             [FromQuery] long accountId = 0,
             [FromQuery] long creatorPlayerId = 0,
+            [FromQuery] long creatorId = 0,
             [FromQuery] int skip = 0,
             [FromQuery] int take = 100)
         {
-            long creatorId = creatorAccountId > 0
+            long effectiveCreatorId = creatorAccountId > 0
                 ? creatorAccountId
                 : accountId > 0
                     ? accountId
-                    : creatorPlayerId;
+                    : creatorPlayerId > 0
+                        ? creatorPlayerId
+                        : creatorId;
             var rows = CreatorFeatureDB.SearchInventions(
-                    creatorAccountId: creatorId > 0 ? creatorId : null,
+                    creatorAccountId: effectiveCreatorId > 0 ? effectiveCreatorId : null,
                     skip: skip,
                     take: take)
                 .Select(CreatorFeatureDB.ToClientInvention)

@@ -253,10 +253,6 @@ namespace Mocha2023.Classes.DBs
 
         private const int MaxRecentIps = 20;
 
-        // Called at signup (isSignup=true, once) and again on every login/token
-        // refresh so an account always has a recent, bannable IP on file - this
-        // was previously not tracked anywhere, which is what made the room
-        // defacement incident impossible to trace back to a source.
         public static void RecordIp(FullPlayer? account, string? ip, bool isSignup = false)
         {
             if (account == null || string.IsNullOrWhiteSpace(ip) || ip == "unknown")
@@ -311,6 +307,9 @@ namespace Mocha2023.Classes.DBs
 
             if (player?.Player == null)
                 return false;
+
+            if (player.PlayerRoles?.Contains(PlayerRoles.RRPlus) == true)
+                return true;
 
             var setting = player.Player.PlayerExtra?.Settings?
                 .FirstOrDefault(x => string.Equals(
@@ -1059,7 +1058,6 @@ namespace Mocha2023.Classes.DBs
             }
         }
 
-        // Clear every pending (outgoing/unclaimed) gift box for all players.
         public static ClearOutgoingGiftsResult ClearAllPendingGiftPackages()
         {
             var result = new ClearOutgoingGiftsResult();
@@ -2058,9 +2056,6 @@ namespace Mocha2023.Classes.DBs
             "Coach", "Importer"
         };
 
-        // Runs on every startup so Coach/Importer (service identities used as
-        // static sender/actor IDs, not real login targets) stay login-blocked
-        // even if someone resets a password or clears the flag by hand.
         public static int EnforceSystemAccountLoginBlock()
         {
             int updated = 0;
@@ -4013,9 +4008,7 @@ namespace Mocha2023.Classes.DBs
 
         private static string GenerateAppealCode()
         {
-            // Appeal codes are embedded in ban messages shown to (and shareable by)
-            // banned players, so use a CSPRNG rather than System.Random - same
-            // reasoning as CreatorFeatureDB.GenerateMeetupCode.
+
             byte[] bytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(10);
             var chars = new char[10];
             for (int i = 0; i < chars.Length; i++)

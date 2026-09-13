@@ -519,10 +519,6 @@ namespace Mocha2023.Classes.DBs
             }
         }
 
-        // The gallery goes out as whole image records: the client deserializes each entry
-        // into an object, and a bare name fails its parser. An image the table has never
-        // seen still answers a record so the slot renders rather than the whole list
-        // failing.
         private static ClubImageDto ToClubImage(string imageName, int index)
         {
             string normalized = imageName.Replace('\\', '/').TrimStart('/');
@@ -584,7 +580,6 @@ namespace Mocha2023.Classes.DBs
             }
         }
 
-        // Newest first: the list's LastAnnouncementId is read off the head of it.
         public static List<ClubAnnouncementRecord> GetAnnouncements(long clubId) =>
             Announcements.Find(value => value.ClubId == clubId)
                 .OrderByDescending(value => value.CreatedAt)
@@ -772,6 +767,7 @@ namespace Mocha2023.Classes.DBs
                 CreatorPermissions = Permissions(club.ClubId, ClubMembershipType.Creator),
                 CoOwnerPermissions = Permissions(club.ClubId, ClubMembershipType.CoOwner),
                 ModeratorPermissions = Permissions(club.ClubId, ClubMembershipType.Moderator),
+                MemberPermissions = Permissions(club.ClubId, ClubMembershipType.Member),
                 MyMembershipType = myType
             };
         }

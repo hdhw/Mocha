@@ -1055,12 +1055,6 @@ namespace Mocha2023.Controllers
             return Ok(new { jobId = job.Id });
         }
 
-        // Imports a room from a raw datablob export (a "Room Data/*.room"
-        // persistence blob, optionally with "Holotar Data/*.htr" recording
-        // files), as opposed to the room.json-based ShowdownImporter format.
-        // The .room bytes become a new room's persisted SubRoomDataSave; the
-        // .htr files are copied verbatim (exact filename preserved) since
-        // the room blob references them by name, not by a rehashed id.
         [HttpPost("admin/rooms/import-datablob")]
         [RequestSizeLimit(256L * 1024L * 1024L)]
         public async Task<IActionResult> ImportRoomDatablobZip()
@@ -2209,13 +2203,6 @@ namespace Mocha2023.Controllers
             public long NewRoomId { get; set; }
         }
 
-        // Clears a room's persisted content (its DataBlob reference and its
-        // subrooms' save history) while keeping the Room record itself -
-        // useful for gutting a problem clone room without deleting the whole
-        // entry. Only deletes the underlying blob file(s) from disk if
-        // nothing else still references them: CloneRoom copies a room's
-        // DataBlob *reference*, not the file, so a clone and its source (or
-        // sibling clones) can legitimately share the same file on disk.
         [HttpPost("admin/rooms/{roomId:long}/clearblob")]
         [HttpDelete("admin/rooms/{roomId:long}/clearblob")]
         public IActionResult AdminClearRoomBlob(long roomId)
@@ -3288,7 +3275,6 @@ namespace Mocha2023.Controllers
             }
         }
 
-        // Message every online player as Coach at once.
         [HttpPost("admin/coach-message-all")]
         [RequestSizeLimit(16 * 1024)]
         public async Task<IActionResult> AdminCoachMessageAll(
@@ -3880,9 +3866,6 @@ namespace Mocha2023.Controllers
                     error = "Box rarity must be 10, 20, 30, 40, or 50."
                 });
 
-            if (request.BoxDesign == 0)
-                request.BoxDesign = (int)PlayerDBClasses.GiftContext.Game_Drop;
-
             APIController.StorefrontAdminItem? catalogItem = null;
             List<APIController.StorefrontAdminItem> boxPool = new();
             if (giftType is "avatar" or "equipment" or "consumable")
@@ -4345,10 +4328,6 @@ namespace Mocha2023.Controllers
             }
         }
 
-        // Copy another account's current outfit onto this one. accountId is the
-        // profile being managed (the target); SourceAccountId in the body is whose
-        // outfit to copy. Referenced avatar items the target doesn't own are granted
-        // so the copied look renders instead of showing gaps.
         [HttpPost("admin/accounts/{accountId:long}/copy-outfit")]
         public async Task<IActionResult> AdminCopyOutfit(
             long accountId,
@@ -4512,12 +4491,6 @@ namespace Mocha2023.Controllers
             public string? PhotoPath { get; set; }
         }
 
-        // Self-service DeleteSavedImage (APIController) only lets the
-        // original uploader remove their own image - no help if that account
-        // is compromised, malicious, or the content was never tied to a
-        // SavedImages record at all (legacy/orphan room photos). Staff need a
-        // way to force-remove a specific offending file regardless of who
-        // uploaded it or whether it's indexed.
         [HttpPost("admin/images/delete")]
         [HttpDelete("admin/images/delete")]
         public IActionResult AdminDeleteImage([FromBody] AdminDeleteImageRequest request)
@@ -4707,6 +4680,10 @@ namespace Mocha2023.Controllers
             }
 
             PlayerDB.Players.Update(account);
+
+            if (role == PlayerDBClasses.PlayerRoles.RRPlus)
+                PlayerDB.SetRRPlus(accountId, request.Enabled);
+
             return Ok(new { success = true, roles = account.PlayerRoles.Select(x => x.ToString()) });
         }
 
@@ -5193,11 +5170,6 @@ namespace Mocha2023.Controllers
             return Ok(new { success = true });
         }
 
-        // Incident-response tool: for a compromised account, this makes every
-        // password attempt fail (PasswordSecurity.VerifyLogin short-circuits to
-        // false whenever the stored hash is null/empty) without waiting on the
-        // account holder to pick a new one. Also clears refresh tokens so a
-        // stolen refresh token can't keep minting fresh access tokens.
         [HttpPost("admin/accounts/{accountId:long}/password/nullify")]
         public IActionResult AdminNullifyPassword(long accountId)
         {
@@ -5227,9 +5199,6 @@ namespace Mocha2023.Controllers
             return Ok(new { success = true, revokedSessions = revoked });
         }
 
-        // Kills every outstanding refresh token for the account (game client and
-        // web sessions) without touching the password - use this when you want to
-        // force a full re-login everywhere but the password itself isn't suspect.
         [HttpPost("admin/accounts/{accountId:long}/sessions/clear")]
         public IActionResult AdminClearLogins(long accountId)
         {
@@ -5254,10 +5223,6 @@ namespace Mocha2023.Controllers
             return Ok(new { success = true, revokedSessions = revoked });
         }
 
-        // Recovery path for when a legitimate account holder is locked out of
-        // their own authenticator (lost phone, etc). Staff cannot enable 2FA for
-        // someone else - only the account holder has the shared secret - so the
-        // only meaningful admin action here is turning it back off.
         [HttpPost("admin/accounts/{accountId:long}/2fa/disable")]
         public IActionResult AdminDisableTwoFactor(long accountId)
         {
@@ -5285,10 +5250,6 @@ namespace Mocha2023.Controllers
             return Ok(new { success = true });
         }
 
-        // Hard login block for an account, independent of password/2FA/moderation
-        // state - meant for system/service identities (e.g. Coach, Importer) that
-        // should never be an actual login target, not for punitive use (use Ban
-        // or Moderation Lock for that).
         [HttpPost("admin/accounts/{accountId:long}/login/disable")]
         public IActionResult AdminDisableLogin(long accountId)
         {
@@ -6254,8 +6215,6 @@ namespace Mocha2023.Controllers
             if (message == null)
                 return BadRequest(new { error = "Message failed to send." });
 
-            // Same shape the normal chat path sends (BuildChatMessageDto): the field is
-            // timeSent, not createdAt, and moderationState is part of the contract.
             var messageDto = new
             {
                 chatMessageId = message.MessageId,
@@ -6268,14 +6227,6 @@ namespace Mocha2023.Controllers
 
             _ = NotiController.NotifyChatMessageReceivedAsync(accountId, messageDto);
 
-            // The chat push above only reaches the chat UI. What the client surfaces
-            // as a message *from Coach* is a MessageReceived (2) notification whose
-            // Type is 100 (CoachMessage) - the frame recflare sends for
-            // /internal/coach-message. Without it the message was written to the
-            // thread but never announced in game.
-            //
-            // CreatePlayerMessage stores the notification, so a player who is offline
-            // right now still receives it when they next connect.
             NotificationDB.ClientNotification coachNotification =
                 NotificationDB.CreatePlayerMessage(
                     coachAccountId,
@@ -7351,6 +7302,26 @@ namespace Mocha2023.Controllers
             }
             value = default;
             return false;
+        }
+
+        [HttpGet("admin/weekly")]
+        public IActionResult GetAdminWeekly()
+        {
+            if (!IsAdmin(AuthStuff.GetCurrentPlayer(Request)))
+                return StatusCode(403);
+            return Ok(Mocha2023.Classes.WeeklyChallenge.Load());
+        }
+
+        [HttpPut("admin/weekly")]
+        public IActionResult UpdateAdminWeekly(
+            [FromBody] Mocha2023.Classes.WeeklyChallenge weekly)
+        {
+            if (!IsAdmin(AuthStuff.GetCurrentPlayer(Request)))
+                return StatusCode(403);
+            if (weekly == null)
+                return BadRequest(new { error = "empty" });
+            weekly.Save();
+            return Ok(weekly);
         }
 
         private static bool IsAdmin(PlayerDBClasses.FullPlayer? account) =>
