@@ -609,7 +609,7 @@ async function renderPlayerTab(tab, accountId) {
         });
         await loadSettings();
     } else if (tab === 'progression') {
-        body.innerHTML = `<h2 class="page-title" style="font-size:16px">Progression &amp; Account State</h2><div class="card"><h2>Update Progression</h2><div class="field-row"><label class="field">Level (1-50)<input type="number" id="progLevel" min="1" max="50"></label><label class="field">XP<input type="number" id="progXP" min="0"></label></div><button class="btn" id="updateProgression">Update</button><span class="form-status" id="progStatus"></span></div>
+        body.innerHTML = `<h2 class="page-title" style="font-size:16px">Progression &amp; Account State</h2><div class="card"><h2>Update Progression</h2><div class="field-row"><label class="field">Level (max 87)<input type="number" id="progLevel" min="1" max="1000"></label><label class="field">XP<input type="number" id="progXP" min="0"></label></div><button class="btn" id="updateProgression">Update</button><span class="form-status" id="progStatus"></span></div>
         <div class="card"><h2>Account state &amp; appearance</h2>
           <div class="field-row">
             <label class="field">Available username changes<input type="number" id="stateUsernameChanges" min="0"></label>
@@ -657,7 +657,7 @@ async function renderPlayerTab(tab, accountId) {
             const status = document.querySelector('#progStatus');
             const level = parseInt(document.querySelector('#progLevel').value);
             const xp = parseInt(document.querySelector('#progXP').value);
-            if (level < 1 || level > 50) { status.textContent = 'Level must be 1-50.'; status.classList.add('error'); return; }
+            if (level < 1 || level > 1000) { status.textContent = 'Level must be 1-1000.'; status.classList.add('error'); return; }
             if (xp < 0) { status.textContent = 'XP cannot be negative.'; status.classList.add('error'); return; }
             try {
                 await send(`${API}/admin/accounts/${accountId}/details`, 'PUT', detailsPayload({ level, xp }));

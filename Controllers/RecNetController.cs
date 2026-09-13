@@ -4559,7 +4559,7 @@ namespace Mocha2023.Controllers
                 return NotFound(new { error = "Account not found." });
             if (IsDeveloper(account) && !IsDeveloper(admin))
                 return StatusCode(StatusCodes.Status403Forbidden, new { error = "Moderators cannot edit Developer account details." });
-            if (request.Level is < 1 or > 50)
+            if (request.Level is < 1 or > 1000)
                 return BadRequest(new { error = "Level must be between 1 and 50." });
             if (request.XP < 0)
                 return BadRequest(new { error = "XP cannot be negative." });

@@ -20,7 +20,7 @@ namespace Mocha2023.Classes.DBs
             DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         private static long CheerSequence = DateTime.UtcNow.Ticks & long.MaxValue;
         private const int RoomLevelSeconds = 15 * 60;
-        private const int MaximumLevel = 50;
+        private const int MaximumLevel = 87;
         private const int MaximumCreditableHeartbeatGapSeconds = 120;
         private const int LaserTagTicketSeconds = 5 * 60;
         private const int LaserTagTicketAmount = 100;
@@ -937,7 +937,7 @@ namespace Mocha2023.Classes.DBs
                     return null;
 
                 oldLevel = player.Player.Level;
-                player.Player.Level = Math.Clamp(level, 1, 50);
+                player.Player.Level = Math.Clamp(level, 1, 1000);
                 player.Player.XP = Math.Max(0, xp);
 
                 if (!Players.Update(player))
