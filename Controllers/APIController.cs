@@ -8709,6 +8709,12 @@ namespace Mocha2023.Controllers
                     ItemId = sku.ItemId,
                     AvatarItemId = sku.AvatarItemId,
                     ConsumableItemDesc = sku.ConsumableItemDesc,
+                    // BalanceUpdates entries are a delta log ("this transaction changed
+                    // your balance by X"), not another copy of the absolute total already
+                    // in Balance/NewBalance above - sending the absolute value here as well
+                    // let a client that (correctly) treats this as a delta add the whole
+                    // balance a second time, doubling it. See the level-up box fix for the
+                    // same class of bug on the gift-box side.
                     BalanceUpdates = PlayerDB.GetAllCurrencyBalances(accountId.Value)
                         .Select(entry => new
                         {
@@ -8716,7 +8722,7 @@ namespace Mocha2023.Controllers
                             Result = 0,
                             PurchaseResult = 0,
                             Balance = entry.CurrencyType == PlayerDBClasses.CurrencyType.RecCenterTokens
-                                ? giftBalance
+                                ? -GetStorePriceForRarity(sku.Rarity)
                                 : entry.Balance,
                             CurrencyType = (int)entry.CurrencyType,
                             Data = entry.CurrencyType == PlayerDBClasses.CurrencyType.RecCenterTokens
@@ -8797,6 +8803,8 @@ namespace Mocha2023.Controllers
                 ItemId = sku.ItemId,
                 AvatarItemId = sku.AvatarItemId,
                 ConsumableItemDesc = sku.ConsumableItemDesc,
+                // Delta for this transaction, not the absolute total already sent above as
+                // Balance/NewBalance - see the matching comment on the gift-purchase path.
                 BalanceUpdates = PlayerDB.GetAllCurrencyBalances(accountId.Value)
                     .Select(entry => new
                     {
@@ -8804,7 +8812,7 @@ namespace Mocha2023.Controllers
                         Result = 0,
                         PurchaseResult = 0,
                         Balance = entry.CurrencyType == PlayerDBClasses.CurrencyType.RecCenterTokens
-                            ? newBalance
+                            ? -selfPrice
                             : entry.Balance,
                         CurrencyType = (int)entry.CurrencyType,
                         Data = entry.CurrencyType == PlayerDBClasses.CurrencyType.RecCenterTokens

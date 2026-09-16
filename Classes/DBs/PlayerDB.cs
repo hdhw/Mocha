@@ -37,7 +37,9 @@ namespace Mocha2023.Classes.DBs
         private const int PresenceFreshnessSeconds = 120;
         private const int MaximumPendingGiftPackages = 200;
         public const int CheerCreditLimit = 15;
-        private const long CheerCreditRefreshSeconds = 5 * 60 * 60;
+        // Was 5 hours, letting players refill and re-spend ~4-5x their real
+        // daily 15-cheer allowance. Real Rec Room refills once a day.
+        private const long CheerCreditRefreshSeconds = 24 * 60 * 60;
 
         public static LiteDatabase PlayerDBFile =
             new LiteDatabase(Path.Combine(Program.dataDir, "DBs", "Players.db"));
@@ -2396,8 +2398,18 @@ namespace Mocha2023.Classes.DBs
             long otherPlayerId)
         {
             relationships.RemoveAll(value => value.PlayerID == otherPlayerId);
-            if (authoritative != null && authoritative.RelationshipType != RelationshipType.None)
-                relationships.Add(authoritative);
+
+            // Keeping this gated on RelationshipType alone dropped Favorited/
+            // Muted/Ignored entirely whenever they were set on a non-friend -
+            // those flags matter on their own, independent of friendship.
+            bool hasAnyState = authoritative != null &&
+                (authoritative.RelationshipType != RelationshipType.None ||
+                 authoritative.Favorited ||
+                 authoritative.Muted ||
+                 authoritative.Ignored);
+
+            if (hasAnyState)
+                relationships.Add(authoritative!);
         }
 
         private static long CreateRelationshipId(
@@ -2523,7 +2535,13 @@ namespace Mocha2023.Classes.DBs
                     0L,
                     int.MaxValue);
 
-                return Players.Update(player) ? currency.Balance : null;
+                if (!Players.Update(player))
+                    return null;
+
+                // Live push so the client's displayed balance moves without a
+                // manual refresh - this had no live-update path at all before.
+                _ = NotiController.NotifyPlayerProfileUpdatedAsync(playerId);
+                return currency.Balance;
             }
         }
 
@@ -2560,7 +2578,10 @@ namespace Mocha2023.Classes.DBs
                 newBalance = currency.Balance;
 
                 if (Players.Update(player))
+                {
+                    _ = NotiController.NotifyPlayerProfileUpdatedAsync(playerId);
                     return true;
+                }
 
                 currency.Balance = originalBalance;
                 newBalance = originalBalance;
