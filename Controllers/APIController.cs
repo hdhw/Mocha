@@ -2197,6 +2197,11 @@ namespace Mocha2023.Controllers
             public string EquipmentModificationGuid { get; init; } = string.Empty;
             public string FriendlyName { get; init; } = string.Empty;
             public int Rarity { get; init; }
+
+            // Relative odds within a pool - 100 is the normal weight every
+            // other drop in a pool gets by default; a rare item sets this low
+            // so it's a small slice of the total instead of an equal pick.
+            public int Weight { get; init; } = 100;
         }
 
         // A game's reward options. Games with a win/lose signal (the
@@ -2228,6 +2233,8 @@ namespace Mocha2023.Controllers
             new() { AvatarItemDesc = "CQuKKNpan0O7rhR1fr14-Q,ghM-uFq5-0Ci38AOHa9zZA,IWg9wuda4kaCilJk8JQpTQ,", FriendlyName = "Bowling Shirt (Deadwood)", Rarity = 10 },
             new() { AvatarItemDesc = "CQuKKNpan0O7rhR1fr14-Q,Gtq8yRlt1UeFW8U-sc7FiA,IWg9wuda4kaCilJk8JQpTQ,", FriendlyName = "Bowling Shirt (Brooklyn)", Rarity = 10 },
             new() { EquipmentPrefabName = "[BowlingBall]", EquipmentModificationGuid = "BvUZUamUh0uDbjDOrQrX1A", FriendlyName = "Bowling Ball (Gold)", Rarity = 0 },
+            // Very rare - Weight 1 against everything else's 100 (~0.1% per claim).
+            new() { AvatarItemDesc = "GAWURQSqrEW4G5slrPMgZA,", FriendlyName = "Dude Sweater", Rarity = 50, Weight = 1 },
         };
 
         // The one real catalog match for an Isle of Lost Skulls theme (a pirate
@@ -2313,11 +2320,30 @@ namespace Mocha2023.Controllers
             return false;
         }
 
-        private static GameRewardDrop? PickGameRewardDrop(long accountId, GameRewardDrop[] candidates) =>
-            candidates
+        // Weighted pick, not a uniform shuffle - a Weight-1 rare item next to
+        // ten Weight-100 items should land a small fraction of the time, not
+        // 1-in-11 like an even OrderBy(Random) draw would give it.
+        private static GameRewardDrop? PickGameRewardDrop(long accountId, GameRewardDrop[] candidates)
+        {
+            GameRewardDrop[] eligible = candidates
                 .Where(candidate => !IsGameRewardDropOwned(accountId, candidate))
-                .OrderBy(_ => Random.Shared.Next())
-                .FirstOrDefault();
+                .ToArray();
+            if (eligible.Length == 0)
+                return null;
+
+            int totalWeight = eligible.Sum(candidate => Math.Max(1, candidate.Weight));
+            int roll = Random.Shared.Next(totalWeight);
+
+            int cumulative = 0;
+            foreach (GameRewardDrop candidate in eligible)
+            {
+                cumulative += Math.Max(1, candidate.Weight);
+                if (roll < cumulative)
+                    return candidate;
+            }
+
+            return eligible[^1];
+        }
 
         [HttpGet("/api/gamerewards/v1/pending")]
         public IActionResult GetPendingGameRewards()
