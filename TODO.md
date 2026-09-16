@@ -2,17 +2,6 @@
 
 ## 🔴 High Priority
 
-* [ ] **Fix Cheering**
-
-  * Make cheering behave like real Rec Room.
-  * Players can give **15 cheers per day**.
-  * Cheers should **not accumulate beyond the daily limit**.
-  * The player's received-cheer value should remain at **`1`** once they've been cheered.
-
-    * This indicates that the player has been cheered.
-    * Allows the player to use the **CheerBadge**.
-    * Receiving additional cheers should **not increment this value**.
-
 * [ ] **Fix Invites, Favorites & Subscribing**
 
   * Fix invites not working correctly.
@@ -59,4 +48,15 @@
   * Conclusion: She clearly is not very smart. 💀
 * [x] Other stuff apparently done not too long ago by **izzy!**
 
+* [x] **Fix Cheering**
+
+  * Make cheering behave like real Rec Room.
+  * Players can give **15 cheers per day**.
+  * Cheers should **not accumulate beyond the daily limit**.
+  * The player's received-cheer value should remain at **`1`** once they've been cheered.
+
+    * This indicates that the player has been cheered.
+    * Allows the player to use the **CheerBadge**.
+    * Receiving additional cheers should **not increment this value**.
+    * 
   * lame ass todo 💀
