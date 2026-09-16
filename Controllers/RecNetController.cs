@@ -7333,6 +7333,8 @@ namespace Mocha2023.Controllers
             id = a.Id,
             title = a.Title,
             body = a.Body,
+            imageName = a.ImageName,
+            imageUrl = string.IsNullOrEmpty(a.ImageName) ? null : ImageUrl(a.ImageName),
             createdAt = a.CreatedAt
         };
 
@@ -7346,6 +7348,73 @@ namespace Mocha2023.Controllers
                 .Select(ToInGameAnnouncementDto));
         }
 
+        [HttpPost("admin/ingame-announcements/image")]
+        [RequestSizeLimit(10 * 1024 * 1024)]
+        public async Task<IActionResult> UploadInGameAnnouncementImage()
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+            if (!Request.HasFormContentType)
+                return BadRequest(new { error = "Choose an image file to upload." });
+
+            var form = await Request.ReadFormAsync();
+            var file = form.Files.FirstOrDefault();
+            if (file == null || file.Length == 0)
+                return BadRequest(new { error = "Choose an image file to upload." });
+            if (file.Length > 10 * 1024 * 1024)
+                return BadRequest(new { error = "Announcement images must be 10 MB or smaller." });
+
+            byte[] bytes;
+            using (var buffer = new MemoryStream())
+            {
+                await file.CopyToAsync(buffer, HttpContext.RequestAborted);
+                bytes = buffer.ToArray();
+            }
+
+            SixLabors.ImageSharp.Formats.IImageFormat? format;
+            SixLabors.ImageSharp.ImageInfo? info;
+            try
+            {
+                format = SixLabors.ImageSharp.Image.DetectFormat(bytes);
+                info = SixLabors.ImageSharp.Image.Identify(bytes);
+            }
+            catch
+            {
+                return BadRequest(new { error = "That file is not a valid image." });
+            }
+
+            if (format == null || info == null || info.Width <= 0 || info.Height <= 0 ||
+                info.Width > 8192 || info.Height > 4096 ||
+                (long)info.Width * info.Height > 20_000_000)
+            {
+                return BadRequest(new
+                {
+                    error = "Announcement images cannot exceed 8192 x 4096 or 20 megapixels."
+                });
+            }
+
+            string extension = format.FileExtensions.FirstOrDefault()?.ToLowerInvariant() ?? string.Empty;
+            if (extension is not ("png" or "jpg" or "jpeg" or "webp" or "gif" or "bmp"))
+                return BadRequest(new { error = "Use a PNG, JPG, WebP, GIF, or BMP image." });
+
+            string folder = Path.Combine(Program.dataDir, "Images", "AnnouncementImages");
+            Directory.CreateDirectory(folder);
+            string fileName = $"announcement_{admin!.PlayerId}_{Guid.NewGuid():N}.{extension}";
+            await System.IO.File.WriteAllBytesAsync(
+                Path.Combine(folder, fileName),
+                bytes,
+                HttpContext.RequestAborted);
+            string relativePath = $"AnnouncementImages/{fileName}";
+
+            return Ok(new
+            {
+                success = true,
+                path = relativePath,
+                url = ImageUrl(relativePath)
+            });
+        }
+
         [HttpPost("admin/ingame-announcements")]
         public IActionResult CreateInGameAnnouncement(
             [FromBody] InGameAnnouncementRequest request)
@@ -7357,8 +7426,9 @@ namespace Mocha2023.Controllers
             string body = request?.Body?.Trim() ?? string.Empty;
             if (title.Length == 0 || body.Length == 0)
                 return BadRequest(new { error = "Title and body are required." });
+            string imageName = NormalizeImagePath(request?.ImageName) ?? string.Empty;
 
-            var entry = Mocha2023.Classes.InGameAnnouncements.Create(title, body);
+            var entry = Mocha2023.Classes.InGameAnnouncements.Create(title, body, imageName);
             return Ok(new { success = true, announcement = ToInGameAnnouncementDto(entry) });
         }
 
@@ -7374,11 +7444,19 @@ namespace Mocha2023.Controllers
             string body = request?.Body?.Trim() ?? string.Empty;
             if (title.Length == 0 || body.Length == 0)
                 return BadRequest(new { error = "Title and body are required." });
+            string imageName = NormalizeImagePath(request?.ImageName) ?? string.Empty;
 
-            var entry = Mocha2023.Classes.InGameAnnouncements.Update(id, title, body);
-            return entry == null
-                ? NotFound(new { error = "Announcement not found." })
-                : Ok(new { success = true, announcement = ToInGameAnnouncementDto(entry) });
+            var previous = Mocha2023.Classes.InGameAnnouncements.Load()
+                .FirstOrDefault(a => a.Id == id);
+            var entry = Mocha2023.Classes.InGameAnnouncements.Update(id, title, body, imageName);
+            if (entry == null)
+                return NotFound(new { error = "Announcement not found." });
+            if (previous != null &&
+                !string.Equals(previous.ImageName, imageName, StringComparison.OrdinalIgnoreCase))
+            {
+                DeleteUnusedAnnouncementImage(previous.ImageName);
+            }
+            return Ok(new { success = true, announcement = ToInGameAnnouncementDto(entry) });
         }
 
         [HttpDelete("admin/ingame-announcements/{id:long}")]
@@ -7387,15 +7465,45 @@ namespace Mocha2023.Controllers
             if (!IsAdmin(AuthStuff.GetCurrentPlayer(Request)))
                 return StatusCode(403);
 
-            return Mocha2023.Classes.InGameAnnouncements.Delete(id)
-                ? Ok(new { success = true })
-                : NotFound(new { error = "Announcement not found." });
+            var existing = Mocha2023.Classes.InGameAnnouncements.Load()
+                .FirstOrDefault(a => a.Id == id);
+            if (!Mocha2023.Classes.InGameAnnouncements.Delete(id))
+                return NotFound(new { error = "Announcement not found." });
+            if (existing != null)
+                DeleteUnusedAnnouncementImage(existing.ImageName);
+            return Ok(new { success = true });
+        }
+
+        private static void DeleteUnusedAnnouncementImage(string? imagePath)
+        {
+            string? normalized = NormalizeImagePath(imagePath);
+            if (normalized == null ||
+                !normalized.StartsWith("AnnouncementImages/", StringComparison.OrdinalIgnoreCase) ||
+                Mocha2023.Classes.InGameAnnouncements.Load()
+                    .Any(a => string.Equals(a.ImageName, normalized, StringComparison.OrdinalIgnoreCase)))
+            {
+                return;
+            }
+
+            string root = Path.GetFullPath(Path.Combine(Program.dataDir, "Images", "AnnouncementImages"));
+            string fullPath = Path.GetFullPath(Path.Combine(
+                Program.dataDir,
+                "Images",
+                normalized.Replace('/', Path.DirectorySeparatorChar)));
+            if (fullPath.StartsWith(
+                    root + Path.DirectorySeparatorChar,
+                    StringComparison.OrdinalIgnoreCase) &&
+                System.IO.File.Exists(fullPath))
+            {
+                System.IO.File.Delete(fullPath);
+            }
         }
 
         public class InGameAnnouncementRequest
         {
             public string? Title { get; set; }
             public string? Body { get; set; }
+            public string? ImageName { get; set; }
         }
 
         // Every currency to 0 except RecCenterTokens, which goes to a flat

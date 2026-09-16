@@ -16,6 +16,9 @@ namespace Mocha2023.Classes
         public long Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Body { get; set; } = string.Empty;
+        // Relative path under Images/, e.g. "AnnouncementImages/xyz.png" -
+        // matches ClubAnnouncementRecord's ImageName convention.
+        public string ImageName { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 
@@ -59,7 +62,7 @@ namespace Mocha2023.Classes
             }
         }
 
-        public static InGameAnnouncement Create(string title, string body)
+        public static InGameAnnouncement Create(string title, string body, string imageName)
         {
             lock (Gate)
             {
@@ -70,6 +73,7 @@ namespace Mocha2023.Classes
                     Id = nextId,
                     Title = title,
                     Body = body,
+                    ImageName = imageName,
                     CreatedAt = DateTime.UtcNow
                 };
                 all.Add(entry);
@@ -78,7 +82,7 @@ namespace Mocha2023.Classes
             }
         }
 
-        public static InGameAnnouncement? Update(long id, string title, string body)
+        public static InGameAnnouncement? Update(long id, string title, string body, string imageName)
         {
             lock (Gate)
             {
@@ -88,6 +92,7 @@ namespace Mocha2023.Classes
                     return null;
                 entry.Title = title;
                 entry.Body = body;
+                entry.ImageName = imageName;
                 Save(all);
                 return entry;
             }

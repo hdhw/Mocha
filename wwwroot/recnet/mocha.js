@@ -2149,7 +2149,10 @@ async function miscView() {
         <label>Title<input type="text" id="igaTitle" placeholder="Announcement title"></label>
         <br><br>
         <label>Body<textarea id="igaBody" rows="3" placeholder="Announcement text"></textarea></label>
-        <br>
+        <br><br>
+        <label>Photo (shown in the corner in-game)<input type="file" id="igaImageFile" accept="image/*"></label>
+        <input type="hidden" id="igaImageName">
+        <div id="igaImagePreview" class="field-hint"></div>
         <button class="btn" id="igaSave">Post announcement</button>
         <button class="btn ghost" id="igaCancelEdit" hidden>Cancel edit</button>
         <span class="form-status" id="igaStatus"></span>
@@ -2233,6 +2236,25 @@ async function miscView() {
         return data.message || `Reset ${data.count ?? 0} player(s).`;
     });
 
+    const igaImageFile = document.querySelector('#igaImageFile');
+    const igaImageName = document.querySelector('#igaImageName');
+    const igaImagePreview = document.querySelector('#igaImagePreview');
+
+    if (igaImageFile) igaImageFile.addEventListener('change', async () => {
+        const status = document.querySelector('#igaStatus');
+        const file = igaImageFile.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const r = await fetch(`${API}/admin/ingame-announcements/image`, { method: 'POST', body: formData, credentials: 'same-origin' });
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.error || 'Upload failed');
+            igaImageName.value = data.path;
+            igaImagePreview.innerHTML = `<img src="${esc(data.url)}" style="max-width:160px;border-radius:8px;margin-top:6px">`;
+        } catch (error) { status.textContent = error.message; status.className = 'form-status error'; }
+    });
+
     async function loadInGameAnnouncements() {
         const list = document.querySelector('#igaList');
         if (!list) return;
@@ -2240,13 +2262,15 @@ async function miscView() {
         try {
             const items = await get(`${API}/admin/ingame-announcements`);
             list.innerHTML = items.length
-                ? items.map(a => `<div class="card" data-id="${a.id}"><h2>${esc(a.title)}</h2><p>${esc(a.body)}</p><div class="actions-cell"><button class="btn small ghost edit-iga">Edit</button><button class="btn small danger delete-iga">Delete</button></div></div>`).join('')
+                ? items.map(a => `<div class="card" data-id="${a.id}"><h2>${esc(a.title)}</h2><p>${esc(a.body)}</p>${a.imageUrl ? `<img src="${esc(a.imageUrl)}" style="max-width:120px;border-radius:8px">` : ''}<div class="actions-cell"><button class="btn small ghost edit-iga">Edit</button><button class="btn small danger delete-iga">Delete</button></div></div>`).join('')
                 : '<p class="field-hint">No in-game announcements yet.</p>';
             list.querySelectorAll('.edit-iga').forEach((btn, i) => btn.addEventListener('click', () => {
                 const a = items[i];
                 document.querySelector('#igaEditId').value = a.id;
                 document.querySelector('#igaTitle').value = a.title;
                 document.querySelector('#igaBody').value = a.body;
+                igaImageName.value = a.imageName || '';
+                igaImagePreview.innerHTML = a.imageUrl ? `<img src="${esc(a.imageUrl)}" style="max-width:160px;border-radius:8px;margin-top:6px">` : '';
                 document.querySelector('#igaSave').textContent = 'Save changes';
                 document.querySelector('#igaCancelEdit').hidden = false;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2266,6 +2290,9 @@ async function miscView() {
         document.querySelector('#igaEditId').value = '';
         document.querySelector('#igaTitle').value = '';
         document.querySelector('#igaBody').value = '';
+        if (igaImageFile) igaImageFile.value = '';
+        igaImageName.value = '';
+        igaImagePreview.innerHTML = '';
         document.querySelector('#igaSave').textContent = 'Post announcement';
         document.querySelector('#igaCancelEdit').hidden = true;
     }
@@ -2276,9 +2303,10 @@ async function miscView() {
         const editId = document.querySelector('#igaEditId').value;
         const title = (document.querySelector('#igaTitle')?.value || '').trim();
         const body = (document.querySelector('#igaBody')?.value || '').trim();
+        const imageName = igaImageName.value || '';
         if (!title || !body) throw new Error('Title and body are required.');
-        if (editId) await send(`${API}/admin/ingame-announcements/${editId}`, 'PUT', { title, body });
-        else await send(`${API}/admin/ingame-announcements`, 'POST', { title, body });
+        if (editId) await send(`${API}/admin/ingame-announcements/${editId}`, 'PUT', { title, body, imageName });
+        else await send(`${API}/admin/ingame-announcements`, 'POST', { title, body, imageName });
         resetIgaForm();
         await loadInGameAnnouncements();
         return editId ? 'Saved.' : 'Posted.';
