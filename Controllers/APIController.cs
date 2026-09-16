@@ -2767,6 +2767,7 @@ namespace Mocha2023.Controllers
             }
 
             HashSet<string> installedConsumables = GetCatalogSkus()
+                .Where(IsUsableStoreItem)
                 .Where(IsConsumableCatalogItem)
                 .Select(item => item.ConsumableItemDesc)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -8735,7 +8736,10 @@ namespace Mocha2023.Controllers
         public IActionResult GetCatalogAll(
             [FromQuery] bool onlyAvailableSkus = false)
         {
-            return Ok(GetCatalogSkus());
+            // Player-facing - GetCatalogSkus() itself no longer applies the
+            // shop-exclusion policy (Coach Gifting needs the unfiltered set),
+            // so every player-facing catalog read has to apply it here.
+            return Ok(GetCatalogSkus().Where(IsUsableStoreItem));
         }
 
         [HttpPost("/api/storefronts/v1/purchase")]
@@ -8781,13 +8785,19 @@ namespace Mocha2023.Controllers
 
             CatalogSku? sku = ResolveStoreFileSku(requestedSkuId.Value);
 
-            sku ??= GetCatalogSkus().FirstOrDefault(value =>
+            // Player-facing purchase - GetCatalogSkus() no longer applies the
+            // shop-exclusion policy on its own, so this fallback (used when a
+            // sku isn't in any storefront's own sf*.json) has to apply it
+            // explicitly, or a player could buy an excluded item directly by
+            // SKU id even though it was pulled from the shop.
+            IEnumerable<CatalogSku> purchasable = GetCatalogSkus().Where(IsUsableStoreItem);
+            sku ??= purchasable.FirstOrDefault(value =>
                 value.SkuId == requestedSkuId.Value);
-            sku ??= GetCatalogSkus().FirstOrDefault(value =>
+            sku ??= purchasable.FirstOrDefault(value =>
                 value.PurchasableItemId == requestedSkuId.Value);
-            sku ??= GetCatalogSkus().FirstOrDefault(value =>
+            sku ??= purchasable.FirstOrDefault(value =>
                 value.AvatarItemId > 0 && value.AvatarItemId == requestedSkuId.Value);
-            sku ??= GetCatalogSkus().FirstOrDefault(value =>
+            sku ??= purchasable.FirstOrDefault(value =>
                 IsConsumableCatalogItem(value) && value.ItemId == requestedSkuId.Value);
             if (sku == null)
                 return NotFound(new { Success = false, Error = "sku_not_found" });
@@ -9621,7 +9631,17 @@ namespace Mocha2023.Controllers
                     catalog.AddRange(consumables.Select(CreateConsumableCatalogSku));
                 }
 
-                CatalogCache = catalog.Where(IsUsableStoreItem)
+                // Structural validity only (real item, not a garbage/unfinished
+                // entry) - NOT IsUsableStoreItem's shop-exclusion policy. That
+                // policy used to be baked in here, which meant Coach Gifting's
+                // includeHidden flag could never see excluded items at all: by
+                // the time its own query ran, they were already gone from this
+                // shared cache. Every other caller of GetCatalogSkus() that
+                // needs the shop-exclusion policy now applies IsUsableStoreItem
+                // explicitly (see below) so this change doesn't re-expose those
+                // items to players.
+                CatalogCache = catalog.Where(IsListableCatalogItem)
+                    .Where(item => !IsUnfinishedCatalogItem(item))
                     .GroupBy(GetCatalogIdentity, StringComparer.OrdinalIgnoreCase)
                     .Select(group => group.First()).ToList();
                 CatalogCacheTimestampUtc = avatarTimestamp;
@@ -10009,6 +10029,7 @@ namespace Mocha2023.Controllers
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
             IEnumerable<CatalogSku> hairDyes = GetCatalogSkus()
+                .Where(IsUsableStoreItem)
                 .Where(IsHairDyeCatalogItem)
                 .GroupBy(GetCatalogIdentity, StringComparer.OrdinalIgnoreCase)
                 .Select(group => group.First())
@@ -10348,7 +10369,8 @@ namespace Mocha2023.Controllers
             out bool alreadyOwned,
             out string error)
         {
-            CatalogSku? sku = GetCatalogSkus().FirstOrDefault(value =>
+            // Player-facing purchase - must not resolve to a shop-excluded item.
+            CatalogSku? sku = GetCatalogSkus().Where(IsUsableStoreItem).FirstOrDefault(value =>
                 value.SkuId == skuId ||
                 value.PurchasableItemId == skuId ||
                 (value.AvatarItemId > 0 && value.AvatarItemId == skuId) ||
@@ -10425,9 +10447,13 @@ namespace Mocha2023.Controllers
             return (items, total);
         }
 
+        // Resolves the SKU an admin picked in Coach Gifting - its only caller.
+        // No IsUsableStoreItem here on purpose: a coach needs to be able to
+        // actually send an item they can already find via includeHidden search,
+        // not just look at it. GetCatalogSkus() already excludes garbage/
+        // unfinished entries, so this still can't resolve to junk.
         public static StorefrontAdminItem? GetStorefrontCatalogItem(long skuId) =>
             GetCatalogSkus()
-                .Where(IsUsableStoreItem)
                 .Where(item => item.SkuId == skuId)
                 .Select(ToStorefrontAdminItem)
                 .FirstOrDefault();
@@ -10835,7 +10861,7 @@ namespace Mocha2023.Controllers
         [HttpGet("/api/storefronts/v1/toptoday")]
         public IActionResult GetTopStorefrontsToday()
         {
-            return Ok(GetCatalogSkus());
+            return Ok(GetCatalogSkus().Where(IsUsableStoreItem));
         }
 
         [HttpGet("/api/inventions/v1/toptoday")]
