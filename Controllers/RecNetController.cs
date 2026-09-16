@@ -7328,13 +7328,22 @@ namespace Mocha2023.Controllers
         // /api/announcement/v1/get and pushed live by NotiController's file
         // watcher) - not the Community Board system above, which is a separate
         // site-wide feed.
+        private static object ToInGameAnnouncementDto(Mocha2023.Classes.InGameAnnouncement a) => new
+        {
+            id = a.Id,
+            title = a.Title,
+            body = a.Body,
+            createdAt = a.CreatedAt
+        };
+
         [HttpGet("admin/ingame-announcements")]
         public IActionResult GetInGameAnnouncements()
         {
             if (!IsAdmin(AuthStuff.GetCurrentPlayer(Request)))
                 return StatusCode(403);
             return Ok(Mocha2023.Classes.InGameAnnouncements.Load()
-                .OrderByDescending(a => a.Id));
+                .OrderByDescending(a => a.Id)
+                .Select(ToInGameAnnouncementDto));
         }
 
         [HttpPost("admin/ingame-announcements")]
@@ -7350,7 +7359,7 @@ namespace Mocha2023.Controllers
                 return BadRequest(new { error = "Title and body are required." });
 
             var entry = Mocha2023.Classes.InGameAnnouncements.Create(title, body);
-            return Ok(new { success = true, announcement = entry });
+            return Ok(new { success = true, announcement = ToInGameAnnouncementDto(entry) });
         }
 
         [HttpPut("admin/ingame-announcements/{id:long}")]
@@ -7369,7 +7378,7 @@ namespace Mocha2023.Controllers
             var entry = Mocha2023.Classes.InGameAnnouncements.Update(id, title, body);
             return entry == null
                 ? NotFound(new { error = "Announcement not found." })
-                : Ok(new { success = true, announcement = entry });
+                : Ok(new { success = true, announcement = ToInGameAnnouncementDto(entry) });
         }
 
         [HttpDelete("admin/ingame-announcements/{id:long}")]
