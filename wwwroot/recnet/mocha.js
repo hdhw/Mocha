@@ -2143,14 +2143,17 @@ async function miscView() {
     </div>
 
     <div class="card">
-        <h2>Post an in-game announcement</h2>
-        <p class="field-hint">Quick-posts a published, unpinned announcement (kind: info) that shows live in-game. For pinning, drafts, or editing existing ones, use the full <a href="#announcements">Announcements</a> page.</p>
-        <label>Title<input type="text" id="quickAnnTitle" placeholder="Announcement title"></label>
+        <h2>In-game announcements</h2>
+        <p class="field-hint">These are the ones players actually see live in-game (Data/announcements.json) - not the site-wide <a href="#announcements">Announcements</a> page, which is a separate feed.</p>
+        <input type="hidden" id="igaEditId">
+        <label>Title<input type="text" id="igaTitle" placeholder="Announcement title"></label>
         <br><br>
-        <label>Body<textarea id="quickAnnBody" rows="3" placeholder="Announcement text"></textarea></label>
+        <label>Body<textarea id="igaBody" rows="3" placeholder="Announcement text"></textarea></label>
         <br>
-        <button class="btn" id="quickAnnPost">Post announcement</button>
-        <span class="form-status" id="quickAnnStatus"></span>
+        <button class="btn" id="igaSave">Post announcement</button>
+        <button class="btn ghost" id="igaCancelEdit" hidden>Cancel edit</button>
+        <span class="form-status" id="igaStatus"></span>
+        <div id="igaList" style="margin-top:12px"></div>
     </div>`;
 
     const say = (el, message, ok = true) => {
@@ -2230,18 +2233,58 @@ async function miscView() {
         return data.message || `Reset ${data.count ?? 0} player(s).`;
     });
 
-    wire('quickAnnPost', 'quickAnnStatus', async () => {
-        const title = (document.querySelector('#quickAnnTitle')?.value || '').trim();
-        const bodyMarkdown = (document.querySelector('#quickAnnBody')?.value || '').trim();
-        if (!title || !bodyMarkdown) throw new Error('Title and body are required.');
-        await send(`${API}/admin/announcements`, 'POST', { title, bodyMarkdown, kind: 'info', pinned: false, published: true });
-        const titleBox = document.querySelector('#quickAnnTitle');
-        const bodyBox = document.querySelector('#quickAnnBody');
-        if (titleBox) titleBox.value = '';
-        if (bodyBox) bodyBox.value = '';
-        return 'Posted.';
+    async function loadInGameAnnouncements() {
+        const list = document.querySelector('#igaList');
+        if (!list) return;
+        list.innerHTML = '<div class="loading"><i></i>Loading</div>';
+        try {
+            const items = await get(`${API}/admin/ingame-announcements`);
+            list.innerHTML = items.length
+                ? items.map(a => `<div class="card" data-id="${a.id}"><h2>${esc(a.title)}</h2><p>${esc(a.body)}</p><div class="actions-cell"><button class="btn small ghost edit-iga">Edit</button><button class="btn small danger delete-iga">Delete</button></div></div>`).join('')
+                : '<p class="field-hint">No in-game announcements yet.</p>';
+            list.querySelectorAll('.edit-iga').forEach((btn, i) => btn.addEventListener('click', () => {
+                const a = items[i];
+                document.querySelector('#igaEditId').value = a.id;
+                document.querySelector('#igaTitle').value = a.title;
+                document.querySelector('#igaBody').value = a.body;
+                document.querySelector('#igaSave').textContent = 'Save changes';
+                document.querySelector('#igaCancelEdit').hidden = false;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }));
+            list.querySelectorAll('.delete-iga').forEach(btn => btn.addEventListener('click', async () => {
+                const card = btn.closest('[data-id]'), id = card.dataset.id;
+                if (!confirm('Delete this in-game announcement?')) return;
+                try { await send(`${API}/admin/ingame-announcements/${id}`, 'DELETE'); card.remove(); }
+                catch (error) { alert(error.message); }
+            }));
+        } catch (error) {
+            list.innerHTML = `<p class="form-status error">${esc(error.message)}</p>`;
+        }
+    }
+
+    function resetIgaForm() {
+        document.querySelector('#igaEditId').value = '';
+        document.querySelector('#igaTitle').value = '';
+        document.querySelector('#igaBody').value = '';
+        document.querySelector('#igaSave').textContent = 'Post announcement';
+        document.querySelector('#igaCancelEdit').hidden = true;
+    }
+    const igaCancelBtn = document.querySelector('#igaCancelEdit');
+    if (igaCancelBtn) igaCancelBtn.addEventListener('click', resetIgaForm);
+
+    wire('igaSave', 'igaStatus', async () => {
+        const editId = document.querySelector('#igaEditId').value;
+        const title = (document.querySelector('#igaTitle')?.value || '').trim();
+        const body = (document.querySelector('#igaBody')?.value || '').trim();
+        if (!title || !body) throw new Error('Title and body are required.');
+        if (editId) await send(`${API}/admin/ingame-announcements/${editId}`, 'PUT', { title, body });
+        else await send(`${API}/admin/ingame-announcements`, 'POST', { title, body });
+        resetIgaForm();
+        await loadInGameAnnouncements();
+        return editId ? 'Saved.' : 'Posted.';
     });
 
+    await loadInGameAnnouncements();
     await refreshBackups();
 }
 

@@ -7324,6 +7324,71 @@ namespace Mocha2023.Controllers
             return Ok(weekly);
         }
 
+        // The real in-game announcement feed (Data/announcements.json, served by
+        // /api/announcement/v1/get and pushed live by NotiController's file
+        // watcher) - not the Community Board system above, which is a separate
+        // site-wide feed.
+        [HttpGet("admin/ingame-announcements")]
+        public IActionResult GetInGameAnnouncements()
+        {
+            if (!IsAdmin(AuthStuff.GetCurrentPlayer(Request)))
+                return StatusCode(403);
+            return Ok(Mocha2023.Classes.InGameAnnouncements.Load()
+                .OrderByDescending(a => a.Id));
+        }
+
+        [HttpPost("admin/ingame-announcements")]
+        public IActionResult CreateInGameAnnouncement(
+            [FromBody] InGameAnnouncementRequest request)
+        {
+            if (!IsAdmin(AuthStuff.GetCurrentPlayer(Request)))
+                return StatusCode(403);
+
+            string title = request?.Title?.Trim() ?? string.Empty;
+            string body = request?.Body?.Trim() ?? string.Empty;
+            if (title.Length == 0 || body.Length == 0)
+                return BadRequest(new { error = "Title and body are required." });
+
+            var entry = Mocha2023.Classes.InGameAnnouncements.Create(title, body);
+            return Ok(new { success = true, announcement = entry });
+        }
+
+        [HttpPut("admin/ingame-announcements/{id:long}")]
+        public IActionResult UpdateInGameAnnouncement(
+            long id,
+            [FromBody] InGameAnnouncementRequest request)
+        {
+            if (!IsAdmin(AuthStuff.GetCurrentPlayer(Request)))
+                return StatusCode(403);
+
+            string title = request?.Title?.Trim() ?? string.Empty;
+            string body = request?.Body?.Trim() ?? string.Empty;
+            if (title.Length == 0 || body.Length == 0)
+                return BadRequest(new { error = "Title and body are required." });
+
+            var entry = Mocha2023.Classes.InGameAnnouncements.Update(id, title, body);
+            return entry == null
+                ? NotFound(new { error = "Announcement not found." })
+                : Ok(new { success = true, announcement = entry });
+        }
+
+        [HttpDelete("admin/ingame-announcements/{id:long}")]
+        public IActionResult DeleteInGameAnnouncement(long id)
+        {
+            if (!IsAdmin(AuthStuff.GetCurrentPlayer(Request)))
+                return StatusCode(403);
+
+            return Mocha2023.Classes.InGameAnnouncements.Delete(id)
+                ? Ok(new { success = true })
+                : NotFound(new { error = "Announcement not found." });
+        }
+
+        public class InGameAnnouncementRequest
+        {
+            public string? Title { get; set; }
+            public string? Body { get; set; }
+        }
+
         // Every currency to 0 except RecCenterTokens, which goes to a flat
         // 3500 - a clean-slate reset for the whole player base at once.
         [HttpPost("admin/economy/reset")]
