@@ -7324,6 +7324,45 @@ namespace Mocha2023.Controllers
             return Ok(weekly);
         }
 
+        // Every currency to 0 except RecCenterTokens, which goes to a flat
+        // 3500 - a clean-slate reset for the whole player base at once.
+        [HttpPost("admin/economy/reset")]
+        public IActionResult AdminEconomyReset()
+        {
+            var admin = AuthStuff.GetCurrentPlayer(Request);
+            if (!IsAdmin(admin))
+                return StatusCode(403);
+
+            List<long> accountIds = PlayerDB.Players.FindAll()
+                .Select(player => player.PlayerId)
+                .Where(accountId => accountId > 0)
+                .ToList();
+
+            foreach (long accountId in accountIds)
+            {
+                foreach (PlayerDBClasses.CurrencyType currencyType in
+                         Enum.GetValues<PlayerDBClasses.CurrencyType>())
+                {
+                    if (currencyType == PlayerDBClasses.CurrencyType.Invalid)
+                        continue;
+                    int newBalance = currencyType == PlayerDBClasses.CurrencyType.RecCenterTokens
+                        ? 3500
+                        : 0;
+                    PlayerDB.SetCurrencyBalance(accountId, currencyType, newBalance, add: false);
+                }
+            }
+
+            Console.WriteLine(
+                $"[ADMIN ECONOMY RESET] admin={admin!.PlayerId} players={accountIds.Count}");
+
+            return Ok(new
+            {
+                success = true,
+                count = accountIds.Count,
+                message = $"Reset currencies for {accountIds.Count} player(s). RecCenterTokens set to 3500, everything else to 0."
+            });
+        }
+
         private static bool IsAdmin(PlayerDBClasses.FullPlayer? account) =>
             IsDeveloper(account);
 

@@ -2133,6 +2133,24 @@ async function miscView() {
         <br><br>
         <button class="btn" id="imageDelete">Delete image</button>
         <span class="form-status" id="imageDeleteStatus"></span>
+    </div>
+
+    <div class="card">
+        <h2>Economy reset</h2>
+        <p class="field-hint">Resets every player's currencies: RecCenterTokens to 3500, everything else (Laser Tag Tickets, Lost Skulls Gold, Dracula Silver, Rec Royale Season 1, Room Currency) to 0. This cannot be undone.</p>
+        <button class="btn danger" id="economyReset">Reset everyone's economy</button>
+        <span class="form-status" id="economyResetStatus"></span>
+    </div>
+
+    <div class="card">
+        <h2>Post an in-game announcement</h2>
+        <p class="field-hint">Quick-posts a published, unpinned announcement (kind: info) that shows live in-game. For pinning, drafts, or editing existing ones, use the full <a href="#announcements">Announcements</a> page.</p>
+        <label>Title<input type="text" id="quickAnnTitle" placeholder="Announcement title"></label>
+        <br><br>
+        <label>Body<textarea id="quickAnnBody" rows="3" placeholder="Announcement text"></textarea></label>
+        <br>
+        <button class="btn" id="quickAnnPost">Post announcement</button>
+        <span class="form-status" id="quickAnnStatus"></span>
     </div>`;
 
     const say = (el, message, ok = true) => {
@@ -2202,6 +2220,26 @@ async function miscView() {
         if (!path) throw new Error('Enter a photo path.');
         const data = await send(`${API}/admin/images/delete`, 'POST', { PhotoPath: path });
         return data.message || 'Image deleted.';
+    });
+
+    wire('economyReset', 'economyResetStatus', async () => {
+        if (!confirm("Reset EVERY player's economy? RecCenterTokens -> 3500, all other currencies -> 0. This cannot be undone.")) {
+            throw new Error('Cancelled.');
+        }
+        const data = await send(`${API}/admin/economy/reset`, 'POST', {});
+        return data.message || `Reset ${data.count ?? 0} player(s).`;
+    });
+
+    wire('quickAnnPost', 'quickAnnStatus', async () => {
+        const title = (document.querySelector('#quickAnnTitle')?.value || '').trim();
+        const bodyMarkdown = (document.querySelector('#quickAnnBody')?.value || '').trim();
+        if (!title || !bodyMarkdown) throw new Error('Title and body are required.');
+        await send(`${API}/admin/announcements`, 'POST', { title, bodyMarkdown, kind: 'info', pinned: false, published: true });
+        const titleBox = document.querySelector('#quickAnnTitle');
+        const bodyBox = document.querySelector('#quickAnnBody');
+        if (titleBox) titleBox.value = '';
+        if (bodyBox) bodyBox.value = '';
+        return 'Posted.';
     });
 
     await refreshBackups();
@@ -3761,33 +3799,155 @@ async function checkSystemStatus() {
 boot();
 
 
+// Weekly Challenge's Config is a compact JSON blob the client itself reads
+// (ct = challenge type id, vs = value ids it's tracking, ex/in = flags) - it's
+// not something Mocha's own progress tracking parses (that's hardcoded name
+// matching in RecNetDB.ApplyChallengeTelemetry), so these fields are exposed
+// as-is rather than a dropdown of invented options. Splitting them out of one
+// JSON string is what actually makes hand-editing safer.
+function parseWeeklyConfig(raw) {
+    try {
+        const obj = JSON.parse(raw || '{}');
+        return {
+            ct: obj.ct ?? '',
+            vs: Array.isArray(obj.vs) ? obj.vs.join(',') : (obj.vs ?? ''),
+            ex: obj.ex === true,
+            in: obj.in === true
+        };
+    } catch {
+        return null;
+    }
+}
+
+function buildWeeklyConfig(ct, vs, ex, inFlag) {
+    const out = {};
+    if (ct !== '') out.ct = Number(ct);
+    const values = vs.split(',').map(v => v.trim()).filter(v => v !== '').map(Number);
+    if (values.length) out.vs = values;
+    out.ex = ex;
+    out.in = inFlag;
+    return JSON.stringify(out);
+}
+
 async function weeklyView() {
     app.innerHTML = `<h1 class="page-title">Weekly Challenge</h1><p class="field-hint">One weekly challenge, served to every client from Data/weekly.json. Changes save instantly (no rebuild).</p><div id="weeklyForm"><div class="loading"><i></i>Loading</div></div>`;
     const c = document.querySelector('#weeklyForm');
     let w;
     try { w = await get(`${API}/admin/weekly`); }
     catch (e) { c.innerHTML = `<p class="form-status error">${esc(e.message)}</p>`; return; }
-    const row = (id, label, value, type) => `<label class="field"><span>${esc(label)}</span><input id="${id}"${type ? ` type="${type}"` : ''} value="${esc(value)}"></label>`;
+
+    const row = (id, label, value, type, hint) => `<label class="field"><span>${esc(label)}</span><input id="${id}"${type ? ` type="${type}"` : ''} value="${esc(value)}">${hint ? `<small class="field-hint">${hint}</small>` : ''}</label>`;
+    const parsedConfig = parseWeeklyConfig(w.config);
+    const rawMode = parsedConfig === null;
+
     c.innerHTML = `<div class="card">
+        <h2>Challenge info</h2>
         ${row('wTitle', 'Title', w.title)}
         ${row('wDescription', 'Description', w.description)}
         ${row('wTooltip', 'Tooltip', w.tooltip)}
-        ${row('wConfig', 'Config (raw JSON string)', w.config)}
-        ${row('wGoal', 'Goal', w.goal, 'number')}
-        ${row('wPrefab', 'Reward equipment prefab', w.rewardEquipmentPrefab)}
-        ${row('wGuid', 'Reward modification GUID', w.rewardModificationGuid)}
+        ${row('wGoal', 'Goal', w.goal, 'number', 'How many times the tracked activity must complete.')}
+    </div>
+
+    <div class="card">
+        <h2>Progress matching</h2>
+        <p class="field-hint">What the client itself reads to know which activity this challenge is about. Mocha's own progress tracking (Crimson Cauldron / Golden Trophy / Jumbotron) runs separately by game name and doesn't read this - this only controls what the client displays/matches.</p>
+        <label><input type="checkbox" id="wConfigRaw" ${rawMode ? 'checked' : ''}> Edit raw JSON instead</label>
+        <div id="wConfigStructured" ${rawMode ? 'hidden' : ''}>
+            <div class="field-row">
+                ${row('wCt', 'Challenge type (ct)', parsedConfig?.ct ?? '', 'number', 'Internal challenge-type id. Copy from a working config if unsure.')}
+                ${row('wVs', 'Values (vs)', parsedConfig?.vs ?? '', 'text', 'Comma-separated ids this challenge tracks, e.g. an encounter id.')}
+            </div>
+            <label><input type="checkbox" id="wEx" ${parsedConfig?.ex ? 'checked' : ''}> ex</label>
+            &nbsp;&nbsp;
+            <label><input type="checkbox" id="wIn" ${parsedConfig?.in ? 'checked' : ''}> in</label>
+        </div>
+        <label class="field" id="wConfigRawWrap" ${rawMode ? '' : 'hidden'}><span>Config (raw JSON string)</span><textarea id="wConfig" rows="2">${esc(w.config)}</textarea></label>
+        <p class="field-hint">Will save as: <code id="wConfigPreview"></code></p>
+    </div>
+
+    <div class="card">
+        <h2>Reward</h2>
         ${row('wXp', 'Reward XP', w.rewardXp, 'number')}
-        ${row('wGift', 'Gift drop id', w.giftDropId, 'number')}
+        ${row('wGift', 'Gift drop id', w.giftDropId, 'number', 'GiftContext value shown on the reward box.')}
         ${row('wTheme', 'Theme string', w.themeString)}
-        <div class="settings-add-row"><button class="btn" id="wSave">Save weekly</button><span id="wStatus" class="form-status"></span></div>
-    </div>`;
+        <label class="field"><span>Reward equipment</span><input id="wPrefab" value="${esc(w.rewardEquipmentPrefab)}" placeholder="Equipment prefab name"></label>
+        <label class="field"><span>Reward modification GUID</span><input id="wGuid" value="${esc(w.rewardModificationGuid)}"></label>
+        <span class="field-hint" id="wEquipSelected"></span>
+        <div class="search-row" style="margin-top:8px">
+            <input id="wEquipSearch" placeholder="Search equipment catalog">
+            <button class="btn" id="wEquipSearchBtn">Search</button>
+        </div>
+        <div id="wEquipResults"></div>
+    </div>
+
+    <div class="settings-add-row"><button class="btn" id="wSave">Save weekly</button><span id="wStatus" class="form-status"></span></div>`;
+
     const val = id => document.querySelector('#' + id).value;
+
+    function currentConfigJson() {
+        if (document.querySelector('#wConfigRaw').checked) return val('wConfig');
+        return buildWeeklyConfig(val('wCt'), val('wVs'), document.querySelector('#wEx').checked, document.querySelector('#wIn').checked);
+    }
+    function refreshConfigPreview() {
+        const preview = document.querySelector('#wConfigPreview');
+        try { preview.textContent = currentConfigJson(); preview.parentElement.classList.remove('error'); }
+        catch { preview.textContent = '(invalid JSON)'; }
+    }
+    ['wCt', 'wVs', 'wEx', 'wIn', 'wConfig'].forEach(id => {
+        const el = document.querySelector('#' + id);
+        if (el) el.addEventListener('input', refreshConfigPreview);
+    });
+    document.querySelector('#wConfigRaw').addEventListener('change', e => {
+        document.querySelector('#wConfigStructured').hidden = e.target.checked;
+        document.querySelector('#wConfigRawWrap').hidden = !e.target.checked;
+        if (e.target.checked) document.querySelector('#wConfig').value = currentConfigJsonFromStructured();
+        refreshConfigPreview();
+    });
+    function currentConfigJsonFromStructured() {
+        return buildWeeklyConfig(val('wCt'), val('wVs'), document.querySelector('#wEx').checked, document.querySelector('#wIn').checked);
+    }
+    refreshConfigPreview();
+
+    if (w.rewardEquipmentPrefab) {
+        document.querySelector('#wEquipSelected').textContent = `Currently: ${w.rewardEquipmentPrefab}${w.rewardModificationGuid ? ` (${w.rewardModificationGuid})` : ''}`;
+    }
+
+    async function searchWeeklyEquipment() {
+        const results = document.querySelector('#wEquipResults');
+        const search = document.querySelector('#wEquipSearch').value;
+        results.innerHTML = '<div class="loading"><i></i>Loading</div>';
+        try {
+            const data = await get(`${API}/admin/gifts/catalog?search=${encodeURIComponent(search)}&type=equipment&skip=0&take=50&includeHidden=true`);
+            const items = data.results ?? data;
+            if (!items.length) { results.innerHTML = '<p class="field-hint">No items found.</p>'; return; }
+            results.innerHTML = items.map(item => `
+                <div class="room-row clickable" data-prefab="${esc(item.equipmentPrefabName)}" data-guid="${esc(item.equipmentModificationGuid)}">
+                    <div class="meta"><strong>${esc(item.friendlyName)}</strong><br><small>${esc(item.equipmentPrefabName)}</small></div>
+                    <button class="btn small select-equip">Select</button>
+                </div>
+            `).join('');
+            results.querySelectorAll('.select-equip').forEach(btn => btn.addEventListener('click', () => {
+                const row = btn.closest('[data-prefab]');
+                document.querySelector('#wPrefab').value = row.dataset.prefab;
+                document.querySelector('#wGuid').value = row.dataset.guid;
+                document.querySelector('#wEquipSelected').textContent = `Selected: ${row.dataset.prefab}${row.dataset.guid ? ` (${row.dataset.guid})` : ''}`;
+            }));
+        } catch (error) {
+            results.innerHTML = `<p class="form-status error">${esc(error.message)}</p>`;
+        }
+    }
+    document.querySelector('#wEquipSearchBtn').addEventListener('click', searchWeeklyEquipment);
+    document.querySelector('#wEquipSearch').addEventListener('keydown', e => { if (e.key === 'Enter') searchWeeklyEquipment(); });
+
     document.querySelector('#wSave').addEventListener('click', async () => {
         const status = document.querySelector('#wStatus');
+        let config;
+        try { config = currentConfigJson(); JSON.parse(config); }
+        catch { status.textContent = 'Config is not valid JSON.'; status.className = 'form-status error'; return; }
         const body = {
             Id: w.id,
             Title: val('wTitle'), Description: val('wDescription'), Tooltip: val('wTooltip'),
-            Config: val('wConfig'), Goal: Number(val('wGoal')) || 1,
+            Config: config, Goal: Number(val('wGoal')) || 1,
             RewardEquipmentPrefab: val('wPrefab'), RewardModificationGuid: val('wGuid'),
             RewardXp: Number(val('wXp')) || 0, GiftDropId: Number(val('wGift')) || 0,
             ThemeString: val('wTheme')
