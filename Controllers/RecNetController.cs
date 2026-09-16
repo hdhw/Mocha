@@ -3993,6 +3993,67 @@ namespace Mocha2023.Controllers
                     Unique = giftType is "avatar" or "equipment"
                 };
 
+                // Grant immediately, same as every other gift-box source in
+                // this codebase (GameRewards, level-up boxes) - the queued
+                // GiftPackage below is just the live "you got a gift!"
+                // notification, not the actual ownership mechanism. Coach
+                // Gifting used to rely solely on the recipient manually
+                // opening the box to receive anything, which silently failed
+                // to deliver to anyone offline or who never opened it.
+                switch (giftType)
+                {
+                    case "avatar":
+                        PlayerInventoryStore.SetAvatarItemOwned(
+                            recipientId,
+                            catalogItem!.AvatarItemDesc,
+                            avatarItemId: 0,
+                            catalogItem.FriendlyName,
+                            owned: true);
+                        break;
+                    case "equipment":
+                        EquipmentInventoryStore.AddOwnedItem(
+                            recipientId,
+                            catalogItem!.EquipmentPrefabName,
+                            catalogItem.EquipmentModificationGuid,
+                            catalogItem.FriendlyName,
+                            tooltip: null,
+                            catalogItem.Rarity,
+                            catalogItem.ThumbnailImage);
+                        break;
+                    case "consumable":
+                        PlayerInventoryStore.AddConsumable(
+                            recipientId,
+                            catalogItem!.ConsumableItemDesc,
+                            consumableItemId: 0,
+                            catalogItem.FriendlyName,
+                            amount: Math.Clamp(request.Amount, 1, 100000));
+                        break;
+                    case "box":
+                        PlayerInventoryStore.AddConsumable(
+                            recipientId,
+                            boxRoll!.ConsumableItemDesc,
+                            consumableItemId: 0,
+                            boxRoll.FriendlyName,
+                            amount: 1);
+                        break;
+                    case "tokens":
+                        PlayerDB.SetCurrencyBalance(
+                            recipientId,
+                            (PlayerDBClasses.CurrencyType)request.CurrencyType,
+                            request.Amount,
+                            add: true);
+                        // Already granted directly above - zeroing these out
+                        // stops ConsumeGiftPackage from granting it a second
+                        // time if/when the recipient opens the box (the same
+                        // double-grant bug already fixed for level-up boxes).
+                        gift.Currency = 0;
+                        break;
+                    case "xp":
+                        PlayerDB.AddExperience(recipientId, request.Amount);
+                        gift.XP = 0;
+                        break;
+                }
+
                 PlayerDBClasses.GiftPackage? queuedGift =
                     PlayerDB.QueueGiftPackage(recipientId, gift);
                 if (queuedGift == null)
@@ -4019,6 +4080,13 @@ namespace Mocha2023.Controllers
 
                     if (bonusItem != null)
                     {
+                        PlayerInventoryStore.AddConsumable(
+                            recipientId,
+                            bonusItem.ConsumableItemDesc,
+                            consumableItemId: 0,
+                            bonusItem.FriendlyName,
+                            amount: 1);
+
                         var bonusGift = new PlayerDBClasses.GiftPackage
                         {
                             FromPlayerId = coachAccountId,
