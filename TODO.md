@@ -31,11 +31,6 @@
   * Make sure the client receives the updated token balance without requiring a refresh or reload.
   * Also ensure the token amount does not double client sidedly.
 
-* [ ] **Fix Shop Items**
-
-  * Prevent items from appearing in the shop when they shouldn't be available.
-  * Verify the conditions determining whether an item is displayed.
-
 * [ ] **Fix Sample Audios**
 
   * Sample audios are currently being **Kirked**.
@@ -54,6 +49,12 @@
 
     * 🎁 **Gift the reward correctly**, or
     * 💬 **Display the correct prompt using the correct DTO**.
+
+* [x] **Fix Shop Items**
+
+  * Prevent items from appearing in the shop when they shouldn't be available.
+  * Verify the conditions determining whether an item is displayed.
+
 
   * Conclusion: She clearly is not very smart. 💀
 * [x] Other stuff apparently done not too long ago by **izzy!**

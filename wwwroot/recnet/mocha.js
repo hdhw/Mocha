@@ -2314,7 +2314,10 @@ async function coachGiftingView() {
     updateFormVisibility();
 
     let catalogSkip = 0;
-    const catalogTake = 20;
+    // Was 20 - with a ~3,300-item catalog and a 50-item server cap, browsing
+    // without a search term meant paging through dozens of screens to find
+    // anything. Both raised together (see SearchStorefrontCatalog's Take clamp).
+    const catalogTake = 500;
     async function loadCatalog() {
         const catalogSearch = document.querySelector('#catalogSearch');
         const catalogType = document.querySelector('#catalogType');

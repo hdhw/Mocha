@@ -3786,7 +3786,7 @@ namespace Mocha2023.Controllers
             [FromQuery] string? search = null,
             [FromQuery] string? type = null,
             [FromQuery] int skip = 0,
-            [FromQuery] int take = 50,
+            [FromQuery] int take = 500,
             [FromQuery] bool includeHidden = true)
         {
             var admin = AuthStuff.GetCurrentPlayer(Request);

@@ -10248,9 +10248,12 @@ namespace Mocha2023.Controllers
                 .ThenBy(item => item.FriendlyName, StringComparer.OrdinalIgnoreCase);
 
             int total = query.Count();
+            // This is an authenticated admin-only tool, not a public API - the
+            // old 50-item cap forced dozens of pages to browse a ~3,300-item
+            // catalog. 2000 comfortably covers any single catalog type in one page.
             List<StorefrontAdminItem> items = query
                 .Skip(Math.Max(0, skip))
-                .Take(Math.Clamp(take, 1, 50))
+                .Take(Math.Clamp(take, 1, 2000))
                 .ToList();
 
             return (items, total);
