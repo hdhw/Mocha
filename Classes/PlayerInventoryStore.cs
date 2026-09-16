@@ -193,6 +193,23 @@ namespace Mocha2023.Classes
             if (string.IsNullOrWhiteSpace(descriptor) && avatarItemId <= 0)
                 return false;
 
+            // Callers that only have the raw descriptor (gift boxes, mainly)
+            // used to leave FriendlyName/AvatarItemId blank, which fell back
+            // to the descriptor GUID string as a fake friendly name and an
+            // AvatarItemId stuck at 0. Resolve the real values from the full
+            // catalog instead whenever they're missing.
+            if (owned && (string.IsNullOrWhiteSpace(friendlyName) || avatarItemId <= 0))
+            {
+                (long Id, string Name)? resolved = LookupMasterAvatarCatalogItem(descriptor);
+                if (resolved != null)
+                {
+                    if (string.IsNullOrWhiteSpace(friendlyName))
+                        friendlyName = resolved.Value.Name;
+                    if (avatarItemId <= 0 && resolved.Value.Id > 0)
+                        avatarItemId = resolved.Value.Id;
+                }
+            }
+
             lock (InventoryLock)
             {
                 List<AvatarItemOwnership> items = GetAvatarItems(
@@ -237,6 +254,82 @@ namespace Mocha2023.Classes
                 SaveAvatarItemsUnsafe(GetAvatarItemsPath(accountId), items);
                 return true;
             }
+        }
+
+        // One-time repair for records already written with the old bug: an
+        // AvatarItemId stuck at 0 and FriendlyName set to the raw descriptor
+        // GUID instead of a real name, because the caller granted the item by
+        // descriptor alone. Re-resolves every account's file against the full
+        // catalog. Returns (accounts fixed, items fixed).
+        public static (int AccountsFixed, int ItemsFixed) RepairAvatarItemNames()
+        {
+            string root = Path.Combine(Program.dataDir, "AvatarItemsUnlocked");
+            if (!Directory.Exists(root))
+                return (0, 0);
+
+            int accountsFixed = 0;
+            int itemsFixed = 0;
+
+            lock (InventoryLock)
+            {
+                foreach (string accountDir in Directory.EnumerateDirectories(root))
+                {
+                    string path = Path.Combine(accountDir, "AvatarItems.json");
+                    if (!File.Exists(path))
+                        continue;
+
+                    List<AvatarItemOwnership> items;
+                    try
+                    {
+                        items = JsonSerializer.Deserialize<List<AvatarItemOwnership>>(
+                                    File.ReadAllText(path),
+                                    ReadOptions)
+                                ?? new List<AvatarItemOwnership>();
+                    }
+                    catch (JsonException)
+                    {
+                        continue;
+                    }
+
+                    bool changed = false;
+                    foreach (AvatarItemOwnership item in items)
+                    {
+                        bool brokenName = !string.IsNullOrWhiteSpace(item.AvatarItemDesc) &&
+                            string.Equals(
+                                item.FriendlyName,
+                                item.AvatarItemDesc,
+                                StringComparison.OrdinalIgnoreCase);
+                        bool brokenId = item.AvatarItemId <= 0;
+                        if (!brokenName && !brokenId)
+                            continue;
+
+                        (long Id, string Name)? resolved =
+                            LookupMasterAvatarCatalogItem(item.AvatarItemDesc);
+                        if (resolved == null)
+                            continue;
+
+                        if (brokenName && !string.IsNullOrWhiteSpace(resolved.Value.Name))
+                        {
+                            item.FriendlyName = resolved.Value.Name;
+                            changed = true;
+                            itemsFixed++;
+                        }
+                        if (brokenId && resolved.Value.Id > 0)
+                        {
+                            item.AvatarItemId = resolved.Value.Id;
+                            changed = true;
+                        }
+                    }
+
+                    if (changed)
+                    {
+                        SaveAvatarItemsUnsafe(path, items);
+                        accountsFixed++;
+                    }
+                }
+            }
+
+            return (accountsFixed, itemsFixed);
         }
 
         public static int GetConsumableQuantity(
@@ -446,6 +539,70 @@ namespace Mocha2023.Classes
             catch
             {
                 return new List<AvatarItemOwnership>();
+            }
+        }
+
+        // The full catalog (thousands of items), not AvatarItemsDefault.json's
+        // small starter set above - used to resolve a real FriendlyName/
+        // AvatarItemId whenever a caller grants an item by descriptor alone
+        // (e.g. a gift box) instead of falling back to the raw GUID descriptor
+        // as a fake "friendly name" with AvatarItemId stuck at 0.
+        private static Dictionary<string, (long Id, string Name)>? _masterAvatarCatalogCache;
+        private static DateTime _masterAvatarCatalogCacheTimestamp;
+        private static readonly object MasterAvatarCatalogLock = new();
+
+        private static (long Id, string Name)? LookupMasterAvatarCatalogItem(string descriptor)
+        {
+            if (string.IsNullOrWhiteSpace(descriptor))
+                return null;
+
+            string path = Path.Combine(Program.dataDir, "APIS", "Items", "AvatarItems.json");
+            if (!File.Exists(path))
+                return null;
+
+            DateTime timestamp = File.GetLastWriteTimeUtc(path);
+
+            lock (MasterAvatarCatalogLock)
+            {
+                if (_masterAvatarCatalogCache == null ||
+                    timestamp != _masterAvatarCatalogCacheTimestamp)
+                {
+                    var built = new Dictionary<string, (long, string)>(StringComparer.OrdinalIgnoreCase);
+                    try
+                    {
+                        JsonNode? root = JsonNode.Parse(File.ReadAllText(path));
+                        if (root is JsonArray array)
+                        {
+                            foreach (JsonNode? node in array)
+                            {
+                                if (node is not JsonObject item)
+                                    continue;
+
+                                string desc = ReadString(
+                                    item,
+                                    "AvatarItemDesc",
+                                    "AvatarItemDescriptor",
+                                    "ItemDesc");
+                                if (string.IsNullOrWhiteSpace(desc) || built.ContainsKey(desc))
+                                    continue;
+
+                                long id = ReadLong(item, "AvatarItemId", "ItemId", "Id");
+                                string name = ReadString(item, "FriendlyName", "Name");
+                                built[desc] = (id, string.IsNullOrWhiteSpace(name) ? desc : name);
+                            }
+                        }
+                    }
+                    catch (JsonException)
+                    {
+                    }
+
+                    _masterAvatarCatalogCache = built;
+                    _masterAvatarCatalogCacheTimestamp = timestamp;
+                }
+
+                return _masterAvatarCatalogCache.TryGetValue(descriptor, out var found)
+                    ? found
+                    : null;
             }
         }
 

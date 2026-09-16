@@ -7613,6 +7613,26 @@ namespace Mocha2023.Controllers
             });
         }
 
+        // One-time repair for avatar items granted before the descriptor-only
+        // grant path resolved real names/ids from the catalog - fixes
+        // AvatarItemId stuck at 0 and FriendlyName showing the raw GUID
+        // descriptor instead of the item's actual name.
+        [HttpPost("admin/avataritems/repair-names")]
+        public IActionResult RepairAvatarItemNames()
+        {
+            if (!IsAdmin(AuthStuff.GetCurrentPlayer(Request)))
+                return StatusCode(403);
+
+            (int accountsFixed, int itemsFixed) = PlayerInventoryStore.RepairAvatarItemNames();
+            return Ok(new
+            {
+                success = true,
+                accountsFixed,
+                itemsFixed,
+                message = $"Fixed {itemsFixed} item(s) across {accountsFixed} account(s)."
+            });
+        }
+
         private static bool IsAdmin(PlayerDBClasses.FullPlayer? account) =>
             IsDeveloper(account);
 

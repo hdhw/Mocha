@@ -2143,6 +2143,13 @@ async function miscView() {
     </div>
 
     <div class="card">
+        <h2>Repair avatar item names</h2>
+        <p class="field-hint">Fixes avatar items granted before names were resolved from the catalog - AvatarItemId stuck at 0 and FriendlyName showing the raw item descriptor instead of a real name.</p>
+        <button class="btn" id="repairAvatarNames">Repair all accounts</button>
+        <span class="form-status" id="repairAvatarNamesStatus"></span>
+    </div>
+
+    <div class="card">
         <h2>In-game announcements</h2>
         <p class="field-hint">These are the ones players actually see live in-game (Data/announcements.json) - not the site-wide <a href="#announcements">Announcements</a> page, which is a separate feed.</p>
         <input type="hidden" id="igaEditId">
@@ -2234,6 +2241,11 @@ async function miscView() {
         }
         const data = await send(`${API}/admin/economy/reset`, 'POST', {});
         return data.message || `Reset ${data.count ?? 0} player(s).`;
+    });
+
+    wire('repairAvatarNames', 'repairAvatarNamesStatus', async () => {
+        const data = await send(`${API}/admin/avataritems/repair-names`, 'POST', {});
+        return data.message || `Fixed ${data.itemsFixed ?? 0} item(s).`;
     });
 
     const igaImageFile = document.querySelector('#igaImageFile');
