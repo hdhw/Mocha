@@ -2345,6 +2345,74 @@ namespace Mocha2023.Controllers
             return eligible[^1];
         }
 
+        private static PlayerDBClasses.RewardDropOption ToRewardDropOption(GameRewardDrop drop) => new()
+        {
+            AvatarItemDesc = drop.AvatarItemDesc,
+            ConsumableItemDesc = drop.ConsumableItemDesc,
+            EquipmentPrefabName = drop.EquipmentPrefabName,
+            EquipmentModificationGuid = drop.EquipmentModificationGuid,
+            FriendlyName = drop.FriendlyName,
+            Rarity = drop.Rarity,
+        };
+
+        // Up to 3 distinct, unowned drops for a choice screen - drawn from the
+        // activity's own pool first, topped up from the generic consolation
+        // pool if that pool doesn't have 3 eligible items on its own (e.g.
+        // IsleOfLostSkullsWinPool only has one real themed item).
+        private static List<GameRewardDrop> PickThreeDistinctDrops(long accountId, GameRewardDrop[] primaryPool)
+        {
+            var chosen = new List<GameRewardDrop>();
+            var remaining = new List<GameRewardDrop>(primaryPool);
+
+            for (int i = 0; i < 3 && remaining.Count > 0; i++)
+            {
+                GameRewardDrop? pick = PickGameRewardDrop(accountId, remaining.ToArray());
+                if (pick == null)
+                    break;
+                chosen.Add(pick);
+                remaining.Remove(pick);
+            }
+
+            if (chosen.Count < 3 && !ReferenceEquals(primaryPool, GenericConsolationPool))
+            {
+                var fallback = GenericConsolationPool
+                    .Where(candidate => chosen.All(c => c.FriendlyName != candidate.FriendlyName))
+                    .ToArray();
+                while (chosen.Count < 3 && fallback.Length > 0)
+                {
+                    GameRewardDrop? pick = PickGameRewardDrop(accountId, fallback);
+                    if (pick == null)
+                        break;
+                    chosen.Add(pick);
+                    fallback = fallback.Where(c => c.FriendlyName != pick.FriendlyName).ToArray();
+                }
+            }
+
+            return chosen;
+        }
+
+        // The subscriber-only 3rd slot: an upgrade over the plain GiftDrop3,
+        // preferring one of the pool's rare (Weight < 100) items - the whole
+        // point of RRPlus getting a better version of the same choice - and
+        // falling back to whatever GiftDrop3 already is if the pool has no
+        // rare item left to offer.
+        private static GameRewardDrop PickSubscriberUpgrade(
+            long accountId,
+            GameRewardDrop[] primaryPool,
+            List<GameRewardDrop> alreadyChosen,
+            GameRewardDrop fallback)
+        {
+            GameRewardDrop[] rareCandidates = primaryPool
+                .Where(candidate => candidate.Weight < 100)
+                .Where(candidate => alreadyChosen.All(c => c.FriendlyName != candidate.FriendlyName))
+                .Where(candidate => !IsGameRewardDropOwned(accountId, candidate))
+                .ToArray();
+
+            return rareCandidates.Length > 0
+                ? PickGameRewardDrop(accountId, rareCandidates) ?? fallback
+                : fallback;
+        }
+
         [HttpGet("/api/gamerewards/v1/pending")]
         public IActionResult GetPendingGameRewards()
         {
@@ -2352,9 +2420,13 @@ namespace Mocha2023.Controllers
             if (id == null)
                 return Unauthorized();
 
-            // The reward is delivered live as a gift box, not listed here - the
-            // real client reads this as "nothing pending" either way.
-            return Ok(Array.Empty<object>());
+            var player = PlayerDB.Players.FindById(id.Value);
+            PlayerDBClasses.PendingRewardSelection? pending = player?.Player?.PlayerExtra?.PendingRewardSelection;
+
+            // The client reads "nothing pending" as an empty array, not a
+            // missing/null field - keep matching that shape when there's no
+            // open choice.
+            return pending != null ? Ok(pending) : Ok(Array.Empty<object>());
         }
 
         // The client posts whenever it thinks a reward is due (form fields
@@ -2412,7 +2484,6 @@ namespace Mocha2023.Controllers
             }
 
             player.Player.PlayerExtra.GameRewardClaimUnixTime[claimKey] = now;
-            PlayerDB.Players.Update(player);
 
             // AddExperience -> SetProgression already handles the progression
             // push and any level-up box on its own.
@@ -2422,39 +2493,130 @@ namespace Mocha2023.Controllers
             // that's set up); an unknown one still isn't left empty - it draws
             // from the generic consolation pool, so every giftContext pays
             // something rather than only the ones listed above.
-            GameRewardDrop? drop = GameRewardPools.TryGetValue(giftContext, out GameRewardPool? pool)
-                ? PickGameRewardDrop(id.Value, pool.For(won))
-                : PickGameRewardDrop(id.Value, GenericConsolationPool);
+            GameRewardDrop[] sourcePool = GameRewardPools.TryGetValue(giftContext, out GameRewardPool? pool)
+                ? pool.For(won)
+                : GenericConsolationPool;
 
-            if (drop != null)
+            List<GameRewardDrop> choices = PickThreeDistinctDrops(id.Value, sourcePool);
+            if (choices.Count == 0)
             {
-                if (!string.IsNullOrWhiteSpace(drop.AvatarItemDesc))
+                // Nothing left to offer (everything eligible already owned) -
+                // still record the claim/XP above, just no choice screen.
+                player.Player.PlayerExtra.PendingRewardSelection = null;
+                PlayerDB.Players.Update(player);
+                Console.WriteLine(
+                    $"[GAME REWARD] player={id.Value} type={rewardType} " +
+                    $"context={giftContext} won={won} item=none (all owned) xp={GameRewardXp}");
+                return Ok(Array.Empty<object>());
+            }
+
+            while (choices.Count < 3)
+                choices.Add(choices[^1]);
+
+            GameRewardDrop subscriberUpgrade = PickSubscriberUpgrade(id.Value, sourcePool, choices, choices[2]);
+
+            var selection = new PlayerDBClasses.PendingRewardSelection
+            {
+                RewardSelectionId = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                RewardType = rewardType,
+                Message = message,
+                GiftContext = (int)PlayerDBClasses.GiftContext.GameRewards,
+                GiftDrop1 = ToRewardDropOption(choices[0]),
+                GiftDrop2 = ToRewardDropOption(choices[1]),
+                GiftDrop3 = ToRewardDropOption(choices[2]),
+                Subscriber_GiftDrop3 = ToRewardDropOption(subscriberUpgrade),
+                CreatedAt = DateTimeOffset.UtcNow,
+                ActivityContext = giftContext,
+            };
+
+            player.Player.PlayerExtra.PendingRewardSelection = selection;
+            PlayerDB.Players.Update(player);
+
+            Console.WriteLine(
+                $"[GAME REWARD] player={id.Value} type={rewardType} context={giftContext} " +
+                $"won={won} offered={choices[0].FriendlyName}/{choices[1].FriendlyName}/{choices[2].FriendlyName} " +
+                $"xp={GameRewardXp}");
+
+            return Ok(selection);
+        }
+
+        // The client posts the RewardSelectionId it got back from /request (or
+        // /pending) plus which of the 1-3 slots it picked. Grants that drop,
+        // pushes a confirmation gift box the same way the old direct-grant
+        // flow did, and clears the pending selection.
+        [HttpPost("/api/gamerewards/v1/select")]
+        public async Task<IActionResult> SelectGameReward()
+        {
+            long? id = AuthStuff.GetPlayerId(Request);
+            if (id == null)
+                return Unauthorized();
+
+            var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var queryValue in Request.Query)
+                values[queryValue.Key] = queryValue.Value.ToString();
+            if (Request.HasFormContentType)
+            {
+                var form = await Request.ReadFormAsync();
+                foreach (var formValue in form)
+                    values[formValue.Key] = formValue.Value.ToString();
+            }
+
+            if (!values.TryGetValue("RewardSelectionId", out string? selectionIdRaw) ||
+                !long.TryParse(selectionIdRaw, out long selectionId))
+            {
+                return BadRequest(new { success = false, error = "RewardSelectionId is required." });
+            }
+
+            string slotRaw =
+                values.TryGetValue("SelectedIndex", out string? s1) ? s1 :
+                values.TryGetValue("GiftDropIndex", out string? s2) ? s2 :
+                values.TryGetValue("Slot", out string? s3) ? s3 :
+                values.TryGetValue("Choice", out string? s4) ? s4 : string.Empty;
+            if (!int.TryParse(slotRaw, out int slot) || slot < 1 || slot > 3)
+                return BadRequest(new { success = false, error = "SelectedIndex must be 1, 2, or 3." });
+
+            var player = PlayerDB.Players.FindById(id.Value);
+            PlayerDBClasses.PendingRewardSelection? pending = player?.Player?.PlayerExtra?.PendingRewardSelection;
+            if (player?.Player == null || pending == null || pending.RewardSelectionId != selectionId)
+                return BadRequest(new { success = false, error = "No matching pending reward selection." });
+
+            PlayerDBClasses.RewardDropOption? chosen = slot switch
+            {
+                1 => pending.GiftDrop1,
+                2 => pending.GiftDrop2,
+                3 => PlayerDB.HasRRPlus(id.Value) ? (pending.Subscriber_GiftDrop3 ?? pending.GiftDrop3) : pending.GiftDrop3,
+                _ => null,
+            };
+
+            if (chosen != null)
+            {
+                if (!string.IsNullOrWhiteSpace(chosen.AvatarItemDesc))
                 {
                     PlayerInventoryStore.SetAvatarItemOwned(
                         id.Value,
-                        drop.AvatarItemDesc,
+                        chosen.AvatarItemDesc,
                         avatarItemId: 0,
-                        drop.FriendlyName,
+                        chosen.FriendlyName,
                         owned: true);
                 }
-                else if (!string.IsNullOrWhiteSpace(drop.EquipmentPrefabName))
+                else if (!string.IsNullOrWhiteSpace(chosen.EquipmentPrefabName))
                 {
                     EquipmentInventoryStore.AddOwnedItem(
                         id.Value,
-                        drop.EquipmentPrefabName,
-                        drop.EquipmentModificationGuid,
-                        drop.FriendlyName,
+                        chosen.EquipmentPrefabName,
+                        chosen.EquipmentModificationGuid,
+                        chosen.FriendlyName,
                         tooltip: null,
-                        drop.Rarity,
+                        chosen.Rarity,
                         thumbnailImage: null);
                 }
-                else if (!string.IsNullOrWhiteSpace(drop.ConsumableItemDesc))
+                else if (!string.IsNullOrWhiteSpace(chosen.ConsumableItemDesc))
                 {
                     PlayerInventoryStore.AddConsumable(
                         id.Value,
-                        drop.ConsumableItemDesc,
+                        chosen.ConsumableItemDesc,
                         consumableItemId: 0,
-                        drop.FriendlyName,
+                        chosen.FriendlyName,
                         amount: 1);
                 }
             }
@@ -2464,19 +2626,19 @@ namespace Mocha2023.Controllers
                 GiftPackageId = 0,
                 FromPlayerId = NotiController.CoachAccountId,
                 PlayerId = checked((int)id.Value),
-                Message = message,
-                GiftContext = (int)PlayerDBClasses.GiftContext.GameRewards,
-                AvatarItemDesc = drop?.AvatarItemDesc ?? string.Empty,
-                EquipmentPrefabName = drop?.EquipmentPrefabName ?? string.Empty,
-                EquipmentModificationGuid = drop?.EquipmentModificationGuid ?? string.Empty,
-                ConsumableItemDesc = drop?.ConsumableItemDesc ?? string.Empty,
+                Message = pending.Message,
+                GiftContext = pending.GiftContext,
+                AvatarItemDesc = chosen?.AvatarItemDesc ?? string.Empty,
+                EquipmentPrefabName = chosen?.EquipmentPrefabName ?? string.Empty,
+                EquipmentModificationGuid = chosen?.EquipmentModificationGuid ?? string.Empty,
+                ConsumableItemDesc = chosen?.ConsumableItemDesc ?? string.Empty,
                 ConsumableQuantity = 1,
-                FriendlyName = drop?.FriendlyName ?? string.Empty,
-                Tooltip = drop != null
-                    ? $"Reward from {(string.IsNullOrWhiteSpace(giftContext) ? "gameplay" : giftContext)}."
+                FriendlyName = chosen?.FriendlyName ?? string.Empty,
+                Tooltip = chosen != null
+                    ? $"Reward from {(string.IsNullOrWhiteSpace(pending.ActivityContext) ? "gameplay" : pending.ActivityContext)}."
                     : "Thanks for playing!",
                 ThumbnailImage = string.Empty,
-                Rarity = drop?.Rarity ?? 0,
+                Rarity = chosen?.Rarity ?? 0,
                 // Currency stays 0: this box is a notification, not a currency
                 // grant - see GrantLevelUpBox's fix for why that field must not
                 // be set when the reward was already paid out directly.
@@ -2487,8 +2649,11 @@ namespace Mocha2023.Controllers
                 PlatformMask = -1,
                 BalanceType = (int)BalanceType.NonPurchasedNotUsableInP2P,
                 IsQuery = false,
-                Unique = drop != null
+                Unique = chosen != null
             };
+
+            player.Player.PlayerExtra!.PendingRewardSelection = null;
+            PlayerDB.Players.Update(player);
 
             GiftPackage? queued = PlayerDB.QueueGiftPackage(id.Value, giftPackage);
             if (queued != null)
@@ -2510,11 +2675,10 @@ namespace Mocha2023.Controllers
             }
 
             Console.WriteLine(
-                $"[GAME REWARD] player={id.Value} type={rewardType} " +
-                $"context={giftContext} won={won} item={drop?.FriendlyName ?? "none"} " +
-                $"xp={GameRewardXp}");
+                $"[GAME REWARD SELECTED] player={id.Value} selectionId={selectionId} " +
+                $"slot={slot} item={chosen?.FriendlyName ?? "none"}");
 
-            return Ok(Array.Empty<object>());
+            return Ok(new { success = true });
         }
 
         public class EquipmentUpdateRequest
@@ -4098,7 +4262,6 @@ namespace Mocha2023.Controllers
         [HttpPost("/api/checklist/v1/complete")]
         [HttpPost("/api/externalfriendinvite/v1/createplatforminvite")]
         [HttpPost("/api/externalfriendinvite/v1/sendtextmessageinvite")]
-        [HttpPost("/api/gamerewards/v1/select")]
         [HttpPost("/api/incentivizedreferrals/claim")]
         [HttpPost("/api/inventions/v1/delete")]
         [HttpDelete("/api/inventions/v1/delete")]

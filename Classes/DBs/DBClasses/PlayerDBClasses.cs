@@ -162,6 +162,11 @@ namespace Mocha2023.Classes.DBs.DBClasses
             [JsonIgnore]
             public Dictionary<string, long> GameRewardClaimUnixTime { get; set; } = new();
 
+            // Set by /api/gamerewards/v1/request, resolved (and cleared) by
+            // /api/gamerewards/v1/select. Null when the player has no open
+            // reward choice.
+            public PendingRewardSelection? PendingRewardSelection { get; set; }
+
             [JsonIgnore]
             public long FriendotronLastSentUtcDay { get; set; }
 
@@ -206,6 +211,35 @@ namespace Mocha2023.Classes.DBs.DBClasses
             public int? BalanceType { get; set; } = -1;
             public bool IsQuery { get; set; }
             public bool Unique { get; set; } = true;
+        }
+
+        public sealed class RewardDropOption
+        {
+            public string AvatarItemDesc { get; set; } = string.Empty;
+            public string ConsumableItemDesc { get; set; } = string.Empty;
+            public string EquipmentPrefabName { get; set; } = string.Empty;
+            public string EquipmentModificationGuid { get; set; } = string.Empty;
+            public string FriendlyName { get; set; } = string.Empty;
+            public int Rarity { get; set; }
+        }
+
+        public sealed class PendingRewardSelection
+        {
+            public long RewardSelectionId { get; set; }
+            public string RewardType { get; set; } = string.Empty;
+            public string Message { get; set; } = string.Empty;
+            public int GiftContext { get; set; }
+            public RewardDropOption? GiftDrop1 { get; set; }
+            public RewardDropOption? GiftDrop2 { get; set; }
+            public RewardDropOption? GiftDrop3 { get; set; }
+            public RewardDropOption? Subscriber_GiftDrop3 { get; set; }
+            public DateTimeOffset CreatedAt { get; set; }
+
+            // Not part of the client-facing shape - kept server-side so
+            // /select can build a correct confirmation gift box without the
+            // client having to echo the activity/outcome back to us.
+            [JsonIgnore]
+            public string ActivityContext { get; set; } = string.Empty;
         }
 
         public class PartyInviteRecord
