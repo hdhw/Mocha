@@ -6,7 +6,7 @@ using LiteDB;
 
 namespace Mocha2023.Classes.DBs.DBClasses
 {
-    public class PlayerDBClasses
+    public partial class PlayerDBClasses
     {
         public class FullPlayer
         {
@@ -157,6 +157,11 @@ namespace Mocha2023.Classes.DBs.DBClasses
             public List<EquipmentItem> Equipment { get; set; } = new();
             public List<GiftPackage> PendingGiftPackages { get; set; } = new();
 
+            // Keyed by "{rewardType}|{giftContext}" - one claim per hour per
+            // (type, activity) pair, per /api/gamerewards/v1/request.
+            [JsonIgnore]
+            public Dictionary<string, long> GameRewardClaimUnixTime { get; set; } = new();
+
             [JsonIgnore]
             public long FriendotronLastSentUtcDay { get; set; }
 
@@ -175,114 +180,6 @@ namespace Mocha2023.Classes.DBs.DBClasses
 
             public List<string> Warnings { get; set; } = new();
             public List<string> ItemWishlist { get; set; } = new();
-        }
-
-        public enum GiftContext
-        {
-            None = -1,
-            Default,
-            First_Activity,
-            Game_Drop,
-            All_Daily_Challenges_Complete,
-            All_Weekly_Challenge_Complete,
-            Daily_Challenge_Complete,
-            Weekly_Challenge_Complete,
-            Unassigned_Equipment = 10,
-            Unassigned_Avatar,
-            Unassigned_Consumable,
-            Reacquisition = 20,
-            Membership,
-            NUX_TokensAndDressUp = 30,
-            NUX_Experiment1,
-            NUX_Experiment2,
-            NUX_Experiment3,
-            NUX_Experiment4,
-            NUX_Experiment5,
-            GameRewards = 50,
-            GameRewards_Tokens,
-            LevelUp = 100,
-            Purchased_Gift_A = 500,
-            Purchased_Gift_B,
-            Purchased_Gift_C,
-            Purchased_Gift_D,
-            Holiday = 1000,
-            Contest,
-            Promotion,
-            SubscribersOnly,
-            Deprecated = 1100,
-            RecRoyale = 1200,
-            DEPRECATED_Paintball_ClearCut = 2000,
-            DEPRECATED_Paintball_Homestead,
-            DEPRECATED_Paintball_Quarry,
-            DEPRECATED_Paintball_River,
-            DEPRECATED_Paintball_Dam,
-            DEPRECATED_Paintball_DriveIn,
-            Paintball_ClearCut = 2010,
-            Paintball_Homestead,
-            Paintball_Quarry,
-            Paintball_River,
-            Paintball_Dam,
-            Paintball_DriveIn,
-            DEPRECATED_Discgolf_Propulsion = 3000,
-            DEPRECATED_Discgolf_Lake,
-            Discgolf_Propulsion = 3010,
-            Discgolf_Lake,
-            Discgolf_Mode_CoopCatch = 3500,
-            Quest_Goblin_A = 4000,
-            Quest_Goblin_B,
-            Quest_Goblin_C,
-            Quest_Goblin_S,
-            Quest_Goblin_Consumable,
-            Quest_Cauldron_A = 4010,
-            Quest_Cauldron_B,
-            Quest_Cauldron_C,
-            Quest_Cauldron_S,
-            Quest_Cauldron_Consumable,
-            Quest_Pirate1_A = 4100,
-            Quest_Pirate1_B,
-            Quest_Pirate1_C,
-            Quest_Pirate1_S,
-            Quest_Pirate1_X,
-            Quest_Pirate1_Consumable,
-            Quest_Dracula1_A = 4200,
-            Quest_Dracula1_B,
-            Quest_Dracula1_C,
-            Quest_Dracula1_S,
-            Quest_Dracula1_X,
-            Quest_Dracula1_Consumable,
-            Quest_Dracula1_SS,
-            Quest_SciFi_A = 4500,
-            Quest_SciFi_B,
-            Quest_SciFi_C,
-            Quest_SciFi_S,
-            Quest_Scifi_Consumable,
-            DEPRECATED_Charades = 5000,
-            Charades,
-            DEPRECATED_Soccer = 6000,
-            Soccer,
-            DEPRECATED_Paddleball = 7000,
-            Paddleball,
-            DEPRECATED_Dodgeball = 8000,
-            Dodgeball,
-            DEPRECATED_Lasertag = 9000,
-            Lasertag,
-            DEPRECATED_Bowling = 10000,
-            Bowling,
-            StuntRunner_TheMainEvent_A = 11000,
-            StuntRunner_TheMainEvent_B,
-            StuntRunner_TheMainEvent_C,
-            StuntRunner_TheMainEvent_D,
-            StuntRunner_TheMainEvent_S,
-            StuntRunner_TheMainEvent_X,
-            StuntRunner_TheMainEvent_Consumable,
-            StuntRunner_TheMainEvent_SS,
-            Store_LaserTag = 100000,
-            Store_RecCenter = 100010,
-            Consumable = 110000,
-            Token = 110100,
-            Punchcard_Challenge_Complete = 110200,
-            All_Punchcard_Challenges_Complete,
-            Commerce_Purchase = 200000
         }
 
         public sealed class GiftPackage
@@ -465,178 +362,6 @@ namespace Mocha2023.Classes.DBs.DBClasses
             public long PlayerId { get; set; }
             public int Level { get; set; }
             public int XP { get; set; }
-        }
-
-        public enum Platforms
-        {
-            All = -1,
-            Steam,
-            Oculus,
-            PlayStation,
-            Xbox,
-            HeadlessBot,
-            IOS,
-            GooglePlay
-        }
-
-        public enum PlayerRoles
-        {
-            Screenshare,
-            Moderator,
-            Developer,
-            Influencer,
-            RRPlus,
-            Keepsake,
-
-            CommunityTeam,
-
-            ContentCreator,
-            Helper,
-            Admin
-        }
-
-        public enum ReportCategory
-        {
-            Moderator = -1,
-            Unknown,
-            DEPRECATED_MicrophoneAbuse,
-            Harassment,
-            Cheating,
-            DEPRECATED_ImmatureBehavior,
-            AFK,
-            Misc,
-            Underage,
-            VoteKick = 10,
-            MisleadingPurchases,
-            CoC_Underage = 100,
-            CoC_Sexual,
-            CoC_Discrimination,
-            CoC_Trolling,
-            CoC_NameOrProfile,
-            IssuingInaccurateReports = 1000
-        }
-
-        public enum CheerCategory
-        {
-            General,
-            Helpful = 10,
-            Sportmanship = 20,
-            GreatHost = 30,
-            Creative = 40,
-
-            RecRoomDeveloper = 9000,
-            RecRoomCommunityTeam = 9001
-        }
-
-        public enum CheerStatus
-        {
-            Pending,
-            Accepted,
-            Dismissed
-        }
-
-        public enum RelationshipType
-        {
-            None,
-            OutgoingFriendRequest,
-            IncomingFriendRequest,
-            Friend
-        }
-
-        public enum MatchmakingErrorCode
-        {
-            UnknownError = -1,
-            Success,
-            NoSuchGame,
-            PlayerNotOnline,
-            InsufficientSpace,
-            EventNotStarted,
-            EventAlreadyFinished,
-            BlockedFromRoom = 7,
-            JuniorNotAllowed = 11,
-            Banned,
-            AlreadyInBestInstance,
-            InsufficientRelationship,
-            UpdateRequired = 16,
-            AlreadyInTargetInstance,
-            UGCNotAllowed = 19,
-            NoSuchRoom,
-            RoomIsNotActive = 22,
-            RoomBlockedByCreator,
-            RoomIsPrivate = 25,
-            RoomInstanceIsPrivate,
-            DeviceClassNotSupported = 30,
-            DeviceClassNotSupportedByRoomOwner,
-            MovementModeNotSupportedByRoomOwner,
-            EventIsPrivate = 35,
-            RoomInviteExpired = 40,
-            NoAvailableRegion = 45,
-            NotorietyTooPoor = 50,
-            BannedFromRoom = 55,
-            NoSuchRoomPlaylist = 60,
-            RoomPlaylistIsNotActive,
-            RoomPlaylistIsPrivate,
-            NoSuchClub = 70,
-            ClubHasNoClubhouse,
-            ClubIsNotActive = 73,
-            NotAMemberOfClub,
-            BannedFromClub,
-            InstanceJoinNotPermitted,
-            LevelTooLow
-        }
-
-        public enum DeviceClasses
-        {
-            Unknown,
-            VR,
-            Screen,
-            Mobile,
-            VRLow,
-            Quest2
-        }
-
-        public enum CurrencyType
-        {
-            Invalid,
-            LaserTagTickets,
-            RecCenterTokens,
-            LostSkullsGold = 100,
-            DraculaSilver,
-            RecRoyale_Season1 = 200,
-            RoomCurrency = 300
-        }
-
-        public enum BalanceType
-        {
-            NonPurchasedNotUsableInP2P = -2,
-            NonPurchasedDefault,
-            SteamPurchased,
-            OculusPurchased,
-            PlayStationPurchased,
-            MicrosoftPurchased,
-            IOSPurchased = 5,
-            GooglePlayPurchased,
-            PlayStationNonPurchasedP2P = 100,
-            NonPlayStationNonPurchasedP2P,
-            NonPurchasedEarnedByP2P = 1000
-        }
-
-        public enum StatusVisibility
-        {
-            Online,
-            Away,
-            Offline,
-            Unknown = 100
-        }
-
-        public enum RoomInstanceType
-        {
-            Public,
-            Private,
-            Dormroom,
-            Event,
-            Meetup,
-            Clubhouse
         }
 
         public class SavedOutfit : Avatar

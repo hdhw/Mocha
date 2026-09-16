@@ -338,6 +338,10 @@ td input { font-size: 13px; padding: 6px 8px; }
   border-radius: 50%;
 }
 
+/* ============================================================
+   SaaS polish layer (v2) — flat surfaces, calmer accents,
+   metric cards, focus rings, consistent spacing/typography.
+   ============================================================ */
 :root {
   --radius: 10px;
   --radius-sm: 7px;

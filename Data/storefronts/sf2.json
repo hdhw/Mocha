@@ -2,7 +2,7 @@
   "StoreItems": [
     {
       "GiftDrop": {
-        "AvatarItemDesc": "28e5dd74-7963-42cf-aa68-f8005aaf312e,rv8cpfd8kUCK5NbwjNmExg",
+        "AvatarItemDesc": "0QOlT9c5xUuinpfZaoEe8Q,LEUQnDz-k0m-hY-AX3Z9Sg,znNiHfNdTE-szOIAnIWFQg,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -10,12 +10,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Cyborg Skeleton Mask (Purple)",
+        "FriendlyName": "Luau Hat (Paradise)",
         "GiftDropId": 1003000,
         "IsQuery": false,
-        "ItemSetFriendlyName": "Cyborg Skeleton Purple Set",
+        "ItemSetFriendlyName": "Luau Paradise Set",
         "ItemSetId": 1,
-        "Rarity": 50,
+        "Rarity": 20,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -26,23 +26,31 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
+          "Price": 500,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
+          "Price": 450,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "df0e06c4-8ba6-4d7a-bfb2-3759d8fe88c7,WRi0rK1O60qEpDPgOH5P6g",
+        "AvatarItemDesc": "vDSlMnayzEqWXwT-lkcKSA,NKf5-r2S_0iP0SaO9bjvaw,0WOBGm34H0ySBC10VToa9g,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -50,12 +58,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Cyborg Skeleton Hoodie (Purple)",
+        "FriendlyName": "Luau Shirt (Paradise)",
         "GiftDropId": 1003001,
         "IsQuery": false,
-        "ItemSetFriendlyName": "Cyborg Skeleton Purple Set",
+        "ItemSetFriendlyName": "Luau Paradise Set",
         "ItemSetId": 1,
-        "Rarity": 50,
+        "Rarity": 20,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -66,23 +74,31 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
+          "Price": 500,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
+          "Price": 450,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "6a98bbb6-bbe0-4dc3-97a9-e253dc506a2b,lwyGrpMk-kGZwIkioHr8Sg",
+        "AvatarItemDesc": "7aa994d2-6499-4918-ab2a-2531c17e27a7,nPUQvBsxu0mzhQg9YnWEgw,CAqT_iLfQ0qQ-GbIdAsZow,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -90,12 +106,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Cyborg Skeleton Gloves (Purple)",
+        "FriendlyName": "Luau Dress (Paradise)",
         "GiftDropId": 1003002,
         "IsQuery": false,
-        "ItemSetFriendlyName": "Cyborg Skeleton Purple Set",
+        "ItemSetFriendlyName": "Luau Paradise Set",
         "ItemSetId": 1,
-        "Rarity": 50,
+        "Rarity": 20,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -106,23 +122,31 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
+          "Price": 500,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
+          "Price": 450,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "cee80307-68cd-4260-a898-1514dd41dd5d,6WJKUeFNn0amYNvKMxijcw",
+        "AvatarItemDesc": "3eb14fcf-5d20-47d3-b991-97808798a225,yXZO-donI0SHB9-TT0jUdw,5ekjxLQZwUm7-iXJ0bYSiQ,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -130,39 +154,47 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Beam Sword (Forbidden Purple)",
+        "FriendlyName": "Luau Headband (Paradise)",
         "GiftDropId": 1003003,
         "IsQuery": false,
-        "ItemSetFriendlyName": "Forbidden Purple Set",
-        "ItemSetId": 2,
-        "Rarity": 50,
+        "ItemSetFriendlyName": "Luau Paradise Set",
+        "ItemSetId": 1,
+        "Rarity": 20,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
       },
-      "IsFeatured": false,
+      "IsFeatured": true,
       "PurchasableItemId": 1003003,
       "Type": 0,
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
+          "Price": 500,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
+          "Price": 450,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "71fd5353-b439-4a23-b471-bfb99b8154d7,UQfLaKHzo0WqlRul_O61xQ,knKB2ETYmUupbvBwlleZRw,",
+        "AvatarItemDesc": "9441142e-981c-4f35-8f9d-b4b3604da9a4,F0o3eeWbCUaUAGRUdI0z7A",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -170,24 +202,28 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Bunny Ears (Forbidden Purple)",
+        "FriendlyName": "Floral Cape (Midsummer)",
         "GiftDropId": 1003004,
         "IsQuery": false,
-        "ItemSetFriendlyName": "Forbidden Purple Set",
+        "ItemSetFriendlyName": "Midsummer Floral Cape Set",
         "ItemSetId": 2,
         "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
       },
-      "IsFeatured": false,
+      "IsFeatured": true,
       "PurchasableItemId": 1003004,
       "Type": 0,
       "Prices": [
         {
           "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -195,14 +231,18 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "8c9df7cc-2ccf-4d5b-8116-2d8d6c839012,",
+        "AvatarItemDesc": "9441142e-981c-4f35-8f9d-b4b3604da9a4,07qFFGmwm0qmIikemncBkQ",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -210,24 +250,28 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Cat Ear Headphones (Forbidden Purple)",
+        "FriendlyName": "Floral Cape (Midsummer Blue)",
         "GiftDropId": 1003005,
         "IsQuery": false,
-        "ItemSetFriendlyName": "Forbidden Purple Set",
+        "ItemSetFriendlyName": "Midsummer Floral Cape Set",
         "ItemSetId": 2,
         "Rarity": 50,
         "SubscribersOnly": false,
-        "Tooltip": "This item may come in handy at concerts, afterparties, or in dark, forbidden lairs...",
+        "Tooltip": "",
         "Unique": true
       },
-      "IsFeatured": false,
+      "IsFeatured": true,
       "PurchasableItemId": 1003005,
       "Type": 0,
       "Prices": [
         {
           "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -235,14 +279,18 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "59d9560d-e5af-4205-b860-3afea1cc31a9,4ElTihrMA0ipcgeb9UG01Q,b94411f6-5b71-48d0-ace1-ac6f63167065,",
+        "AvatarItemDesc": "9441142e-981c-4f35-8f9d-b4b3604da9a4,hRl4UTGoBUi5dmu0f4s76A",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -250,24 +298,28 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Space Marine Helmet (Purple)",
+        "FriendlyName": "Floral Cape (Midsummer Verdant)",
         "GiftDropId": 1003006,
         "IsQuery": false,
-        "ItemSetFriendlyName": "Space Marine Purple Set",
-        "ItemSetId": 3,
+        "ItemSetFriendlyName": "Midsummer Floral Cape Set",
+        "ItemSetId": 2,
         "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
       },
-      "IsFeatured": false,
+      "IsFeatured": true,
       "PurchasableItemId": 1003006,
       "Type": 0,
       "Prices": [
         {
           "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -275,14 +327,18 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "4ce7a70f-15a0-4cad-98ee-5cbb40827338,4ElTihrMA0ipcgeb9UG01Q,7ac81d60-05b8-4a85-982c-f69213a93818,",
+        "AvatarItemDesc": "9441142e-981c-4f35-8f9d-b4b3604da9a4,qvK8xgbyuE-dW3--Ku-mvw",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -290,24 +346,28 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Space Marine Armor (Purple)",
+        "FriendlyName": "Floral Cape (Midsummer Obsidian)",
         "GiftDropId": 1003007,
         "IsQuery": false,
-        "ItemSetFriendlyName": "Space Marine Purple Set",
-        "ItemSetId": 3,
+        "ItemSetFriendlyName": "Midsummer Floral Cape Set",
+        "ItemSetId": 2,
         "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
       },
-      "IsFeatured": false,
+      "IsFeatured": true,
       "PurchasableItemId": 1003007,
       "Type": 0,
       "Prices": [
         {
           "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -315,14 +375,18 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "4763436c-2dcc-482a-bf37-a6b16d7aae6e,4ElTihrMA0ipcgeb9UG01Q,7634b7ef-9607-497a-b41f-c0191dc75998,",
+        "AvatarItemDesc": "f41653f9-ae02-443c-aaf4-1c6f4e49035d,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -330,144 +394,28 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Space Marine Gloves (Purple)",
+        "FriendlyName": "Flower Swimsuit (Yellow)",
         "GiftDropId": 1003008,
         "IsQuery": false,
-        "ItemSetFriendlyName": "Space Marine Purple Set",
+        "ItemSetFriendlyName": "Flower Swimsuit Set",
         "ItemSetId": 3,
-        "Rarity": 50,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003008,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "01689baf-405e-4b38-9f09-b624e03865b8,d3KmqVuMQkCYK6sVTMOTOA,abdf525b-b871-41be-a1c8-810f49740ad4,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Wizard Hat (Purple)",
-        "GiftDropId": 1003009,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Wizard Purple Set",
-        "ItemSetId": 4,
-        "Rarity": 50,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003009,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "97eae086-cfea-45ff-9b77-1d184256d493,d3KmqVuMQkCYK6sVTMOTOA,8768aa33-b014-4062-b323-b146dd7d78d2,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Wizard Robes (Purple)",
-        "GiftDropId": 1003010,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Wizard Purple Set",
-        "ItemSetId": 4,
-        "Rarity": 50,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003010,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "22ef1089-d073-4fe8-b038-6f34adf0b85f,d3KmqVuMQkCYK6sVTMOTOA,47514b9b-0d17-4727-97ed-dab67e7fe031,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Wizard Bracers (Purple)",
-        "GiftDropId": 1003011,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Wizard Purple Set",
-        "ItemSetId": 4,
         "Rarity": 30,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
       },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003011,
+      "IsFeatured": true,
+      "PurchasableItemId": 1003008,
       "Type": 0,
       "Prices": [
         {
           "CurrencyType": 2,
           "Price": 750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -475,14 +423,18 @@
         {
           "CurrencyType": 2,
           "Price": 675,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "96bc2f9f-ce3a-4c4c-b92c-cfed4ed4594f,lBe3yxuE40eBmTrnEHBqQQ,e4b53a9a-ac95-49ae-bf68-615bb23fa075,",
+        "AvatarItemDesc": "f41653f9-ae02-443c-aaf4-1c6f4e49035d,cf515c87-3c0a-4443-9f63-5ea1bdbaa61a,3248a3ec-50d1-4c0a-96ae-25eb9d8ed622,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -490,24 +442,172 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Beekeeper Veil (Purple)",
+        "FriendlyName": "Flower Swimsuit (White)",
+        "GiftDropId": 1003009,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Flower Swimsuit Set",
+        "ItemSetId": 3,
+        "Rarity": 30,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": true,
+      "PurchasableItemId": 1003009,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 675,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "f41653f9-ae02-443c-aaf4-1c6f4e49035d,27680277-aec1-41be-a476-9f51cf775580,3248a3ec-50d1-4c0a-96ae-25eb9d8ed622,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Flower Swimsuit (Purple)",
+        "GiftDropId": 1003010,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Flower Swimsuit Set",
+        "ItemSetId": 3,
+        "Rarity": 30,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": true,
+      "PurchasableItemId": 1003010,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 675,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "f41653f9-ae02-443c-aaf4-1c6f4e49035d,5a96ac4d-03c3-4214-9dcb-c2044ff28f2e,3248a3ec-50d1-4c0a-96ae-25eb9d8ed622,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Flower Swimsuit (Grey)",
+        "GiftDropId": 1003011,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Flower Swimsuit Set",
+        "ItemSetId": 3,
+        "Rarity": 30,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": true,
+      "PurchasableItemId": 1003011,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 675,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "f15d81c8-3d19-4bbe-87c0-1144aaa4138a,M16XTvLPKUWRpiAspgsatQ,tmaPvkx3BUOZ3nsl2E0oRw,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Fae Horns (Summer)",
         "GiftDropId": 1003012,
         "IsQuery": false,
-        "ItemSetFriendlyName": "Beekeeper Purple Set",
-        "ItemSetId": 5,
+        "ItemSetFriendlyName": "Summer Fae Set",
+        "ItemSetId": 4,
         "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
       },
-      "IsFeatured": false,
+      "IsFeatured": true,
       "PurchasableItemId": 1003012,
       "Type": 0,
       "Prices": [
         {
           "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -515,14 +615,18 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "1ebbfdfc-f72b-4d70-99d4-4d527f896aa7,lBe3yxuE40eBmTrnEHBqQQ,afd88a79-7f03-40f6-bcb4-c247dd86edc4,",
+        "AvatarItemDesc": "8595c7b2-4d1c-4eae-af9a-8180d475d931,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -530,24 +634,28 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Beekeeper Suit (Purple)",
+        "FriendlyName": "Dryad Dress (Summer)",
         "GiftDropId": 1003013,
         "IsQuery": false,
-        "ItemSetFriendlyName": "Beekeeper Purple Set",
-        "ItemSetId": 5,
+        "ItemSetFriendlyName": "Summer Fae Set",
+        "ItemSetId": 4,
         "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
       },
-      "IsFeatured": false,
+      "IsFeatured": true,
       "PurchasableItemId": 1003013,
       "Type": 0,
       "Prices": [
         {
           "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -555,14 +663,18 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "4025e4c4-abaa-4729-a2a3-a7175313e5ed,lBe3yxuE40eBmTrnEHBqQQ,1f18670d-df52-4d2b-8009-a32cf7c67b40,",
+        "AvatarItemDesc": "UcPo9SsF3EGTCBB2J-Efdw,pAlEt5sqD0mKgFd_0b7RgA",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -570,12 +682,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Beekeeper Gloves (Purple)",
+        "FriendlyName": "Floral Headphones (Blossom)",
         "GiftDropId": 1003014,
         "IsQuery": false,
-        "ItemSetFriendlyName": "Beekeeper Purple Set",
+        "ItemSetFriendlyName": "Floral Headphones Set",
         "ItemSetId": 5,
-        "Rarity": 30,
+        "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -586,23 +698,31 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 750,
-          "StorefrontSaleData": null,
+          "Price": 1750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 675,
-          "StorefrontSaleData": null,
+          "Price": 1575,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "6d36091e-7083-4e3d-8729-94612602c8cb,71e5a0fe-fc8d-420b-af3b-e74160e0d1f3,32d91d32-b102-4093-927a-6dc3ac2e9e86,",
+        "AvatarItemDesc": "UcPo9SsF3EGTCBB2J-Efdw,PNH0VNS1qk6nWVecYmVDDQ",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -610,12 +730,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Witch Hunter Hat (Purple)",
+        "FriendlyName": "Floral Headphones (Orange)",
         "GiftDropId": 1003015,
         "IsQuery": false,
-        "ItemSetFriendlyName": "Witch Hunter Purple Set",
-        "ItemSetId": 6,
-        "Rarity": 10,
+        "ItemSetFriendlyName": "Floral Headphones Set",
+        "ItemSetId": 5,
+        "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -626,248 +746,12 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "418db0e0-c7af-40c2-9cac-d461ce41e210,71e5a0fe-fc8d-420b-af3b-e74160e0d1f3,0f49ac81-63bd-4845-8bdc-1944181a8aa3,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Witch Hunter Torso (Purple)",
-        "GiftDropId": 1003016,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Witch Hunter Purple Set",
-        "ItemSetId": 6,
-        "Rarity": 10,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003016,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "1974dd48-aa44-434f-879a-eaff0c7c06e6,71e5a0fe-fc8d-420b-af3b-e74160e0d1f3,5b8d9490-e5bc-480e-91bc-65d1797b52ad,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Witch Hunter Gloves (Purple)",
-        "GiftDropId": 1003017,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Witch Hunter Purple Set",
-        "ItemSetId": 6,
-        "Rarity": 10,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003017,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "76369aef-aeda-46d2-996a-cd00594d0543,PZx7Iae0pkiDaxT9t3-vgg,d759c88d-a159-4c26-86dd-b054bb05b3ed,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Mobster Hat (Purple)",
-        "GiftDropId": 1003018,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Mobster Purple Set",
-        "ItemSetId": 7,
-        "Rarity": 20,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003018,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 500,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 450,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "4308da04-af84-40bb-845a-7a9e1a2726ec,newGzX_zA0eGUX3Iayq5Ag,6Jv4AJGBYUGP_n4sDcz2Kw,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Mobster Suit (Purple)",
-        "GiftDropId": 1003019,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Mobster Purple Set",
-        "ItemSetId": 7,
-        "Rarity": 30,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003019,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 675,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "08d56627-4500-4724-8692-a23c96ddb3ec,newGzX_zA0eGUX3Iayq5Ag,QBzMp7MdAUOLIofvddui1A,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Mobster Cuffs (Purple)",
-        "GiftDropId": 1003020,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Mobster Purple Set",
-        "ItemSetId": 7,
-        "Rarity": 10,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003020,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "283e98dd-1ba7-4997-858f-96046e0ac431,dhJm0moskU6urIwG1TXs_A",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Frantic Rabbit Vest (Purple)",
-        "GiftDropId": 1003021,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Frantic Rabbit Purple Set",
-        "ItemSetId": 8,
-        "Rarity": 50,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003021,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -875,567 +759,11 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "d898dc4b-d6a9-41af-8e6d-f22097e8a01c,aO5Q4BPpuU-bsNavGii40A",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Frantic Rabbit Cuffs (Purple)",
-        "GiftDropId": 1003022,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Frantic Rabbit Purple Set",
-        "ItemSetId": 8,
-        "Rarity": 20,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003022,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 500,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 450,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "C4uuztTiYUe20PACMARksA,iufpnteVCEiiZu_m-yPovQ,fz_0gZ6RXEC78NpYsx_eqA,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Letter Jacket (Purple)",
-        "GiftDropId": 1003023,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Letter Jacket Purple Set",
-        "ItemSetId": 9,
-        "Rarity": 30,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003023,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 675,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "2dFMy4zc7ky_Fd5fzfgInw,MS7EPNLJEEyMLC6_yHQYtA,4EHIyZkOOEqnM-PuD_a5xw,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Letter Jacket Cuffs (Purple)",
-        "GiftDropId": 1003024,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Letter Jacket Purple Set",
-        "ItemSetId": 9,
-        "Rarity": 10,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003024,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "AIpF1QUeMUWytpHYBDBAkg,rwojzpr0E0ylG6_Vv_MVaQ",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Windbreaker (Purple)",
-        "GiftDropId": 1003025,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Windbreaker Purple Set",
-        "ItemSetId": 10,
-        "Rarity": 10,
-        "SubscribersOnly": false,
-        "Tooltip": "Breakdance inspired colorway",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003025,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "52VsI_lKlkSUAOJlfDnyrQ,6c-AhDM6K0iHbNMf4BNiUg",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Windbreaker Cuffs (Purple)",
-        "GiftDropId": 1003026,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Windbreaker Purple Set",
-        "ItemSetId": 10,
-        "Rarity": 10,
-        "SubscribersOnly": false,
-        "Tooltip": "Breakdance inspired colorway",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003026,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "f28aa59c-d6d7-432e-9863-f894dc0e8e32,sq5Qv4nVAUqzhMdB7U2MVQ",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Purple Butterfly Tutu",
-        "GiftDropId": 1003027,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Purple Butterfly Set",
-        "ItemSetId": 11,
-        "Rarity": 50,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003027,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "cf1e5c42-b12d-4e1e-945c-5bb80cae3fd5,bNWm_2_VE0-4fdcF6S0aIA",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Purple Butterfly Wrap Skirt",
-        "GiftDropId": 1003028,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Purple Butterfly Set",
-        "ItemSetId": 11,
-        "Rarity": 50,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003028,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "459ec62c-67db-4b72-9e29-0ad3ecd0b737,lsyYlxY9o0a3TbUrHkxeyQ,PZHohDVX0U2frX13N4KYDQ,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Runner Helmet (Purple)",
-        "GiftDropId": 1003029,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Runner Purple Set",
-        "ItemSetId": 12,
-        "Rarity": 30,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003029,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 675,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "1beaf288-b5a5-475c-8149-c8f3d1146083,AC3zfm38JEyBZWuXDh4Ukg,rgzG7sfrlkqd9EO13LNmpQ,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Runner Wrist Guard (Purple)",
-        "GiftDropId": 1003030,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Runner Purple Set",
-        "ItemSetId": 12,
-        "Rarity": 20,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003030,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 500,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 450,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "1beaf288-b5a5-475c-8149-c8f3d1146083,TnEDe1QoMUCUdqPL_7CxTA,rgzG7sfrlkqd9EO13LNmpQ,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Runner Wrist Guard (Lavender)",
-        "GiftDropId": 1003031,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Runner Purple Set",
-        "ItemSetId": 12,
-        "Rarity": 20,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003031,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 500,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 450,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "jiBzrzDPkkuL6DqIFKpcCw,poqpmOloPUKotHH9p0YAyw,StxMBEprVkqMa_IoDG-Q9A,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Aristocrat Necklace (Amethyst)",
-        "GiftDropId": 1003032,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 50,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003032,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "d7410e54-5193-48b9-b5c9-06e4439dd924,0aNp_2sWHUS_08TMe-_AzQ",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Back Keytar (Purple)*",
-        "GiftDropId": 1003033,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 50,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003033,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "6ffb2d7e-d4ee-4de0-9ab8-b5eb093b9739,jCfhcP5ftk6_ruDnFjIhJA",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Chainsaw (Purple)",
-        "GiftDropId": 1003034,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 50,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003034,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "e149c559-aeb5-4609-9722-52fb6acc70e6,SoQerU2dOUu9BdRBAsEllA",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Floral Athleisure Crop Top (Purple)",
-        "GiftDropId": 1003035,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 50,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003035,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
@@ -1451,11 +779,971 @@
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
         "FriendlyName": "Floral Headphones (Lavender)",
+        "GiftDropId": 1003016,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Floral Headphones Set",
+        "ItemSetId": 5,
+        "Rarity": 50,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003016,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1575,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "75-HXZBOAEiDBqclnOn8YQ,NMmOn0zQZ0mJLxCMnsbIVw,v1ZOE9G9gEWAqNJX1A9f2A,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Floatie (Watermelon)",
+        "GiftDropId": 1003017,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Poolside Floatie Set",
+        "ItemSetId": 6,
+        "Rarity": 50,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": true,
+      "PurchasableItemId": 1003017,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1575,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "EJFGAW-TnUCaeD59parEHg,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Floatie (Flamingo)",
+        "GiftDropId": 1003018,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Poolside Floatie Set",
+        "ItemSetId": 6,
+        "Rarity": 50,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": true,
+      "PurchasableItemId": 1003018,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1575,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "EJFGAW-TnUCaeD59parEHg,9WpjdWJbhkCoEgDljqZkdw,Uyn3QOl1zkGR2_OUOhNWjQ,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Floatie (Rubber Ducky)",
+        "GiftDropId": 1003019,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Poolside Floatie Set",
+        "ItemSetId": 6,
+        "Rarity": 50,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": true,
+      "PurchasableItemId": 1003019,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1575,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "7a98503f-0460-4d25-a0d5-72a32db8f4c2,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Floatie (Turtle)",
+        "GiftDropId": 1003020,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Poolside Floatie Set",
+        "ItemSetId": 6,
+        "Rarity": 50,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": true,
+      "PurchasableItemId": 1003020,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1575,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "UGkQa4atNUe1cE5TN79s4Q,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Floatie (Unicorn)",
+        "GiftDropId": 1003021,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Poolside Floatie Set",
+        "ItemSetId": 6,
+        "Rarity": 50,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": true,
+      "PurchasableItemId": 1003021,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1575,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "7a98503f-0460-4d25-a0d5-72a32db8f4c2,A8ht7G1iqEeLvP0SW6SwyQ,QppxPdf550-jT7dK7XrTzw,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Floatie (Penguin)",
+        "GiftDropId": 1003022,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Poolside Floatie Set",
+        "ItemSetId": 6,
+        "Rarity": 50,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": true,
+      "PurchasableItemId": 1003022,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1575,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "5accb7dc-90a3-46ee-bad2-8fd1861d50f1,6o6sNWyPoUCcKJBHW0KC9w",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Bandana (Flowers, Yellow)",
+        "GiftDropId": 1003023,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Floral Bandana Set",
+        "ItemSetId": 7,
+        "Rarity": 10,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003023,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 200,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 180,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "5accb7dc-90a3-46ee-bad2-8fd1861d50f1,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Bandana (Flowers, Orange)",
+        "GiftDropId": 1003024,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Floral Bandana Set",
+        "ItemSetId": 7,
+        "Rarity": 10,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003024,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 200,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 180,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "5accb7dc-90a3-46ee-bad2-8fd1861d50f1,827a1538-51bb-4fef-99c1-7f1bebd9866c,27a5df72-4095-4837-bf24-cdd3d95a43e9,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Bandana (Flowers, Red)",
+        "GiftDropId": 1003025,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Floral Bandana Set",
+        "ItemSetId": 7,
+        "Rarity": 10,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003025,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 200,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 180,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "5accb7dc-90a3-46ee-bad2-8fd1861d50f1,X1OFXyDyXES3CgMpIyV3nQ",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Bandana (Flowers, Pink)",
+        "GiftDropId": 1003026,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Floral Bandana Set",
+        "ItemSetId": 7,
+        "Rarity": 10,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003026,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 200,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 180,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "5accb7dc-90a3-46ee-bad2-8fd1861d50f1,Z9H3wUn3_kS6pPehL74aHg,27a5df72-4095-4837-bf24-cdd3d95a43e9,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Bandana (Flowers, Purple)",
+        "GiftDropId": 1003027,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Floral Bandana Set",
+        "ItemSetId": 7,
+        "Rarity": 10,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003027,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 200,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 180,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "5accb7dc-90a3-46ee-bad2-8fd1861d50f1,ad61c418-6d77-4a99-8ac5-9f10f5a3d42f,27a5df72-4095-4837-bf24-cdd3d95a43e9,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Bandana (Flowers, Blue)",
+        "GiftDropId": 1003028,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Floral Bandana Set",
+        "ItemSetId": 7,
+        "Rarity": 10,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003028,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 200,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 180,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "5accb7dc-90a3-46ee-bad2-8fd1861d50f1,40ldoL7MAUKnb5JA68CMBA,27a5df72-4095-4837-bf24-cdd3d95a43e9,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Bandana (Flowers, Green)",
+        "GiftDropId": 1003029,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Floral Bandana Set",
+        "ItemSetId": 7,
+        "Rarity": 10,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003029,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 200,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 180,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "5accb7dc-90a3-46ee-bad2-8fd1861d50f1,6dd95046-acf8-42fe-ab78-80a334096a9d,27a5df72-4095-4837-bf24-cdd3d95a43e9,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Bandana (Flowers, White)",
+        "GiftDropId": 1003030,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Floral Bandana Set",
+        "ItemSetId": 7,
+        "Rarity": 10,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003030,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 200,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 180,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "5accb7dc-90a3-46ee-bad2-8fd1861d50f1,J1bmomo_3Ume0KR2Yh46Uw,27a5df72-4095-4837-bf24-cdd3d95a43e9,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Bandana (Flowers, Black)",
+        "GiftDropId": 1003031,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Floral Bandana Set",
+        "ItemSetId": 7,
+        "Rarity": 10,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003031,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 200,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 180,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "5944a66e-b386-43d9-a4b6-7b4a8e987fd8,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Heart Sunglasses",
+        "GiftDropId": 1003032,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Summer Sunglasses Set",
+        "ItemSetId": 8,
+        "Rarity": 50,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003032,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1575,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "767684e7-0eec-4f6e-ad58-3d5ae715206e,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Retro Sunglasses",
+        "GiftDropId": 1003033,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Summer Sunglasses Set",
+        "ItemSetId": 8,
+        "Rarity": 50,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003033,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 1575,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "6427bd57-fcb2-420f-8b3e-d1da43470b84,0Ytm7G4_lkmZWPA_YfaIeQ,KfM7veOVlE-dNZmsbDNZBA,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Sunglasses (Orange)",
+        "GiftDropId": 1003034,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Summer Sunglasses Set",
+        "ItemSetId": 8,
+        "Rarity": 20,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003034,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 500,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 450,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "exQz9Zr3HEyOR9nDDrimlQ,SmRcrycMZ0qYNsHuQQOORA,S21TW8NwMEWLV9zqHxWfFw,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Plastic Sunglasses (Blue)",
+        "GiftDropId": 1003035,
+        "IsQuery": false,
+        "ItemSetFriendlyName": "Summer Sunglasses Set",
+        "ItemSetId": 8,
+        "Rarity": 10,
+        "SubscribersOnly": false,
+        "Tooltip": "",
+        "Unique": true
+      },
+      "IsFeatured": false,
+      "PurchasableItemId": 1003035,
+      "Type": 0,
+      "Prices": [
+        {
+          "CurrencyType": 2,
+          "Price": 200,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ],
+      "SubscriberPrices": [
+        {
+          "CurrencyType": 2,
+          "Price": 180,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
+          "Type": 0
+        }
+      ]
+    },
+    {
+      "GiftDrop": {
+        "AvatarItemDesc": "exQz9Zr3HEyOR9nDDrimlQ,0svDrGn2NkmhUjC1VJUgRg,S21TW8NwMEWLV9zqHxWfFw,",
+        "AvatarItemType": 0,
+        "ConsumableItemDesc": "",
+        "Context": 0,
+        "Currency": 0,
+        "CurrencyType": 0,
+        "EquipmentModificationGuid": "",
+        "EquipmentPrefabName": "",
+        "FriendlyName": "Plastic Sunglasses (Green)",
         "GiftDropId": 1003036,
         "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 50,
+        "ItemSetFriendlyName": "Summer Sunglasses Set",
+        "ItemSetId": 8,
+        "Rarity": 10,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -1466,23 +1754,31 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
+          "Price": 200,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
+          "Price": 180,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "3eda64ab-2a11-4976-a253-bef7ac36ba5e,U8ZZiMEeZ0-qJfcpqBP72A",
+        "AvatarItemDesc": "exQz9Zr3HEyOR9nDDrimlQ,z-yaXP9ImkysLOGuCQiblw,S21TW8NwMEWLV9zqHxWfFw,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -1490,12 +1786,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Guitar Pick Necklace (Purple)",
+        "FriendlyName": "Plastic Sunglasses (Red)",
         "GiftDropId": 1003037,
         "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 50,
+        "ItemSetFriendlyName": "Summer Sunglasses Set",
+        "ItemSetId": 8,
+        "Rarity": 10,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -1506,23 +1802,31 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
+          "Price": 200,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
+          "Price": 180,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "5d4b097b-2850-4a13-b26b-280be7ad3f57,RTrcYpLtukm83lwAfWi5WA",
+        "AvatarItemDesc": "41bece0e-9b5d-4151-bf5c-d0e786a803b4,CJKB3OO2CkeEVsAK0jeeDA",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -1530,11 +1834,11 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "King Rat Hat (Purple)",
+        "FriendlyName": "Beanie (Pineapple)",
         "GiftDropId": 1003038,
         "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
+        "ItemSetFriendlyName": "Pineapple Set",
+        "ItemSetId": 9,
         "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
@@ -1547,7 +1851,11 @@
         {
           "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -1555,14 +1863,18 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "UcPo9SsF3EGTCBB2J-Efdw,a5nUvJZgTEGBUvdHx0Y6Ng,_Yq00H-NWUyQNvGxRunHbg,",
+        "AvatarItemDesc": "7aa994d2-6499-4918-ab2a-2531c17e27a7,SiraUm3ZaUOCeXCekunJuA",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -1570,11 +1882,11 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Notes Headphones (Purple)",
+        "FriendlyName": "Pineapple Gamer Dress",
         "GiftDropId": 1003039,
         "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
+        "ItemSetFriendlyName": "Pineapple Set",
+        "ItemSetId": 9,
         "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
@@ -1587,7 +1899,11 @@
         {
           "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -1595,14 +1911,18 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "8a26efb4-2116-48ba-84a0-c4fdcf74c191,clKD22mme0y8apzUhHmI_A",
+        "AvatarItemDesc": "7df5697f-2f71-47d1-bc27-cfa43792ffd7,GCethPzUyUKYxWdfLykbSg",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -1610,11 +1930,11 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Pastel Purple Gentlelady Hat",
+        "FriendlyName": "Felted Shawl (Pineapple)",
         "GiftDropId": 1003040,
         "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
+        "ItemSetFriendlyName": "Pineapple Set",
+        "ItemSetId": 9,
         "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
@@ -1627,7 +1947,11 @@
         {
           "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -1635,14 +1959,18 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "35d67043-ca27-4b8a-a893-2d42674e6e68,J36t8RwGPUqtLBsF-_UtEw",
+        "AvatarItemDesc": "618b979e-c6e6-434e-98e5-9b51e117fb69,mKWQMgBuTEq9EwXBTusuJw",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -1650,11 +1978,11 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Pastel Purple Turtleneck Coat",
+        "FriendlyName": "Tucked Gamer Tee (Pineapple)",
         "GiftDropId": 1003041,
         "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
+        "ItemSetFriendlyName": "Pineapple Set",
+        "ItemSetId": 9,
         "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
@@ -1667,7 +1995,11 @@
         {
           "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -1675,14 +2007,18 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "691b2198-2ee7-425b-b59f-bbadda1253e1,pqtwCB_c20yRmOEs6jlH3g",
+        "AvatarItemDesc": "2b2eb9e5-d52e-4004-bdb2-0bcf6910992d,rZOgFhv59UKssAH7k-UDyQ,eVl7mLA1VkmnR81YLF-ZNg,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -1690,11 +2026,11 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Purple Quarter Zip Sweater",
+        "FriendlyName": "Flower Crown",
         "GiftDropId": 1003042,
         "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
+        "ItemSetFriendlyName": "Flower Crown Set",
+        "ItemSetId": 10,
         "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
@@ -1707,7 +2043,11 @@
         {
           "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -1715,14 +2055,18 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "efc10aa4-a203-4465-a2da-eb4590ada8ef,0JVWqxXYoUqgI-5ORIr0bA",
+        "AvatarItemDesc": "2b2eb9e5-d52e-4004-bdb2-0bcf6910992d,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -1730,12 +2074,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Purple Sweater Scarf",
+        "FriendlyName": "Flower Headband (Pink)",
         "GiftDropId": 1003043,
         "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 50,
+        "ItemSetFriendlyName": "Flower Crown Set",
+        "ItemSetId": 10,
+        "Rarity": 30,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -1746,23 +2090,31 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
+          "Price": 750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
+          "Price": 675,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "oYvOo47DJE-DEPlpn5xNUw,eaRDMCA4fE6KJHi639QFvQ",
+        "AvatarItemDesc": "2b2eb9e5-d52e-4004-bdb2-0bcf6910992d,c5884778-a87f-4612-9717-86fbb65d440f,7d040391-03f7-4b3d-bcfd-a1278ff459c9,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -1770,12 +2122,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Rec Con Belt Bag (Purple)",
+        "FriendlyName": "Flower Headband (Blue)",
         "GiftDropId": 1003044,
         "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 50,
+        "ItemSetFriendlyName": "Flower Crown Set",
+        "ItemSetId": 10,
+        "Rarity": 30,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -1786,23 +2138,31 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
+          "Price": 750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
+          "Price": 675,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "a44766dc-19ad-4476-849c-5113a5faabd0,mqdncbYcuUSGFvFqEU0z4A,HTU3Wp_ri0GNYGFSezFHSg,",
+        "AvatarItemDesc": "2b2eb9e5-d52e-4004-bdb2-0bcf6910992d,827a1538-51bb-4fef-99c1-7f1bebd9866c,7d040391-03f7-4b3d-bcfd-a1278ff459c9,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -1810,12 +2170,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Royal Cape (Purple)",
+        "FriendlyName": "Flower Headband (Red)",
         "GiftDropId": 1003045,
         "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 50,
+        "ItemSetFriendlyName": "Flower Crown Set",
+        "ItemSetId": 10,
+        "Rarity": 30,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -1826,23 +2186,31 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
+          "Price": 750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
+          "Price": 675,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "fa68bdae-5b0a-4544-a4eb-84b051d4b913,l1cBXE49rkKTDEl1NvmWog",
+        "AvatarItemDesc": "a61e86cd-f7e7-4ac7-a6e8-df269bc5cb01,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -1850,12 +2218,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Secret Mask (Purple)",
+        "FriendlyName": "Flower Hair Clip (Red)",
         "GiftDropId": 1003046,
         "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 50,
+        "ItemSetFriendlyName": "Flower Crown Set",
+        "ItemSetId": 10,
+        "Rarity": 30,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -1866,23 +2234,31 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
+          "Price": 750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
+          "Price": 675,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "94eb7ef3-528f-4f59-92a0-48b0ec287527,l2g5qO9dokiNepH92oPmug",
+        "AvatarItemDesc": "a61e86cd-f7e7-4ac7-a6e8-df269bc5cb01,ce465d53-3807-423f-baa0-bdba2a75ceb3,65b89eae-347e-4eff-9ff3-7f25cace0125,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -1890,12 +2266,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Soccer Gloves (Purple)",
+        "FriendlyName": "Flower Hair Clip (White)",
         "GiftDropId": 1003047,
         "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 50,
+        "ItemSetFriendlyName": "Flower Crown Set",
+        "ItemSetId": 10,
+        "Rarity": 30,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -1906,23 +2282,31 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
+          "Price": 750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
+          "Price": 675,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "74aae830-a46e-4ea7-83dd-1fc7c3a50b1f,TqhSo1hbPE6wdB_6lvLhFw",
+        "AvatarItemDesc": "a61e86cd-f7e7-4ac7-a6e8-df269bc5cb01,596097a8-d545-4256-959d-1d3cd96fc64c,65b89eae-347e-4eff-9ff3-7f25cace0125,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -1930,12 +2314,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Sugar Plum Dress (Purple)",
+        "FriendlyName": "Flower Hair Clip (Yellow)",
         "GiftDropId": 1003048,
         "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 50,
+        "ItemSetFriendlyName": "Flower Crown Set",
+        "ItemSetId": 10,
+        "Rarity": 30,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -1946,23 +2330,31 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 1750,
-          "StorefrontSaleData": null,
+          "Price": 750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 1575,
-          "StorefrontSaleData": null,
+          "Price": 675,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "74aae830-a46e-4ea7-83dd-1fc7c3a50b1f,nuR8wvvCXU-EMXjBZuTXJA",
+        "AvatarItemDesc": "e149c559-aeb5-4609-9722-52fb6acc70e6,QF05cIuqhEeY8oNnO9CocA",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -1970,7 +2362,7 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Sugarplum Dress",
+        "FriendlyName": "Floral Athleisure Crop Top",
         "GiftDropId": 1003049,
         "IsQuery": false,
         "ItemSetFriendlyName": "",
@@ -1987,7 +2379,11 @@
         {
           "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -1995,14 +2391,18 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "74aae830-a46e-4ea7-83dd-1fc7c3a50b1f,SExtD3FBk0GwseMZDdGJlw",
+        "AvatarItemDesc": "e149c559-aeb5-4609-9722-52fb6acc70e6,FbedbSonT0izB7Q6cLXCzw",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -2010,7 +2410,7 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Sugarplum Dress (Green)",
+        "FriendlyName": "Orange Floral Athleisure Crop Top",
         "GiftDropId": 1003050,
         "IsQuery": false,
         "ItemSetFriendlyName": "",
@@ -2027,7 +2427,11 @@
         {
           "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -2035,14 +2439,18 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "cbf478e1-a9d7-4b3f-9f52-c59271a924f6,omnSzDLD5ESCU6ndropzPQ,Dac47T16Wk6LmmDd2cs1LA,",
+        "AvatarItemDesc": "e149c559-aeb5-4609-9722-52fb6acc70e6,SoQerU2dOUu9BdRBAsEllA",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -2050,14 +2458,14 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Winged Headphones (Purple)",
+        "FriendlyName": "Floral Athleisure Crop Top (Purple)",
         "GiftDropId": 1003051,
         "IsQuery": false,
         "ItemSetFriendlyName": "",
         "ItemSetId": 0,
         "Rarity": 50,
         "SubscribersOnly": false,
-        "Tooltip": "RecCon 2021 exclusive",
+        "Tooltip": "",
         "Unique": true
       },
       "IsFeatured": false,
@@ -2067,7 +2475,11 @@
         {
           "CurrencyType": 2,
           "Price": 1750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -2075,14 +2487,18 @@
         {
           "CurrencyType": 2,
           "Price": 1575,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "WuShlrJnHUKuscn8e6Rt2g,_uh3kj6hKUyBKOSR3R8dog,M5z2wk-GDkOAjvZzqsfcNQ,",
+        "AvatarItemDesc": "ae180fb1-3e74-4232-9a9d-388fd488eba1,nu_UGtkJOUK-5MWaW83MUg,pgBFpOtl00K2zsTJcfrefQ,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -2090,7 +2506,7 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Anime Bow (Purple)",
+        "FriendlyName": "Silly Shorts (Watermelon Rain)",
         "GiftDropId": 1003052,
         "IsQuery": false,
         "ItemSetFriendlyName": "",
@@ -2107,7 +2523,11 @@
         {
           "CurrencyType": 2,
           "Price": 750,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
@@ -2115,14 +2535,18 @@
         {
           "CurrencyType": 2,
           "Price": 675,
-          "StorefrontSaleData": null,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "JTrfBXhIT02o2-ssP94zew,8iZO162KNUiMC8l_z3OC_A,3DdSzSqV1UG5AtPr8ro3Kg,",
+        "AvatarItemDesc": "75-HXZBOAEiDBqclnOn8YQ,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -2130,12 +2554,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Big Head Bow (Purple)",
+        "FriendlyName": "Floatie (Creamsicle)",
         "GiftDropId": 1003053,
         "IsQuery": false,
         "ItemSetFriendlyName": "",
         "ItemSetId": 0,
-        "Rarity": 30,
+        "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -2146,23 +2570,31 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 750,
-          "StorefrontSaleData": null,
+          "Price": 1750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 675,
-          "StorefrontSaleData": null,
+          "Price": 1575,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "3ad53d67-e89e-47eb-94ee-bbd054652815,RvVVu7gWUEmofuJiZqevlg,i0itjI0qz0Cdn-es5NBScw,",
+        "AvatarItemDesc": "75-HXZBOAEiDBqclnOn8YQ,LRv1X0ZrjkqO7azGpZ7uMg,sx10-Hsfl0OS62pIFvHH8A,",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -2170,12 +2602,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Chunky Scarf (Purple)",
+        "FriendlyName": "Floatie (Donut)",
         "GiftDropId": 1003054,
         "IsQuery": false,
         "ItemSetFriendlyName": "",
         "ItemSetId": 0,
-        "Rarity": 30,
+        "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -2186,23 +2618,31 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 750,
-          "StorefrontSaleData": null,
+          "Price": 1750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 675,
-          "StorefrontSaleData": null,
+          "Price": 1575,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
     },
     {
       "GiftDrop": {
-        "AvatarItemDesc": "5accb7dc-90a3-46ee-bad2-8fd1861d50f1,Z9H3wUn3_kS6pPehL74aHg,b292eb4b-07e3-4a48-99b5-3c6587a1e02e,",
+        "AvatarItemDesc": "75-HXZBOAEiDBqclnOn8YQ,7BMBl3iA6USKijNCKfCXqA",
         "AvatarItemType": 0,
         "ConsumableItemDesc": "",
         "Context": 0,
@@ -2210,12 +2650,12 @@
         "CurrencyType": 0,
         "EquipmentModificationGuid": "",
         "EquipmentPrefabName": "",
-        "FriendlyName": "Cowboy Scarf Mask (Plaid/Purple)",
+        "FriendlyName": "Floatie (Neapolitan)",
         "GiftDropId": 1003055,
         "IsQuery": false,
         "ItemSetFriendlyName": "",
         "ItemSetId": 0,
-        "Rarity": 30,
+        "Rarity": 50,
         "SubscribersOnly": false,
         "Tooltip": "",
         "Unique": true
@@ -2226,1096 +2666,24 @@
       "Prices": [
         {
           "CurrencyType": 2,
-          "Price": 750,
-          "StorefrontSaleData": null,
+          "Price": 1750,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ],
       "SubscriberPrices": [
         {
           "CurrencyType": 2,
-          "Price": 675,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "f41653f9-ae02-443c-aaf4-1c6f4e49035d,27680277-aec1-41be-a476-9f51cf775580,3248a3ec-50d1-4c0a-96ae-25eb9d8ed622,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Flower Swimsuit (Purple)",
-        "GiftDropId": 1003056,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 30,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003056,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 675,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "d9c6812d-17f3-4d30-83a9-0dcce44d4e6f,10nOM4HBRU-e7Bb05SrtLw",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Purple Rose Earrings",
-        "GiftDropId": 1003057,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 30,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003057,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 675,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "0ab5790f-a537-4306-ba66-5eb87c02ec7d,IjRMopsYlUqSE6327I9TIQ,ACrBLiAIgEur9V6l_B0CvA,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Quilted Vest (Purple)",
-        "GiftDropId": 1003058,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 30,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003058,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 675,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "b6rLwzD4NkKV7xKn9ZYVkA,mvMeyStxGUGlNLSYNeSubQ,oHKhT-GTx0iFWrrlz9s6Tw,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Rec Room Hoodie (Purple)",
-        "GiftDropId": 1003059,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 30,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003059,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 750,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 675,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "348ac48b-986e-4d42-a0f7-1aea16b88271,4effd67c-a52f-4b41-a5b0-04287f91a7bc,54a5c055-f757-4c00-a1e1-8b0b6552c608,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Basketball Jersey (Purple)",
-        "GiftDropId": 1003060,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 20,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003060,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 500,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 450,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "308171c3-cfd1-4ff2-8593-856e8de7071a,C9CZUwEZeUiuOue4CK4luA,gUxl7WNXlUqFYHZ9eGq1cg,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Birthstone Earrings  (February Amethyst)",
-        "GiftDropId": 1003061,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 20,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003061,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 500,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 450,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "ab15ef15-a97c-4ab1-896b-bd4d7e1cd9f5,uiBklotTUEqRI2F67vyJyA,AZnPWCN41kmNwFwDqWGFWQ,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Peacoat (Purple)",
-        "GiftDropId": 1003062,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 20,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003062,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 500,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 450,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "e4ba395e-f291-4e7b-8193-45f4422f41ce,AdJ3ExsUq0ixzaKDHK5RUQ",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Purple Punk Jacket",
-        "GiftDropId": 1003063,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 20,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003063,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 500,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 450,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "5accb7dc-90a3-46ee-bad2-8fd1861d50f1,Z9H3wUn3_kS6pPehL74aHg,27a5df72-4095-4837-bf24-cdd3d95a43e9,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Bandana (Flowers, Purple)",
-        "GiftDropId": 1003064,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 10,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003064,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "41bece0e-9b5d-4151-bf5c-d0e786a803b4,58YffnGSUU6umcI1i0RvZw,uWXtz0WaO0qJ1W4TfWnLqg,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Beanie (Purple)",
-        "GiftDropId": 1003065,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 10,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003065,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "f51a7ed5-52ea-485f-a430-303697f6fec9,MIfCkcrFOEasJqfDmxThdw,3d971439-41d1-43a2-8434-704f9ec8d906,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Belted Dress (Purple)",
-        "GiftDropId": 1003066,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 10,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003066,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "ef84cb35-5e25-4aa6-82c9-17f01a5040c7,WeP_tPjUNUuGojXrVBOAIA,FWL8ZeMe9EerdB0_Fya3AA,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Beret (Purple)",
-        "GiftDropId": 1003067,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 10,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003067,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "48ec7a6a-0c31-40d4-9179-66e3ba6505a1,ux9DQVSRyU-_5GA-t197OA,7nBHNMZhAE-t9rLCYO_STA,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Brimmed Beanie (Purple)",
-        "GiftDropId": 1003068,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 10,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003068,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "b02053b3-013f-42b0-8881-85f5be2b8cda,6e0f3af8-297f-4ea7-8f9e-4a1bc57d3e35,93987d32-7a6e-45df-af56-76f912969ce7,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Cheerful Dress (Purple)",
-        "GiftDropId": 1003069,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 10,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003069,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "7b857a8c-92ad-4028-a2c2-b3c20cdab5f2,c72911d0-453f-4732-b1bd-dad520220a06,d2a692e6-e1a9-4cfe-8154-10b52be7f8c8,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Jersey (Purple)",
-        "GiftDropId": 1003070,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 10,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003070,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "7e22a4bd-3e87-4d50-8843-9e2e3cf45285,5mcp7-2ZEE6n3-zN3_CoWw,rzoH8P44a0esN-HnYd3aQg,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Turtleneck (Purple)",
-        "GiftDropId": 1003071,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 10,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003071,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 200,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 180,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "6d815b35-6f68-4ed4-817d-70f141e1a571,6564acf1-4d70-4f92-92ac-08e2b76dbb6b,2c8924aa-68f8-4912-9759-18992f72f08a,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Collared Dress (Purple)",
-        "GiftDropId": 1003072,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 0,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003072,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 50,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 45,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "c70005d5-6276-4a98-acb3-6a77bc19379a,5H0I1anlkkuUYIM28_ZOlA,l_iJLV14q0eNgOsOI1u0pw,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Glasses (Purple)",
-        "GiftDropId": 1003073,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 0,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003073,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 50,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 45,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "6b9e022c-0b68-48fd-8eca-da8573c18900,5c4a2b35-0e1c-44de-8c3a-96d4a6458b1b,cf119781-5bd9-4b85-9a0b-12e82e988c23,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Long Scarf (Purple)",
-        "GiftDropId": 1003074,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 0,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003074,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 50,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 45,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "b3b59410-d3df-464b-a75b-500a9e5ea154,TpFWTdEW2kqtpvc0sPv-dw,_o3mI1mjE02vekPVyJg8Aw,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Pocket Tee (Purple)",
-        "GiftDropId": 1003075,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 0,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003075,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 50,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 45,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "ecc1dbe6-ca06-4564-b2a6-30956194d1e9,Z2L6AqDdcUqxiN1mVw-X9g,0b2395e1-ebcc-47e9-aaf1-faf9e9cec4cd,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Wristbands (Light Purple)",
-        "GiftDropId": 1003076,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 0,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003076,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 50,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 45,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "ecc1dbe6-ca06-4564-b2a6-30956194d1e9,x3kGXCD0UEWkjfXqu_kuxg,0b2395e1-ebcc-47e9-aaf1-faf9e9cec4cd,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Wristbands (Purple)",
-        "GiftDropId": 1003077,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 0,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003077,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 50,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 45,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "2296ed0d-df56-4d46-b33a-aae9230a47fc,830be2fa-60a5-48cc-931f-34b670eae4bd,cfabdefe-0890-436e-b2a3-b5c712e22955,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Zipper Dress (Purple)",
-        "GiftDropId": 1003078,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "",
-        "ItemSetId": 0,
-        "Rarity": 0,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003078,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 50,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 45,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "f527ffaf-da03-4519-82ed-46a9cb981dc3,sxUE0iOSZEmezm54T7xI3Q,tlpa7195x0CkmSjpR1RArQ,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Square Glasses (Gay, custom)",
-        "GiftDropId": 1003079,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Square Glasses Set",
-        "ItemSetId": 13,
-        "Rarity": 20,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003079,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 500,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 450,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "f527ffaf-da03-4519-82ed-46a9cb981dc3,D_Xmo0rOzkS-kgq1CYXt3g,tnCJp2eDI0SwjVfJMhk3LQ,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Square Glasses (Trans, custom)",
-        "GiftDropId": 1003080,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Square Glasses Set",
-        "ItemSetId": 13,
-        "Rarity": 20,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003080,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 500,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 450,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "f527ffaf-da03-4519-82ed-46a9cb981dc3,adwzLAQEykK8D5hZGQ6yiA,0Nca5nBUpUquFhExd5dxcQ,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Square Glasses (Ruby, custom)",
-        "GiftDropId": 1003081,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Square Glasses Set",
-        "ItemSetId": 13,
-        "Rarity": 20,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003081,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 500,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 450,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ]
-    },
-    {
-      "GiftDrop": {
-        "AvatarItemDesc": "f527ffaf-da03-4519-82ed-46a9cb981dc3,wZC46s7Id0CUICN_XOK-Rg,knKB2ETYmUupbvBwlleZRw,",
-        "AvatarItemType": 0,
-        "ConsumableItemDesc": "",
-        "Context": 0,
-        "Currency": 0,
-        "CurrencyType": 0,
-        "EquipmentModificationGuid": "",
-        "EquipmentPrefabName": "",
-        "FriendlyName": "Square Glasses (Femboy Pink, custom)",
-        "GiftDropId": 1003082,
-        "IsQuery": false,
-        "ItemSetFriendlyName": "Square Glasses Set",
-        "ItemSetId": 13,
-        "Rarity": 20,
-        "SubscribersOnly": false,
-        "Tooltip": "",
-        "Unique": true
-      },
-      "IsFeatured": false,
-      "PurchasableItemId": 1003082,
-      "Type": 0,
-      "Prices": [
-        {
-          "CurrencyType": 2,
-          "Price": 500,
-          "StorefrontSaleData": null,
-          "Type": 0
-        }
-      ],
-      "SubscriberPrices": [
-        {
-          "CurrencyType": 2,
-          "Price": 450,
-          "StorefrontSaleData": null,
+          "Price": 1575,
+          "StorefrontSaleData": {
+            "SalePercent": 30,
+            "SaleStartDate": "2026-09-10T21:48:19Z",
+            "SaleEndDate": "2026-10-01T07:00:00Z"
+          },
           "Type": 0
         }
       ]
@@ -3323,6 +2691,6 @@
   ],
   "SubscriberDiscountPercent": 10,
   "StorefrontType": 2,
-  "NextUpdate": "2026-10-10T01:01:23Z",
+  "NextUpdate": "2026-10-01T07:00:00Z",
   "NewUntil": null
 }

@@ -8,7 +8,7 @@ using System.Globalization;
 
 namespace Mocha2023.Classes.DBs
 {
-    public class PlayerDB
+    public partial class PlayerDB
     {
         private static readonly object SocialLock = new();
         private static readonly object ProgressionLock = new();
@@ -174,11 +174,6 @@ namespace Mocha2023.Classes.DBs
                         new Setting
                         {
                             Key = InitialTokensSettingKey,
-                            Value = "True"
-                        },
-                        new Setting
-                        {
-                            Key = AlpacaShirtOwnershipResetSettingKey,
                             Value = "True"
                         },
                         new Setting
@@ -408,8 +403,6 @@ namespace Mocha2023.Classes.DBs
 
         public static int ForceRRPlusForAllPlayers()
         {
-            Console.WriteLine(
-                "[RR+ MEMBERSHIP] ForceRRPlusForAllPlayers called but is disabled - no players were updated.");
             return 0;
         }
 
@@ -1138,17 +1131,6 @@ namespace Mocha2023.Classes.DBs
 
                 return Players.Update(player) ? gift : null;
             }
-        }
-
-        public enum FriendotronGiftStatus
-        {
-            Success,
-            InvalidRequest,
-            SenderNotFound,
-            RecipientNotFound,
-            DailyLimitReached,
-            RecipientQueueFull,
-            PersistenceFailed
         }
 
         public static FriendotronGiftStatus QueueFriendotronGift(
@@ -2142,55 +2124,6 @@ namespace Mocha2023.Classes.DBs
                 }
 
                 return updated;
-            }
-        }
-
-        public static int ResetAlpacaShirtOwnershipForExistingPlayers()
-        {
-            lock (SocialLock)
-            {
-                int ownershipsRemoved = 0;
-
-                foreach (var account in Players.FindAll().ToList())
-                {
-                    if (account.Player == null)
-                        continue;
-
-                    account.Player.PlayerExtra ??= new PlayerExtra();
-                    account.Player.PlayerExtra.Settings ??= new List<Setting>();
-                    account.Player.PlayerExtra.AvatarItems ??= new List<string>();
-
-                    bool resetAlreadyApplied = account.Player.PlayerExtra.Settings
-                        .Any(setting =>
-                            string.Equals(
-                                setting.Key,
-                                AlpacaShirtOwnershipResetSettingKey,
-                                StringComparison.OrdinalIgnoreCase) &&
-                            string.Equals(
-                                setting.Value,
-                                "True",
-                                StringComparison.OrdinalIgnoreCase));
-
-                    if (resetAlreadyApplied)
-                        continue;
-
-                    int removedForAccount = account.Player.PlayerExtra.AvatarItems
-                        .RemoveAll(descriptor => string.Equals(
-                            descriptor,
-                            AlpacaShirtAvatarItemDescriptor,
-                            StringComparison.OrdinalIgnoreCase));
-
-                    account.Player.PlayerExtra.Settings.Add(new Setting
-                    {
-                        Key = AlpacaShirtOwnershipResetSettingKey,
-                        Value = "True"
-                    });
-
-                    if (Players.Update(account))
-                        ownershipsRemoved += removedForAccount;
-                }
-
-                return ownershipsRemoved;
             }
         }
 
@@ -3757,12 +3690,10 @@ namespace Mocha2023.Classes.DBs
             if (player?.Player == null)
                 return;
 
-            player.Player.PlayerExtra ??= new PlayerExtra();
-            player.Player.PlayerExtra.Currencies ??= new List<PlayerCurrency>();
-
             for (int level = oldLevel + 1; level <= newLevel; level++)
             {
                 int rarity = GetLevelBoxRarity(level);
+                int tokens = level * 100;
 
                 APIController.StorefrontAdminItem? boxItem =
                     APIController.GetWebsiteStorefrontItems()
@@ -3804,33 +3735,80 @@ namespace Mocha2023.Classes.DBs
                         owned: true);
                 }
 
-                PlayerCurrency? currency =
-                    player.Player.PlayerExtra.Currencies.FirstOrDefault(
-                        value => value.CurrencyType == CurrencyType.RecCenterTokens);
-                if (currency == null)
-                {
-                    currency = new PlayerCurrency
-                    {
-                        CurrencyType = CurrencyType.RecCenterTokens,
-                        BalanceType = BalanceType.NonPurchasedDefault
-                    };
-                    player.Player.PlayerExtra.Currencies.Add(currency);
-                }
-
-                long adjustedBalance = (long)currency.Balance + 1000;
-                currency.Balance = (int)Math.Clamp(
-                    adjustedBalance,
-                    (long)int.MinValue,
-                    (long)int.MaxValue);
+                SetCurrencyBalance(
+                    playerId,
+                    CurrencyType.RecCenterTokens,
+                    tokens,
+                    add: true);
 
                 Console.WriteLine(
                     $"[LEVEL BOX] player={playerId} level={level} " +
                     $"rarity={rarity} box={boxItem?.FriendlyName ?? "none"} " +
                     $"avatarItem={avatarBoxItem?.FriendlyName ?? "none"} " +
-                    "tokens=1000");
-            }
+                    $"tokens={tokens}");
 
-            Players.Update(player);
+                var giftPackage = new GiftPackage
+                {
+                    GiftPackageId = 0,
+                    FromPlayerId = NotiController.CoachAccountId,
+                    PlayerId = checked((int)playerId),
+                    Message = $"Congrats on hitting level {level}!",
+                    GiftContext = (int)PlayerDBClasses.GiftContext.LevelUp,
+                    ConsumableItemDesc =
+                        boxItem?.ConsumableItemDesc ?? string.Empty,
+                    ConsumableQuantity = 1,
+                    AvatarItemDesc = string.Empty,
+                    EquipmentModificationGuid = string.Empty,
+                    EquipmentPrefabName = string.Empty,
+                    FriendlyName =
+                        boxItem?.FriendlyName ?? "Level-Up Box",
+                    Tooltip =
+                        $"A reward for hitting level {level}. Open it to " +
+                        $"claim your items - {tokens} tokens were already " +
+                        "added to your balance.",
+                    ThumbnailImage = string.Empty,
+                    Rarity = rarity,
+                    CurrencyType = (int)CurrencyType.RecCenterTokens,
+                    // Tokens were already paid out via SetCurrencyBalance
+                    // above, same as the consumable/avatar items - the box
+                    // only carries Currency when ConsumeGiftPackage is meant
+                    // to grant it, which would double-pay here.
+                    Currency = 0,
+                    XP = 0,
+                    Platform = -1,
+                    PlatformMask = -1,
+                    BalanceType =
+                        (int)BalanceType.NonPurchasedNotUsableInP2P,
+                    IsQuery = false,
+                    Unique = true
+                };
+
+                // Persisted first so the box survives the player being
+                // offline right now - same order Friendotron gifts use.
+                GiftPackage? queued = QueueGiftPackage(playerId, giftPackage);
+                if (queued == null)
+                {
+                    Console.WriteLine(
+                        $"[LEVEL BOX QUEUE ERROR] player={playerId} " +
+                        $"level={level} reason=queue_failed_or_full");
+                    continue;
+                }
+
+                try
+                {
+                    _ = NotiController.NotifyGiftAsync(
+                        senderPlayerId: NotiController.CoachAccountId,
+                        receiverPlayerId: playerId,
+                        gift: queued,
+                        immediate: true);
+                }
+                catch (Exception giftException)
+                {
+                    Console.WriteLine(
+                        $"[LEVEL BOX PUSH ERROR] player={playerId} " +
+                        $"level={level} error={giftException.Message}");
+                }
+            }
         }
 
         private static bool IsLaserTagRoom(long roomId)

@@ -15,9 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-
+    <!-- Auth/Classes and Auth/Controllers are extracted mirrors of the real
+         source tree. Keep Auth/AuthStuff.cs, but do not compile the duplicate
+         class and controller copies. -->
     <Compile Remove="Auth\Classes\**\*.cs" />
     <Compile Remove="Auth\Controllers\**\*.cs" />
   </ItemGroup>
-
+  
 </Project>

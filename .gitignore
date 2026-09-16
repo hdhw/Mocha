@@ -427,3 +427,18 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# --- Mocha2023-specific: real user data, secrets, decompiled client dumps ---
+# External remote (git.playmocha.xyz) - none of this belongs off-box.
+/Data/
+*-bak
+*.pre*
+*.preskins
+cloudflared
+.controllers-backup-preaudit/
+.codex-build/
+.codex-build-check/
+.codex-cpp2il-isil/
+.codex-il2cpp-dump/
+.codex-python/
+wwwroot/IsThisProdWorkSob.zip

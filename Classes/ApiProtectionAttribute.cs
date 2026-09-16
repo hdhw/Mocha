@@ -541,6 +541,7 @@ namespace Mocha2023.Classes
         // itself (including Developers whose session already expired).
         private static bool IsLockdownExemptPath(string path) =>
             path is "/auth/cachedlogin/forplatformids" or
+                "/auth/cachedlogin/current" or
                 "/auth/connect/token" or
                 "/auth/connect/gametoken" or
                 "/auth/eac/challenge" or

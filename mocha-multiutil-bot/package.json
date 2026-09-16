@@ -1,0 +1,21 @@
+{
+  "name": "mocha-multiutil-discord-bot",
+  "version": "1.0.0",
+  "description": "A modular multi-utility Discord bot with moderation, logging, automod, tickets, reminders, and server tools.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "deploy": "node src/deploy-commands.js",
+    "check": "node scripts/check-syntax.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "discord.js": "^14.27.0",
+    "dotenv": "^17.4.2",
+    "mathjs": "^15.2.0"
+  }
+}

@@ -163,19 +163,12 @@ namespace Mocha2023.Controllers
         {
             if (!Request.HasFormContentType)
             {
-                Console.WriteLine(
-                    "[QUEST AUTH] Cached-login request was not form data.");
-
                 return Ok(
                     Array.Empty<PlayerDBClasses.CachedLogins>());
             }
 
             var form = await Request.ReadFormAsync(
                 HttpContext.RequestAborted);
-
-            Console.WriteLine(
-                $"[QUEST AUTH] Cached-login fields=" +
-                $"{string.Join(',', form.Keys.OrderBy(key => key))}");
 
             if (!TryReadPlatform(
                     form,
@@ -216,6 +209,84 @@ namespace Mocha2023.Controllers
             return await GetOrCreateCachedLogins(
                 platform,
                 platformId);
+        }
+
+        [HttpDelete("cachedlogin/current")]
+        public async Task<IActionResult> DeleteCachedLoginCurrent()
+        {
+            IFormCollection? form = null;
+            if (Request.HasFormContentType)
+            {
+                form = await Request.ReadFormAsync(
+                    HttpContext.RequestAborted);
+            }
+
+            string? platformText =
+                Request.Query["platform"].FirstOrDefault() ??
+                form?["platform"].FirstOrDefault();
+            string? platformIdText =
+                Request.Query["platform_id"].FirstOrDefault() ??
+                form?["platform_id"].FirstOrDefault();
+            string? deviceId =
+                Request.Query["device_id"].FirstOrDefault() ??
+                form?["device_id"].FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(platformText) &&
+                TryParsePlatform(
+                    platformText,
+                    out var platform) &&
+                ulong.TryParse(
+                    platformIdText,
+                    out ulong platformId) &&
+                platformId != 0)
+            {
+                bool anyUnlinked = false;
+
+                foreach (var account in PlayerDB.Players.FindAll().ToList())
+                {
+                    if (account?.PlatformIds == null)
+                        continue;
+
+                    var identity = account.PlatformIds
+                        .FirstOrDefault(candidate =>
+                            candidate.Platform == platform &&
+                            candidate.PlatformId == platformId);
+
+                    if (identity == null)
+                        continue;
+
+                    if (account.PlatformIds.Count <= 1)
+                        continue;
+
+                    account.PlatformIds.Remove(identity);
+
+                    if (PlayerDB.Players.Update(account))
+                        anyUnlinked = true;
+                }
+
+                return Ok(anyUnlinked);
+            }
+
+            long? accountId = AuthStuff.GetPlayerId(Request);
+
+            if (accountId.HasValue)
+            {
+                var player = PlayerDB.Players.FindById(accountId.Value);
+
+                if (player?.DeviceIds != null &&
+                    !string.IsNullOrWhiteSpace(deviceId) &&
+                    player.DeviceIds.RemoveAll(existing =>
+                        string.Equals(
+                            existing,
+                            deviceId,
+                            StringComparison.Ordinal)) > 0)
+                {
+                    PlayerDB.Players.Update(player);
+                    return Ok(true);
+                }
+            }
+
+            return Ok(true);
         }
 
         private async Task<IActionResult> GetOrCreateCachedLogins(
@@ -260,13 +331,6 @@ namespace Mocha2023.Controllers
                 var usableAccounts = existingAccounts
                     .Where(account => !account.requirePassword)
                     .ToList();
-
-                Console.WriteLine(
-                    $"[AUTH CACHED LOGIN] " +
-                    $"platform={platform} " +
-                    $"platformId={platformId} " +
-                    $"accounts={usableAccounts.Count} " +
-                    $"blockedStaff={staffAccounts.Count}");
 
                 return Ok(usableAccounts);
             }
@@ -391,11 +455,6 @@ namespace Mocha2023.Controllers
                         "_",
                         StringComparison.Ordinal)
                     .ToLowerInvariant();
-
-            Console.WriteLine(
-                $"[AUTH TOKEN] " +
-                $"grant={grantType} " +
-                $"fields={string.Join(',', form.Keys.OrderBy(key => key))}");
 
             bool isFreshLogin =
                 grantType is "cached_login" or "cachedlogin" or
@@ -812,10 +871,6 @@ namespace Mocha2023.Controllers
                 player,
                 form);
 
-            Console.WriteLine(
-                $"[AUTH REFRESH] " +
-                $"account={tokenEntry.AccountId}");
-
             return Login(
                 player,
                 logAsLogin: false);
@@ -1014,10 +1069,6 @@ namespace Mocha2023.Controllers
             player.DeviceIds.Add(deviceId);
 
             PlayerDB.Players.Update(player);
-
-            Console.WriteLine(
-                $"[AUTH DEVICE LINKED] " +
-                $"account={player.PlayerId}");
         }
 
         private static bool IsKnownDeviceOrUnbound(

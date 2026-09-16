@@ -76,7 +76,6 @@ namespace Mocha2023.Classes
                     return;
 
                 List<AvatarItemOwnership> owned = LoadAvatarCatalog()
-                    .Where(item => !IsSpecialAvatarItem(item))
                     .ToList();
 
                 HashSet<string> legacy = (legacyAvatarDescriptors ?? Array.Empty<string>())
@@ -530,9 +529,6 @@ namespace Mocha2023.Classes
                 return new List<ConsumableOwnership>();
             }
         }
-
-        private static bool IsSpecialAvatarItem(AvatarItemOwnership item) =>
-            string.Equals(item.FriendlyName, "Alpaca Shirt", StringComparison.OrdinalIgnoreCase);
 
         private static bool SameAvatar(
             AvatarItemOwnership left,

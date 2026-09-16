@@ -1,6 +1,11 @@
 :root {
     color-scheme: dark;
 
+    /* These values are pulled directly from the real RecNet's MUI dark
+       theme (background.default / background.paper / primary / shape /
+       shadows), not guessed. Token *names* below (--pink/--purple etc.)
+       are kept as-is since every stylesheet in this site references them -
+       only the values changed. */
     --canvas: #1d1d1d;
     --canvas-glow: none;
     --surface: #303030;
@@ -41,6 +46,7 @@
     --space-5: 24px;
     --space-6: 32px;
 
+    /* Real MUI dark-theme elevation shadows (elevation 2 / 4 / 10) */
     --shadow-sm: 0px 2px 1px -1px rgba(0,0,0,.2), 0px 1px 1px 0px rgba(0,0,0,.14), 0px 1px 3px 0px rgba(0,0,0,.12);
     --shadow-md: 0px 3px 3px -2px rgba(0,0,0,.2), 0px 3px 4px 0px rgba(0,0,0,.14), 0px 1px 8px 0px rgba(0,0,0,.12);
     --shadow-lg: 0px 6px 6px -3px rgba(0,0,0,.2), 0px 10px 14px 1px rgba(0,0,0,.14), 0px 4px 18px 3px rgba(0,0,0,.12);

@@ -139,7 +139,7 @@ namespace Mocha2023
         }
     }
 
-    public class Program
+    public partial class Program
     {
         private static readonly string ServerUrl =
             Environment.GetEnvironmentVariable("MOCHA_SERVER_URL") ??
@@ -223,10 +223,37 @@ namespace Mocha2023
         private static int _serverIsOnline;
         private static int _offlineWebhookSent;
 
-        public static string dataDir = Path.Combine(
-            Directory.GetCurrentDirectory(),
-            "Data"
-        );
+        public static string dataDir = ResolveDataDir();
+
+        private static string ResolveDataDir()
+        {
+            var current = new DirectoryInfo(AppContext.BaseDirectory);
+
+            while (current != null)
+            {
+                if (File.Exists(Path.Combine(
+                        current.FullName,
+                        "Mocha2023.csproj")))
+                {
+                    string projectData = Path.Combine(
+                        current.FullName,
+                        "Data");
+
+                    if (Directory.Exists(projectData))
+                    {
+                        return Path.GetFullPath(projectData);
+                    }
+
+                    break;
+                }
+
+                current = current.Parent;
+            }
+
+            return Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "Data");
+        }
 
         // Set from builder.Environment.WebRootPath in Main - the framework's
         // own resolved wwwroot path, not a guess based on CWD/BaseDirectory
@@ -313,17 +340,12 @@ namespace Mocha2023
                 ServerLog.Info($"Orphaned player dorms removed: {orphanedDormsRemoved}");
                 int dormsCreated = RoomDB.EnsurePlayerDormsForAllPlayers();
                 ServerLog.Info($"Player dorm ownership: created={dormsCreated}");
-                EnforceRRPlusForExistingPlayers();
                 int socialAccountsUpdated = PlayerDB.EnsureSocialDefaultsForAllPlayers();
                 ServerLog.Info($"Social defaults: updated={socialAccountsUpdated}");
                 int tokenAccountsUpdated = PlayerDB.EnsureInitialTokensForAllPlayers();
                 ServerLog.Info(
                     $"Initial token grant: updated={tokenAccountsUpdated}, " +
                     $"amount={PlayerDB.InitialTokenBalance}");
-                int alpacaOwnershipsRemoved =
-                    PlayerDB.ResetAlpacaShirtOwnershipForExistingPlayers();
-                ServerLog.Info(
-                    $"Alpaca Shirt ownership reset: removed={alpacaOwnershipsRemoved}");
                 int systemAccountsLoginBlocked =
                     PlayerDB.EnforceSystemAccountLoginBlock();
                 ServerLog.Info(
@@ -799,17 +821,6 @@ namespace Mocha2023
             ServerLog.Info($"Base room reconciliation: changed={repaired}");
         }
 
-        private static void EnforceRRPlusForExistingPlayers()
-        {
-            int settingsUpdated = PlayerDB.ForceRRPlusForAllPlayers();
-            int rolesAdded = ForceRRPlusRoleForAllPlayers();
-
-            ServerLog.Info(
-                $"RR+ enforcement: settings={settingsUpdated}, " +
-                $"roles={rolesAdded}, players={PlayerDB.Players.Count()}"
-            );
-        }
-
         private static void ConfigureRequestPipeline(WebApplication app)
         {
             app.UseWebSockets();
@@ -1156,6 +1167,14 @@ namespace Mocha2023
                     break;
                 }
 
+                case "meowii-search":
+                    await HandleMeowiiSearchAsync(arguments);
+                    break;
+
+                case "import-meowii":
+                    await HandleImportMeowiiAsync(arguments);
+                    break;
+
                 case "exit":
                 case "quit":
                     return false;
@@ -1198,6 +1217,8 @@ namespace Mocha2023
             Console.WriteLine("unban-player <playerId>");
             Console.WriteLine("set-room-state <roomId> <state>");
             Console.WriteLine("import-room-dump <folder> [creatorId] - Imports a legacy Rec Room dump");
+            Console.WriteLine("meowii-search <query> - Searches meow.net for rooms");
+            Console.WriteLine("import-meowii <roomId|roomName> [creatorId] - Imports a room from meow.net");
             Console.WriteLine("set-room-access <roomId> <private|public|unlisted>");
             Console.WriteLine("clear-visits <playerId>");
             Console.WriteLine("clear-favorites <playerId>");
@@ -1913,13 +1934,6 @@ namespace Mocha2023
             }
         }
 
-        private enum PlayerDataToClear
-        {
-            Visits,
-            Favorites,
-            Cheers
-        }
-
         private static void HandleClearPlayerData(
             string arguments,
             PlayerDataToClear dataToClear)
@@ -2276,6 +2290,86 @@ namespace Mocha2023
             ServerLog.Success(
                 $"Maintenance countdown set to {minutes} minute(s)."
             );
+        }
+
+        private static async Task HandleMeowiiSearchAsync(string arguments)
+        {
+            if (string.IsNullOrWhiteSpace(arguments))
+            {
+                Usage("meowii-search <query>");
+                return;
+            }
+
+            try
+            {
+                var results = await MeowiiImporter.SearchAsync(arguments.Trim());
+
+                if (results.Count == 0)
+                {
+                    ServerLog.Info($"No meow.net rooms matched \"{arguments.Trim()}\".");
+                    return;
+                }
+
+                Console.WriteLine();
+                Console.WriteLine($"=== meow.net rooms matching \"{arguments.Trim()}\" ===");
+                foreach (var room in results.Take(50))
+                {
+                    Console.WriteLine(
+                        $"  {room.RoomId}  {room.Name}  " +
+                        $"(subrooms={room.SubRoomCount} playable={room.PlayableSubRoomCount}, " +
+                        $"creator={room.CreatorAccountId})");
+                }
+                if (results.Count > 50)
+                    Console.WriteLine($"  ... and {results.Count - 50} more.");
+            }
+            catch (Exception ex) when (ex is InvalidDataException or ArgumentException)
+            {
+                ServerLog.Error($"meowii-search failed: {ex.Message}");
+            }
+        }
+
+        private static async Task HandleImportMeowiiAsync(string arguments)
+        {
+            if (string.IsNullOrWhiteSpace(arguments))
+            {
+                Usage("import-meowii <roomId|roomName> [creatorId]");
+                return;
+            }
+
+            string target = arguments.Trim().Trim('"');
+            long creatorId = 1;
+
+            int finalSpace = target.LastIndexOf(' ');
+            if (finalSpace > 0 &&
+                long.TryParse(target[(finalSpace + 1)..], out long parsedCreatorId))
+            {
+                creatorId = parsedCreatorId;
+                target = target[..finalSpace].Trim().Trim('"');
+            }
+
+            if (string.IsNullOrWhiteSpace(target))
+            {
+                Usage("import-meowii <roomId|roomName> [creatorId]");
+                return;
+            }
+
+            try
+            {
+                ShowdownImporter.ImportResult result = await MeowiiImporter.ImportRoomAsync(
+                    target,
+                    creatorId,
+                    replaceExisting: true);
+
+                ServerLog.Success(
+                    $"Imported meow.net room \"{result.RoomId}\" " +
+                    $"room={result.RoomId} subrooms={result.SubRoomsImported} " +
+                    $"saves={result.SavesImported} playable={result.PlayableSubRoomName}");
+            }
+            catch (Exception ex) when (ex is InvalidDataException or
+                ArgumentException or InvalidOperationException or JsonException)
+            {
+                ServerLog.Error($"import-meowii failed: {ex.Message}");
+            }
         }
 
         private static bool TrySplitPlayerAndValue(

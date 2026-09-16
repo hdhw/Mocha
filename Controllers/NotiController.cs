@@ -167,6 +167,8 @@ namespace Mocha2023.Controllers
 
     public static class NotiController
     {
+        public const int CoachAccountId = 1;
+
         public sealed class GiftLiveDelivery
         {
             public long ReceiverPlayerId { get; }
@@ -955,14 +957,12 @@ namespace Mocha2023.Controllers
                 .Distinct()
                 .ToArray();
 
-            const long coachAccountId = 1;
-
             await Task.WhenAll(players.Select(playerId =>
                 NotifyMessageAsync(
                     playerId,
                     new NotificationDB.ClientNotification
                     {
-                        FromPlayerId = (int)coachAccountId,
+                        FromPlayerId = CoachAccountId,
                         ToPlayerId = playerId,
                         CreatedAt = DateTime.UtcNow,
                         Type = (int)NotificationDB.MessageType.CoachMessage,

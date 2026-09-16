@@ -832,6 +832,8 @@ namespace Mocha2023.Controllers
             if (id == null)
                 return Unauthorized();
 
+            // A bare JSON boolean - the whole body is the preference, not an envelope
+            // and not a { value } wrapper.
             return Ok(PlayerDB.GetPlayerFlag((long)id, AvoidJuniorsSettingKey));
         }
 
@@ -855,6 +857,9 @@ namespace Mocha2023.Controllers
 
         private const string AvoidJuniorsSettingKey = "AvoidJuniors";
 
+        // The client posts avoidJuniors=True. Neither the casing nor the spelling of the
+        // boolean is guaranteed across the client's surfaces, so True/false/1/0/yes/no
+        // all parse.
         private async Task<bool> ReadAvoidJuniorsFlagAsync()
         {
             foreach (string key in new[] { "avoidJuniors", "AvoidJuniors", "value" })
@@ -1151,7 +1156,9 @@ namespace Mocha2023.Controllers
                 roomId);
             if (heartbeat?.roomInstance == null)
             {
-
+                // Stale/expired invite: the invited instance is gone or full. Do NOT block
+                // the player -- consume the dead grant and fall through to normal matchmaking
+                // so they still join a fresh instance of the room (e.g. RecCenter).
                 Console.WriteLine(
                     $"[PRIVATE INVITE FALLBACK MISS] player={playerId} " +
                     $"room={roomId} invite={inviteId} instance={roomInstanceId} " +

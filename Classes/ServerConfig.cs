@@ -29,6 +29,9 @@ namespace Mocha2023.Classes
 
         public static readonly Version MinModVersion = new Version(1, 1, 0);
 
+        // Quest has no PC patch to install, so the MinModVersion gate
+        // cannot apply to it. Set to false to re-enforce the gate on
+        // every platform.
         public static readonly bool ExemptQuestFromModGate = true;
     }
 }

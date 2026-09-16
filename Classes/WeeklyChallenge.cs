@@ -4,7 +4,9 @@ using System.Text.Json;
 
 namespace Mocha2023.Classes
 {
-
+    // The single weekly challenge, loaded from Data/weekly.json and editable from
+    // the admin panel (recnet/api/admin/weekly). Missing/invalid file falls back to
+    // these defaults, so the endpoint never hard-fails.
     public sealed class WeeklyChallenge
     {
         public int Id { get; set; } = 1;

@@ -15,7 +15,7 @@ namespace Mocha2023.Controllers
 {
     [ApiController]
     [Mocha2023.Classes.ApiProtection]
-    public class APIController : ControllerBase
+    public partial class APIController : ControllerBase
     {
         private const int StoreItemPrice = 100;
         private const int WebsiteStorefrontRotationSize = 30;
@@ -1665,22 +1665,6 @@ namespace Mocha2023.Controllers
                 .ToList();
         }
 
-        private static bool IsAlpacaShirt(JsonElement item)
-        {
-            if (item.TryGetProperty("AvatarItemId", out JsonElement itemId) &&
-                itemId.TryGetInt64(out long parsedItemId) &&
-                parsedItemId == PlayerDB.AlpacaShirtAvatarItemId)
-            {
-                return true;
-            }
-
-            return item.TryGetProperty("FriendlyName", out JsonElement name) &&
-                string.Equals(
-                    name.GetString(),
-                    "Alpaca Shirt",
-                    StringComparison.OrdinalIgnoreCase);
-        }
-
         private IActionResult GetJsonItems(string fileName)
         {
             string path = Path.Combine(Program.dataDir, "APIS", "Items", fileName);
@@ -2203,27 +2187,308 @@ namespace Mocha2023.Controllers
             return Ok(new { success = true });
         }
 
-        [HttpPost("/api/gamerewards/v1/request")]
-        public IActionResult RequestGameRewards()
+        // One AvatarItemDesc/EquipmentPrefabName candidate a game-reward claim can hand
+        // out for a given activity (the client's giftContext), e.g. "Bowling".
+        private sealed class GameRewardDrop
+        {
+            public string AvatarItemDesc { get; init; } = string.Empty;
+            public string ConsumableItemDesc { get; init; } = string.Empty;
+            public string EquipmentPrefabName { get; init; } = string.Empty;
+            public string EquipmentModificationGuid { get; init; } = string.Empty;
+            public string FriendlyName { get; init; } = string.Empty;
+            public int Rarity { get; init; }
+        }
+
+        // A game's reward options. Games with a win/lose signal (the
+        // competitive ones below) set Win/Lose; games that only ever hand out
+        // one kind of thing (Bowling) just set Default and leave Win/Lose null.
+        private sealed class GameRewardPool
+        {
+            public GameRewardDrop[] Default { get; init; } = Array.Empty<GameRewardDrop>();
+            public GameRewardDrop[]? Win { get; init; }
+            public GameRewardDrop[]? Lose { get; init; }
+
+            public GameRewardDrop[] For(bool won) => won
+                ? Win ?? Default
+                : Lose ?? Default;
+        }
+
+        // Real bowling-themed items pulled from the live AvatarItems/Equipment
+        // catalog. "BowlingAlley" is the same activity under its other room name.
+        private static readonly GameRewardDrop[] BowlingRewardPool =
+        {
+            new() { AvatarItemDesc = "bfd9c70b-9ad8-4f47-a840-c03231f9ad41,", FriendlyName = "Bowler Hat", Rarity = 30 },
+            new() { AvatarItemDesc = "bfd9c70b-9ad8-4f47-a840-c03231f9ad41,YBpBFNAFGEunM5GX5lFxHg", FriendlyName = "Bowler Hat (Brown)", Rarity = 30 },
+            new() { AvatarItemDesc = "bfd9c70b-9ad8-4f47-a840-c03231f9ad41,VyqdOGaUnEa8WzccUIn48w", FriendlyName = "Bowler Hat (Red)", Rarity = 30 },
+            new() { AvatarItemDesc = "bfd9c70b-9ad8-4f47-a840-c03231f9ad41,Dvwz4YRu_ES_rl94y6FNBA", FriendlyName = "Bowler Hat (Grey)", Rarity = 30 },
+            new() { AvatarItemDesc = "CQuKKNpan0O7rhR1fr14-Q,", FriendlyName = "Bowling Shirt (Turkey)", Rarity = 30 },
+            new() { AvatarItemDesc = "CQuKKNpan0O7rhR1fr14-Q,-k9_-2onrEG407or8t1RFw,b-IM3eYMJUa40395O5XeLg,", FriendlyName = "Bowling Shirt (Hambone)", Rarity = 20 },
+            new() { AvatarItemDesc = "CQuKKNpan0O7rhR1fr14-Q,GDvaUU10-EKh3pKUQ9tnag,b-IM3eYMJUa40395O5XeLg,", FriendlyName = "Bowling Shirt (Runway)", Rarity = 20 },
+            new() { AvatarItemDesc = "CQuKKNpan0O7rhR1fr14-Q,kLyM-6otSUy2ql5SEmnF9Q,b-IM3eYMJUa40395O5XeLg,", FriendlyName = "Bowling Shirt (Spared)", Rarity = 20 },
+            new() { AvatarItemDesc = "CQuKKNpan0O7rhR1fr14-Q,ghM-uFq5-0Ci38AOHa9zZA,IWg9wuda4kaCilJk8JQpTQ,", FriendlyName = "Bowling Shirt (Deadwood)", Rarity = 10 },
+            new() { AvatarItemDesc = "CQuKKNpan0O7rhR1fr14-Q,Gtq8yRlt1UeFW8U-sc7FiA,IWg9wuda4kaCilJk8JQpTQ,", FriendlyName = "Bowling Shirt (Brooklyn)", Rarity = 10 },
+            new() { EquipmentPrefabName = "[BowlingBall]", EquipmentModificationGuid = "BvUZUamUh0uDbjDOrQrX1A", FriendlyName = "Bowling Ball (Gold)", Rarity = 0 },
+        };
+
+        // The one real catalog match for an Isle of Lost Skulls theme (a pirate
+        // game) - everything else here is untthemed, see the pool comment below.
+        private static readonly GameRewardDrop[] IsleOfLostSkullsWinPool =
+        {
+            new() { AvatarItemDesc = "e1a13235-e3b3-4b39-8e6f-e6449d4321b7,", FriendlyName = "Pirate Eyepatch (Skull)", Rarity = 30 },
+        };
+
+        // No game theme, used two ways: (1) the "you didn't win" consolation
+        // prize for the competitive games below, and (2) the reward for any
+        // giftContext with no pool of its own at all - see GameRewardPools'
+        // fallback below. All rarity-30 avatar items, verified in the live
+        // catalog.
+        private static readonly GameRewardDrop[] GenericThreeStarPool =
+        {
+            new() { AvatarItemDesc = "9f2cf07e-f98f-48bc-9c74-784ba4b94527,jir883uk5k-cEgyAPDtQww", FriendlyName = "Chess Knight Armor (Premium)", Rarity = 30 },
+            new() { AvatarItemDesc = "h_To9WQYdEusYQxlbMmMmQ,4lwF00Rvb0Kr3FJz07HlOQ", FriendlyName = "Dracula Cape (Gilded)", Rarity = 30 },
+            new() { AvatarItemDesc = "7a6fe0e6-f930-4fb8-9b2f-4c857a273dd9,4lwF00Rvb0Kr3FJz07HlOQ", FriendlyName = "Bike Gloves (Gilded)", Rarity = 30 },
+            new() { AvatarItemDesc = "df0e06c4-8ba6-4d7a-bfb2-3759d8fe88c7,jir883uk5k-cEgyAPDtQww", FriendlyName = "Skeleton Hoodie (Premium)", Rarity = 30 },
+            new() { AvatarItemDesc = "40734c4d-e1fe-426c-8921-930f7463d8e8,4lwF00Rvb0Kr3FJz07HlOQ", FriendlyName = "Royal Crown (Gilded)", Rarity = 30 },
+        };
+
+        // Ditto but consumables, verified against the live Consumables catalog.
+        private static readonly GameRewardDrop[] GenericConsumablePool =
+        {
+            new() { ConsumableItemDesc = "frOMH6WxDEG1fBqC4_83vg", FriendlyName = "Black & White Camera Film" },
+            new() { ConsumableItemDesc = "Tpxqe_lycUelySRHM8B0Vw", FriendlyName = "Ego Potion" },
+            new() { ConsumableItemDesc = "JfnVXFmilU6ysv-VbTAe3A", FriendlyName = "Root Beer" },
+            new() { ConsumableItemDesc = "wUCIKdJSvEmiQHYMyx4X4w", FriendlyName = "Supreme Pizza" },
+            new() { ConsumableItemDesc = "-hy0qD-iUk-v4NHxNzanmg", FriendlyName = "High Five O'Gold" },
+        };
+
+        // "A random 3-star choice or consumables" - both pools combined, one
+        // draw from either.
+        private static readonly GameRewardDrop[] GenericConsolationPool =
+            GenericThreeStarPool.Concat(GenericConsumablePool).ToArray();
+
+        // Keyed by the client's giftContext string (the activity/room name it
+        // posts alongside the reward claim).
+        //
+        // Bowling has real themed items either way. The five competitive games
+        // pay the generic 3-star pool on a win and the 3-star-or-consumable
+        // consolation pool on a loss, per the "if they DON'T win" ask -
+        // EXCEPT Isle of Lost Skulls, which has one real themed win item
+        // (Pirate Eyepatch (Skull)). Searching the live catalog by name turned
+        // up nothing themed for GoldenTrophy, Crescendo, CrimsonCauldron or
+        // TheRiseofJumbotron specifically, so their "win" is the same generic
+        // pool for now rather than fabricated item ids - swap in real ones
+        // here once identified.
+        //
+        // Any giftContext NOT listed here still isn't left empty: see the
+        // fallback in RequestGameRewards below, which is what makes this cover
+        // every game rather than only the ones with an entry.
+        private static readonly Dictionary<string, GameRewardPool> GameRewardPools =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Bowling"] = new GameRewardPool { Default = BowlingRewardPool },
+                ["BowlingAlley"] = new GameRewardPool { Default = BowlingRewardPool },
+
+                ["GoldenTrophy"] = new GameRewardPool { Win = GenericThreeStarPool, Lose = GenericConsolationPool },
+                ["Crescendo"] = new GameRewardPool { Win = GenericThreeStarPool, Lose = GenericConsolationPool },
+                ["CrimsonCauldron"] = new GameRewardPool { Win = GenericThreeStarPool, Lose = GenericConsolationPool },
+                ["IsleOfLostSkulls"] = new GameRewardPool { Win = IsleOfLostSkullsWinPool, Lose = GenericConsolationPool },
+                ["TheRiseofJumbotron"] = new GameRewardPool { Win = GenericThreeStarPool, Lose = GenericConsolationPool },
+            };
+
+        private const int GameRewardXp = 5;
+        private static readonly long GameRewardCooldownSeconds = (long)TimeSpan.FromHours(1).TotalSeconds;
+
+        private static bool IsGameRewardDropOwned(long accountId, GameRewardDrop drop)
+        {
+            if (!string.IsNullOrWhiteSpace(drop.AvatarItemDesc))
+                return PlayerDB.OwnsAvatarItem(accountId, drop.AvatarItemDesc);
+            if (!string.IsNullOrWhiteSpace(drop.EquipmentPrefabName))
+            {
+                return OwnsEquipmentItem(
+                    accountId,
+                    drop.EquipmentPrefabName,
+                    drop.EquipmentModificationGuid);
+            }
+            // Consumables are stackable, not a set - never excluded as "owned".
+            return false;
+        }
+
+        private static GameRewardDrop? PickGameRewardDrop(long accountId, GameRewardDrop[] candidates) =>
+            candidates
+                .Where(candidate => !IsGameRewardDropOwned(accountId, candidate))
+                .OrderBy(_ => Random.Shared.Next())
+                .FirstOrDefault();
+
+        [HttpGet("/api/gamerewards/v1/pending")]
+        public IActionResult GetPendingGameRewards()
         {
             var id = AuthStuff.GetPlayerId(Request);
             if (id == null)
                 return Unauthorized();
 
-            string path = Path.Combine(Program.dataDir, "APIS", "Items", "AvatarItems.json");
-            if (!System.IO.File.Exists(path))
-                return Ok(new { Rewards = Array.Empty<object>() });
+            // The reward is delivered live as a gift box, not listed here - the
+            // real client reads this as "nothing pending" either way.
+            return Ok(Array.Empty<object>());
+        }
 
-            string json = System.IO.File.ReadAllText(path);
-            var items = JsonSerializer.Deserialize<List<JsonElement>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<JsonElement>();
+        // The client posts whenever it thinks a reward is due (form fields
+        // rewardType, giftContext, Message) and this decides whether one is
+        // actually owed - one claim per (rewardType, giftContext) per hour. A
+        // claim always pays a flat XP amount and, when giftContext names a known
+        // activity, also grants one item from that activity's pool the player
+        // doesn't already own. The reward rides in a live gift box; the HTTP
+        // response itself stays an empty array either way, matching what the
+        // client already accepts here.
+        [HttpPost("/api/gamerewards/v1/request")]
+        public async Task<IActionResult> RequestGameRewards()
+        {
+            long? id = AuthStuff.GetPlayerId(Request);
+            if (id == null)
+                return Unauthorized();
 
-            if (items.Count == 0)
-                return Ok(new { Rewards = Array.Empty<object>() });
+            var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var queryValue in Request.Query)
+                values[queryValue.Key] = queryValue.Value.ToString();
+            if (Request.HasFormContentType)
+            {
+                var form = await Request.ReadFormAsync();
+                foreach (var formValue in form)
+                    values[formValue.Key] = formValue.Value.ToString();
+            }
 
-            var random = new Random();
-            var rewards = items.OrderBy(_ => random.Next()).Take(Math.Min(3, items.Count)).ToList();
+            string rewardType = values.TryGetValue("rewardType", out string? rt) ? rt : string.Empty;
+            if (string.IsNullOrWhiteSpace(rewardType))
+                return Ok(Array.Empty<object>());
 
-            return Ok(new { Rewards = rewards });
+            string giftContext = values.TryGetValue("giftContext", out string? gc) ? gc : string.Empty;
+            string message = values.TryGetValue("Message", out string? msg) && !string.IsNullOrWhiteSpace(msg)
+                ? msg
+                : "Reward earned!";
+            // Assumption pending a real client capture confirming the field
+            // name: a "Won" form value ("True"/"1"), absent or anything else
+            // treated as a loss - only affects the 5 competitive games above.
+            bool won = values.TryGetValue("Won", out string? wonRaw) &&
+                (wonRaw.Equals("true", StringComparison.OrdinalIgnoreCase) || wonRaw == "1");
+
+            var player = PlayerDB.Players.FindById(id.Value);
+            if (player?.Player == null)
+                return Ok(Array.Empty<object>());
+
+            player.Player.PlayerExtra ??= new PlayerExtra();
+            player.Player.PlayerExtra.GameRewardClaimUnixTime ??= new Dictionary<string, long>();
+
+            string claimKey = $"{rewardType}|{giftContext}";
+            long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            if (player.Player.PlayerExtra.GameRewardClaimUnixTime.TryGetValue(claimKey, out long lastClaim) &&
+                now - lastClaim < GameRewardCooldownSeconds)
+            {
+                return Ok(Array.Empty<object>());
+            }
+
+            player.Player.PlayerExtra.GameRewardClaimUnixTime[claimKey] = now;
+            PlayerDB.Players.Update(player);
+
+            // AddExperience -> SetProgression already handles the progression
+            // push and any level-up box on its own.
+            PlayerDB.AddExperience(id.Value, GameRewardXp);
+
+            // A known activity draws from its own pool (win/lose-aware where
+            // that's set up); an unknown one still isn't left empty - it draws
+            // from the generic consolation pool, so every giftContext pays
+            // something rather than only the ones listed above.
+            GameRewardDrop? drop = GameRewardPools.TryGetValue(giftContext, out GameRewardPool? pool)
+                ? PickGameRewardDrop(id.Value, pool.For(won))
+                : PickGameRewardDrop(id.Value, GenericConsolationPool);
+
+            if (drop != null)
+            {
+                if (!string.IsNullOrWhiteSpace(drop.AvatarItemDesc))
+                {
+                    PlayerInventoryStore.SetAvatarItemOwned(
+                        id.Value,
+                        drop.AvatarItemDesc,
+                        avatarItemId: 0,
+                        drop.FriendlyName,
+                        owned: true);
+                }
+                else if (!string.IsNullOrWhiteSpace(drop.EquipmentPrefabName))
+                {
+                    EquipmentInventoryStore.AddOwnedItem(
+                        id.Value,
+                        drop.EquipmentPrefabName,
+                        drop.EquipmentModificationGuid,
+                        drop.FriendlyName,
+                        tooltip: null,
+                        drop.Rarity,
+                        thumbnailImage: null);
+                }
+                else if (!string.IsNullOrWhiteSpace(drop.ConsumableItemDesc))
+                {
+                    PlayerInventoryStore.AddConsumable(
+                        id.Value,
+                        drop.ConsumableItemDesc,
+                        consumableItemId: 0,
+                        drop.FriendlyName,
+                        amount: 1);
+                }
+            }
+
+            var giftPackage = new GiftPackage
+            {
+                GiftPackageId = 0,
+                FromPlayerId = NotiController.CoachAccountId,
+                PlayerId = checked((int)id.Value),
+                Message = message,
+                GiftContext = (int)PlayerDBClasses.GiftContext.GameRewards,
+                AvatarItemDesc = drop?.AvatarItemDesc ?? string.Empty,
+                EquipmentPrefabName = drop?.EquipmentPrefabName ?? string.Empty,
+                EquipmentModificationGuid = drop?.EquipmentModificationGuid ?? string.Empty,
+                ConsumableItemDesc = drop?.ConsumableItemDesc ?? string.Empty,
+                ConsumableQuantity = 1,
+                FriendlyName = drop?.FriendlyName ?? string.Empty,
+                Tooltip = drop != null
+                    ? $"Reward from {(string.IsNullOrWhiteSpace(giftContext) ? "gameplay" : giftContext)}."
+                    : "Thanks for playing!",
+                ThumbnailImage = string.Empty,
+                Rarity = drop?.Rarity ?? 0,
+                // Currency stays 0: this box is a notification, not a currency
+                // grant - see GrantLevelUpBox's fix for why that field must not
+                // be set when the reward was already paid out directly.
+                CurrencyType = (int)CurrencyType.RecCenterTokens,
+                Currency = 0,
+                XP = 0,
+                Platform = -1,
+                PlatformMask = -1,
+                BalanceType = (int)BalanceType.NonPurchasedNotUsableInP2P,
+                IsQuery = false,
+                Unique = drop != null
+            };
+
+            GiftPackage? queued = PlayerDB.QueueGiftPackage(id.Value, giftPackage);
+            if (queued != null)
+            {
+                try
+                {
+                    _ = NotiController.NotifyGiftAsync(
+                        senderPlayerId: NotiController.CoachAccountId,
+                        receiverPlayerId: id.Value,
+                        gift: queued,
+                        immediate: true);
+                }
+                catch (Exception giftException)
+                {
+                    Console.WriteLine(
+                        $"[GAME REWARD PUSH ERROR] player={id.Value} " +
+                        $"error={giftException.Message}");
+                }
+            }
+
+            Console.WriteLine(
+                $"[GAME REWARD] player={id.Value} type={rewardType} " +
+                $"context={giftContext} won={won} item={drop?.FriendlyName ?? "none"} " +
+                $"xp={GameRewardXp}");
+
+            return Ok(Array.Empty<object>());
         }
 
         public class EquipmentUpdateRequest
@@ -3653,7 +3918,6 @@ namespace Mocha2023.Controllers
         }
 
         [HttpGet("/api/images/v2/named")]
-        [HttpGet("/api/gamerewards/v1/pending")]
         [HttpGet("/api/roomkeys/v1/mine")]
         [HttpGet("/api/roomcurrencies/v1/currencies")]
         [HttpGet("/api/AppIntegrity/v1/iosproducts")]
@@ -11433,13 +11697,6 @@ namespace Mocha2023.Controllers
             return SetRelationshipFlag(
                 RelationshipFlag.Favorited,
                 forcedEnabled: false);
-        }
-
-        private enum RelationshipFlag
-        {
-            Ignored,
-            Muted,
-            Favorited
         }
 
         private async Task<IActionResult> SetRelationshipFlag(
