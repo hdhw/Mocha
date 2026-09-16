@@ -36,14 +36,6 @@
   * Prevent items from appearing in the shop when they shouldn't be available.
   * Verify the conditions determining whether an item is displayed.
 
-* [ ] **Fix GameRewards**
-
-  * Make sure the correct reward flow is triggered.
-  * Either:
-
-    * 🎁 **Gift the reward correctly**, or
-    * 💬 **Display the correct prompt using the correct DTO**.
-
 * [ ] **Fix Sample Audios**
 
   * Sample audios are currently being **Kirked**.
@@ -54,6 +46,14 @@
 * [x] ~~**Make `Enums.cs`**~~
 * [x] ~~**Being able to copy Rec Center**~~ 💀
 * [x] **Figure out if Izzy is genuinely smart or not...**
+
+* [x] **Fix GameRewards**
+
+  * Make sure the correct reward flow is triggered.
+  * Either:
+
+    * 🎁 **Gift the reward correctly**, or
+    * 💬 **Display the correct prompt using the correct DTO**.
 
   * Conclusion: She clearly is not very smart. 💀
 * [x] Other stuff apparently done not too long ago by **izzy!**

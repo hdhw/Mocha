@@ -2232,8 +2232,8 @@ namespace Mocha2023.Controllers
             new() { AvatarItemDesc = "CQuKKNpan0O7rhR1fr14-Q,kLyM-6otSUy2ql5SEmnF9Q,b-IM3eYMJUa40395O5XeLg,", FriendlyName = "Bowling Shirt (Spared)", Rarity = 20 },
             new() { AvatarItemDesc = "CQuKKNpan0O7rhR1fr14-Q,ghM-uFq5-0Ci38AOHa9zZA,IWg9wuda4kaCilJk8JQpTQ,", FriendlyName = "Bowling Shirt (Deadwood)", Rarity = 10 },
             new() { AvatarItemDesc = "CQuKKNpan0O7rhR1fr14-Q,Gtq8yRlt1UeFW8U-sc7FiA,IWg9wuda4kaCilJk8JQpTQ,", FriendlyName = "Bowling Shirt (Brooklyn)", Rarity = 10 },
-            new() { EquipmentPrefabName = "[BowlingBall]", EquipmentModificationGuid = "BvUZUamUh0uDbjDOrQrX1A", FriendlyName = "Bowling Ball (Gold)", Rarity = 0 },
-            // Very rare - Weight 1 against everything else's 100 (~0.1% per claim).
+            // Very rare - Weight 1 against everything else's 100 (~0.1% per claim each).
+            new() { EquipmentPrefabName = "[BowlingBall]", EquipmentModificationGuid = "BvUZUamUh0uDbjDOrQrX1A", FriendlyName = "Bowling Ball (Gold)", Rarity = 0, Weight = 1 },
             new() { AvatarItemDesc = "GAWURQSqrEW4G5slrPMgZA,", FriendlyName = "Dude Sweater", Rarity = 50, Weight = 1 },
         };
 
@@ -9913,15 +9913,38 @@ namespace Mocha2023.Controllers
         private static bool IsConsumableCatalogItem(CatalogSku? item) =>
             item != null && !string.IsNullOrWhiteSpace(item.ConsumableItemDesc);
 
+        // Werewolf Wrist and the fantasy/wedding gowns are named coincidences, not
+        // exclusive/earned items - carved out so the broader keywords below don't
+        // catch them too.
+        private static readonly string[] ExcludedAvatarItemNameExceptions =
+        {
+            "Werewolf Wrist (Black Saija)",
+            "Bride of Frank Gown",
+            "Crimson Bride Gown",
+            "Ice Queen Gown",
+            "Ice Queen Gown (Lilac)",
+        };
+
         private static bool IsExcludedAvatarItemName(string? friendlyName) =>
             !string.IsNullOrWhiteSpace(friendlyName) &&
-            !friendlyName.Equals("Werewolf Wrist (Black Saija)", StringComparison.OrdinalIgnoreCase) &&
+            !ExcludedAvatarItemNameExceptions.Any(exception =>
+                friendlyName.Equals(exception, StringComparison.OrdinalIgnoreCase)) &&
             (friendlyName.Contains("Custom", StringComparison.OrdinalIgnoreCase) ||
              friendlyName.Contains("Owner", StringComparison.OrdinalIgnoreCase) ||
              friendlyName.Contains("Shirt", StringComparison.OrdinalIgnoreCase) ||
              friendlyName.Contains("Saija", StringComparison.OrdinalIgnoreCase) ||
              friendlyName.Contains("Bishop", StringComparison.OrdinalIgnoreCase) ||
              friendlyName.Contains("Special", StringComparison.OrdinalIgnoreCase) ||
+             // Earned/exclusive-status items that shouldn't be purchasable -
+             // contest prizes, graduation/teacher regalia, sponsor/partner
+             // gear, class-year shirts, and tutorial-completion gowns.
+             friendlyName.Contains("Contest", StringComparison.OrdinalIgnoreCase) ||
+             friendlyName.Contains("Graduation", StringComparison.OrdinalIgnoreCase) ||
+             friendlyName.Contains("Teacher", StringComparison.OrdinalIgnoreCase) ||
+             friendlyName.Contains("Video", StringComparison.OrdinalIgnoreCase) ||
+             friendlyName.Contains("Partner", StringComparison.OrdinalIgnoreCase) ||
+             friendlyName.Contains("Class of", StringComparison.OrdinalIgnoreCase) ||
+             friendlyName.Contains("Tutorial Gown", StringComparison.OrdinalIgnoreCase) ||
              friendlyName.Contains('_'));
 
         private static bool IsUnfinishedCatalogItem(CatalogSku item) =>
