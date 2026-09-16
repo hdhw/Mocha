@@ -958,6 +958,61 @@ namespace Mocha2023.Classes.DBs
             return result;
         }
 
+        // XP required to LEAVE each level (index 1 = cost to go from level 1 to
+        // 2). Same stepped shape as the 10/20/45/115/360 curve real Rec Room
+        // used for its first 50 levels, extended in the same spirit out to
+        // MaximumLevel. Tune the (upToLevel, cost) pairs if this paces too
+        // fast/slow once real playtesting happens.
+        private static readonly int[] LevelRequiredXp = BuildLevelRequiredXp();
+
+        private static int[] BuildLevelRequiredXp()
+        {
+            var costs = new int[MaximumLevel + 1];
+            (int UpToLevel, int Cost)[] tiers =
+            {
+                (10, 10),
+                (20, 20),
+                (30, 45),
+                (40, 115),
+                (50, 360),
+                (60, 700),
+                (70, 1200),
+                (80, 2000),
+                (MaximumLevel, 3000),
+            };
+
+            int tierIndex = 0;
+            for (int level = 1; level <= MaximumLevel; level++)
+            {
+                while (level > tiers[tierIndex].UpToLevel)
+                    tierIndex++;
+                costs[level] = tiers[tierIndex].Cost;
+            }
+
+            return costs;
+        }
+
+        // Spends xp on levels one tier at a time starting from `level`,
+        // carrying the remainder forward - a big grant can cross several
+        // levels in one call. Stops at MaximumLevel; leftover XP just banks.
+        private static (int Level, int Xp) ApplyLevelUps(int level, int xp)
+        {
+            int currentLevel = Math.Clamp(level, 1, MaximumLevel);
+            int remaining = Math.Max(0, xp);
+
+            while (currentLevel < MaximumLevel)
+            {
+                int cost = LevelRequiredXp[currentLevel];
+                if (cost <= 0 || remaining < cost)
+                    break;
+
+                remaining -= cost;
+                currentLevel++;
+            }
+
+            return (currentLevel, remaining);
+        }
+
         public static PlayerProgressionDTO? AddExperience(
             long playerId,
             int xpToAdd,
@@ -967,9 +1022,19 @@ namespace Mocha2023.Classes.DBs
             if (player?.Player == null)
                 return null;
 
-            int level = resultingLevel ?? player.Player.Level;
-            int xp = Math.Max(0, player.Player.XP + xpToAdd);
-            return SetProgression(playerId, level, xp);
+            int rawXp = Math.Max(0, player.Player.XP + xpToAdd);
+
+            if (resultingLevel.HasValue)
+            {
+                // Explicit override - some caller wants an exact level, so
+                // skip the XP curve entirely, same as before this change.
+                return SetProgression(playerId, resultingLevel.Value, rawXp);
+            }
+
+            (int newLevel, int remainderXp) = ApplyLevelUps(
+                player.Player.Level,
+                rawXp);
+            return SetProgression(playerId, newLevel, remainderXp);
         }
 
         public static List<GiftPackage> GetPendingGiftPackages(long playerId)
