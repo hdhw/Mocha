@@ -551,6 +551,27 @@ namespace Mocha2023.Classes
         private static DateTime _masterAvatarCatalogCacheTimestamp;
         private static readonly object MasterAvatarCatalogLock = new();
 
+        // AvatarItemDesc is "id,mod1,mod2,mod3" with unused slots either
+        // omitted ("id,") or left as empty segments ("id,,,") depending on
+        // which code path wrote it - both mean the same item, but a naive
+        // string match treats them as different descriptors. Strip trailing
+        // empty segments (keeping a trailing comma if there was one at all)
+        // so both forms resolve to the same catalog lookup key.
+        private static string NormalizeAvatarDescriptor(string descriptor)
+        {
+            if (string.IsNullOrEmpty(descriptor))
+                return descriptor;
+
+            string[] parts = descriptor.Split(',');
+            int last = parts.Length - 1;
+            while (last > 0 && parts[last].Length == 0)
+                last--;
+
+            return last == parts.Length - 1
+                ? descriptor
+                : string.Join(',', parts, 0, last + 1) + ",";
+        }
+
         private static (long Id, string Name)? LookupMasterAvatarCatalogItem(string descriptor)
         {
             if (string.IsNullOrWhiteSpace(descriptor))
@@ -583,12 +604,15 @@ namespace Mocha2023.Classes
                                     "AvatarItemDesc",
                                     "AvatarItemDescriptor",
                                     "ItemDesc");
-                                if (string.IsNullOrWhiteSpace(desc) || built.ContainsKey(desc))
+                                if (string.IsNullOrWhiteSpace(desc))
+                                    continue;
+                                string normalizedDesc = NormalizeAvatarDescriptor(desc);
+                                if (built.ContainsKey(normalizedDesc))
                                     continue;
 
                                 long id = ReadLong(item, "AvatarItemId", "ItemId", "Id");
                                 string name = ReadString(item, "FriendlyName", "Name");
-                                built[desc] = (id, string.IsNullOrWhiteSpace(name) ? desc : name);
+                                built[normalizedDesc] = (id, string.IsNullOrWhiteSpace(name) ? desc : name);
                             }
                         }
                     }
@@ -600,7 +624,9 @@ namespace Mocha2023.Classes
                     _masterAvatarCatalogCacheTimestamp = timestamp;
                 }
 
-                return _masterAvatarCatalogCache.TryGetValue(descriptor, out var found)
+                return _masterAvatarCatalogCache.TryGetValue(
+                    NormalizeAvatarDescriptor(descriptor),
+                    out var found)
                     ? found
                     : null;
             }
