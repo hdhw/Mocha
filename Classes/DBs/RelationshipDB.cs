@@ -5,7 +5,7 @@ using static Mocha2023.Classes.DBs.DBClasses.PlayerDBClasses;
 namespace Mocha2023.Classes.DBs
 {
 
-    public static class RelationshipDB
+    public static partial class RelationshipDB
     {
         private static readonly object Sync = new();
         private static readonly LiteDatabase Database =
@@ -28,12 +28,6 @@ namespace Mocha2023.Classes.DBs
             Records.EnsureIndex(value => value.SourcePlayerId);
             Records.EnsureIndex(value => value.TargetPlayerId);
             Records.EnsureIndex(value => value.Kind);
-        }
-
-        public enum RelationshipKind
-        {
-            Friendship,
-            Subscription
         }
 
         public sealed class RelationshipRecord

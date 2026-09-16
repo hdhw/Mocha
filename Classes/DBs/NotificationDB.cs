@@ -6,7 +6,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 namespace Mocha2023.Classes.DBs
 {
 
-    public static class NotificationDB
+    public static partial class NotificationDB
     {
         private static readonly object Sync = new();
         private static readonly TimeSpan AcknowledgedInviteGrace =
@@ -68,49 +68,6 @@ namespace Mocha2023.Classes.DBs
                     });
                 }
             }
-        }
-
-        public enum MessageType
-        {
-            GameInvite = 0,
-            GameInviteDeclined = 1,
-            GameJoinFailed = 2,
-            PartyActivitySwitch = 3,
-            FriendInvite = 4,
-            VoteToKick = 5,
-            GameInviteV2 = 6,
-            PartyActivitySwitchV2 = 7,
-            RequestGameInvite = 10,
-            RequestGameInviteDeclined = 11,
-            FriendStatusOnline = 20,
-            TextMessage = 30,
-            FriendRequestAccepted = 40,
-            PlayerCheer = 50,
-            PlayerCheerAnonymous = 51,
-            RoomCoOwnerAdded = 60,
-            RoomCoOwnerRemoved = 61,
-            RoomCoOwnerInvited = 62,
-            CreatorPublishedNewRoom = 70,
-            PlayerAttendingEvent = 80,
-            PlayerEventInvitation = 81,
-            DeprecatedGroupInvitation = 90,
-            DeprecatedPlayerJoinedGroup = 91,
-            CoachMessage = 100,
-            NewRoomComments = 110,
-            PartyUpRequest = 120,
-            FriendIntroduction = 130,
-            ClubMemberInvited = 200,
-            ClubModeratorInvited = 201,
-            ClubCoownerInvited = 202,
-            VirtualClubAnnouncementRoomPublished = 100000,
-            VirtualClubAnnouncementInventionPublished = 100001,
-            VirtualClubAnnouncementGeneric = 100002,
-            VirtualClubAnnouncementPlayerEventPublished = 100003,
-            VirtualClubAnnouncementClub = 100004,
-            VirtualClubAnnouncementPlayer = 100005,
-            VirtualClubAnnouncementCode = 100006,
-            VirtualClubAnnouncementPhoto = 100007,
-            VirtualRoomNotification = 100008
         }
 
         public sealed class StoredNotification

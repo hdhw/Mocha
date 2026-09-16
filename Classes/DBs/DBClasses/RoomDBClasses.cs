@@ -6,7 +6,7 @@ using LiteDB;
 
 namespace Mocha2023.Classes.DBs.DBClasses
 {
-    public class RoomDBClasses
+    public partial class RoomDBClasses
     {
         public const string RoomsCollectionName = "Rooms";
         public const string SubRoomDataSavesCollectionName = "SubRoomDataSaves";
@@ -568,73 +568,6 @@ namespace Mocha2023.Classes.DBs.DBClasses
             public string? Reason { get; set; }
 
             public DateTime BannedAt { get; set; }
-        }
-
-        public enum Role : byte
-        {
-            None = 0,
-            Banned = 1,
-
-            Host = 10,
-            Moderator = 20,
-            CoOwner = 30,
-            TemporaryCoOwner = 31,
-
-            Creator = 255
-        }
-
-        [Flags]
-        public enum WarningMaskType
-        {
-            None = 0,
-            Scary = 1,
-            Mature = 2,
-            FlashingLights = 4,
-            IntenseMotion = 8,
-            Violence = 16,
-            Custom = 32,
-            Reports = 64
-        }
-
-        public enum RoomAccessibility
-        {
-            Private = 0,
-            Public = 1,
-            Unlisted = 2,
-            Dev_only = 3,
-            Dev_Unlisted = 4
-        }
-
-        public enum RoomState
-        {
-            Active = 0,
-
-            PendingJunior = 11,
-
-            Moderation_PendingReview = 100,
-            Moderation_Closed = 101,
-
-            MarkedForDelete = 1000
-        }
-
-        public enum TagType
-        {
-            General = 0,
-            Auto = 1,
-            AGOnly = 2,
-            Banned = 3
-        }
-
-        public enum PromoExternalContentType
-        {
-            YouTube = 0
-        }
-
-        public enum JoinMode
-        {
-            PublicMatchmaking = 0,
-            PublicNewInstance = 1,
-            PrivateNewInstance = 2
         }
     }
 }

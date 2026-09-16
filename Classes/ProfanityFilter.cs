@@ -7,17 +7,6 @@ using System.Text.RegularExpressions;
 
 namespace Mocha2023.Classes
 {
-    public enum ProfanitySeverity
-    {
-        None,
-
-        Mild,
-
-        Severe,
-
-        SevereBypass
-    }
-
     public sealed record ProfanityMatch(
         string CanonicalWord,
         string MatchedText,

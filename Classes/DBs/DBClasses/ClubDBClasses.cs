@@ -2,49 +2,8 @@ using LiteDB;
 
 namespace Mocha2023.Classes.DBs.DBClasses
 {
-    public static class ClubDBClasses
+    public static partial class ClubDBClasses
     {
-        public enum ClubState
-        {
-            Active = 0,
-            PendingJunior = 11,
-            ModerationPendingReview = 100,
-            ModerationClosed = 101,
-            MarkedForDelete = 1000
-        }
-
-        public enum ClubVisibility
-        {
-            Private = 0,
-            Public = 1
-        }
-
-        public enum ClubJoinability
-        {
-            Open = 0,
-            InviteOnly = 1,
-            AskToJoin = 2
-        }
-
-        public enum ClubType
-        {
-            Generic = 0,
-            Creator = 1
-        }
-
-        public enum ClubMembershipType
-        {
-            Banned = -1,
-            None = 0,
-            PendingRequested = 1,
-            PendingInvited = 2,
-            PendingDenied = 3,
-            Member = 10,
-            Moderator = 20,
-            CoOwner = 30,
-            Creator = 100
-        }
-
         public sealed class ClubRecord
         {
             [BsonId]
@@ -77,6 +36,9 @@ namespace Mocha2023.Classes.DBs.DBClasses
             public long AccountId { get; set; }
             public ClubMembershipType MembershipType { get; set; }
 
+            // The tier the invite was for, kept while MembershipType is PendingInvited
+            // so accepting lands the player where they were invited rather than always
+            // as a plain member.
             public ClubMembershipType InvitedMembershipType { get; set; } =
                 ClubMembershipType.Member;
 

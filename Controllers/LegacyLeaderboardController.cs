@@ -15,7 +15,7 @@ namespace Mocha2023.Controllers
 
     [ApiController]
     [Mocha2023.Classes.ApiProtection]
-    public sealed class LegacyLeaderboardController : ControllerBase
+    public sealed partial class LegacyLeaderboardController : ControllerBase
     {
         private static readonly object DbLock = new();
 
@@ -347,13 +347,6 @@ namespace Mocha2023.Controllers
             }
 
             return new RequestValues(values);
-        }
-
-        private enum LeaderboardResult
-        {
-            Success = 0,
-            InvalidStat = 1,
-            RedisConnectionError = 2
         }
 
         private sealed class LeaderboardStat
