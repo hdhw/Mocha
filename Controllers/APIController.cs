@@ -10223,10 +10223,13 @@ namespace Mocha2023.Controllers
             string term = search?.Trim() ?? string.Empty;
             string requestedType = type?.Trim().ToLowerInvariant() ?? string.Empty;
 
+            // includeHidden means "admin browsing the raw catalog" - no filter
+            // at all, not even IsListableCatalogItem's type/name check. This is
+            // an authenticated admin-only tool; it should be able to find and
+            // gift literally anything in the catalog, not just what a normal
+            // shop listing would consider well-formed.
             IEnumerable<StorefrontAdminItem> query = GetCatalogSkus()
-                .Where(item => includeHidden
-                    ? IsListableCatalogItem(item)
-                    : IsUsableStoreItem(item))
+                .Where(item => includeHidden || IsUsableStoreItem(item))
                 .Where(item => string.IsNullOrWhiteSpace(term) ||
                     item.FriendlyName.Contains(term, StringComparison.OrdinalIgnoreCase) ||
                     item.AvatarItemDesc.Contains(term, StringComparison.OrdinalIgnoreCase) ||
