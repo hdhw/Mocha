@@ -860,6 +860,17 @@ namespace Mocha2023
                                 "no-store, no-cache, must-revalidate";
                             context.Response.Headers.Pragma = "no-cache";
                         }
+                        else
+                        {
+                            // The admin panel's HTML/JS/CSS get edited constantly.
+                            // With no explicit header here, Cloudflare's default
+                            // (and the browser's) multi-hour cache for static
+                            // assets was serving stale panel code after every
+                            // deploy. no-cache still allows a cheap ETag-based
+                            // 304 - it just forces a revalidation instead of
+                            // blindly trusting an old cached copy.
+                            context.Response.Headers.CacheControl = "no-cache";
+                        }
 
                         return Task.CompletedTask;
                     });
