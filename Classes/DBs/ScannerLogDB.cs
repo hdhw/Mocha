@@ -1,4 +1,4 @@
-using LiteDB;
+using Mocha2023.Classes.DBs.Postgres;
 
 namespace Mocha2023.Classes.DBs;
 
@@ -6,7 +6,6 @@ public static class ScannerLogDB
 {
     public class ScannerAttempt
     {
-        [BsonId]
         public long Id { get; set; }
 
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
@@ -19,14 +18,23 @@ public static class ScannerLogDB
         public string? MatchedPattern { get; set; }
     }
 
-    private static readonly LiteDatabase DB = new(
-        Path.Combine(Program.dataDir, "DBs", "ScannerLogs.db"));
-
-    public static readonly ILiteCollection<ScannerAttempt> Attempts =
-        DB.GetCollection<ScannerAttempt>("Attempts");
+    public static readonly PostgresCollection<ScannerAttempt> Attempts = new(
+        PostgresConfig.ConnectionString,
+        tableName: "scanner_attempts",
+        idColumn: "id",
+        idSelector: a => a.Id,
+        extraColumns: new (string, Func<ScannerAttempt, object?>)[]
+        {
+            ("ip_address", a => a.IpAddress)
+        });
 
     private const int MaxStored = 20_000;
     private const int TrimBatchSize = 1_000;
+
+    static ScannerLogDB()
+    {
+        Attempts.EnsureIndex("ip_address");
+    }
 
     public static void Log(
         string ipAddress,
@@ -36,15 +44,17 @@ public static class ScannerLogDB
         string? userAgent,
         string? matchedPattern)
     {
-        Attempts.Insert(new ScannerAttempt
+        var attempt = new ScannerAttempt
         {
+            Id = Attempts.NextId("scanner_attempts_id_seq"),
             IpAddress = ipAddress,
             Method = method,
             Path = path,
             QueryString = queryString,
             UserAgent = userAgent,
             MatchedPattern = matchedPattern
-        });
+        };
+        Attempts.Insert(attempt);
 
         long count = Attempts.LongCount();
         if (count > MaxStored)
