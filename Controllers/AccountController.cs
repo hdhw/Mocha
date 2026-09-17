@@ -125,6 +125,8 @@ namespace Mocha2023.Controllers
             if (bio.Length > 500 || bio.Any(ch => ch == '\0'))
                 return BadRequest(new { error = "invalid_bio" });
 
+            bio = ProfanityFilter.Blur(bio);
+
             player.Player.Bio = bio;
             PlayerDB.Players.Update(player);
 

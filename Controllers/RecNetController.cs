@@ -8277,8 +8277,11 @@ namespace Mocha2023.Controllers
 
             if (displayName.Length is < 1 or > 32 || displayName.Any(char.IsControl))
                 return BadRequest(new { error = "Display name must be between 1 and 32 characters." });
+            if (ProfanityFilter.ContainsProfanity(displayName))
+                return BadRequest(new { error = "That display name isn't allowed." });
             if (bio.Length > 500 || bio.Any(ch => ch == '\0'))
                 return BadRequest(new { error = "Bio must be 500 characters or fewer." });
+            bio = ProfanityFilter.Blur(bio);
             if (!string.IsNullOrEmpty(email))
             {
                 bool validEmail = false;
@@ -8303,6 +8306,8 @@ namespace Mocha2023.Controllers
             {
                 if (username.Length is < 3 or > 20 || username.Any(ch => !char.IsLetterOrDigit(ch) && ch != '_'))
                     return BadRequest(new { error = "Username must be 3-20 letters, numbers, or underscores." });
+                if (ProfanityFilter.ContainsProfanity(username))
+                    return BadRequest(new { error = "That username isn't allowed." });
                 if (account.Player.AvailableUsernameChanges <= 0)
                     return BadRequest(new { error = "You have no username changes remaining." });
                 bool inUse = PlayerDB.Players.FindAll().Any(x => x.PlayerId != account.PlayerId &&

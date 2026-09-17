@@ -607,6 +607,9 @@ namespace Mocha2023.Classes.DBs
                 return false;
             }
 
+            if (ProfanityFilter.ContainsProfanity(username))
+                return false;
+
             if (Players.FindAll().Any(candidate =>
                     candidate.PlayerId != playerId &&
                     string.Equals(
@@ -723,6 +726,12 @@ namespace Mocha2023.Classes.DBs
                 return false;
 
             displayName = displayName?.Trim() ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(displayName) &&
+                ProfanityFilter.ContainsProfanity(displayName))
+            {
+                return false;
+            }
+
             player.Player.DisplayName = string.IsNullOrWhiteSpace(displayName) ||
                 IsPlaceholderDisplayName(displayName)
                 ? GetClientDisplayName(player.Player, playerId)
