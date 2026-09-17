@@ -1,6 +1,6 @@
-﻿using LiteDB;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using Mocha2023.Classes.DBs.Postgres;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Mocha2023.Classes.DBs
@@ -11,20 +11,57 @@ namespace Mocha2023.Classes.DBs
         private static readonly object Sync = new();
         private static readonly TimeSpan AcknowledgedInviteGrace =
             TimeSpan.FromMinutes(5);
-        private static readonly LiteDatabase Database =
-            new(Path.Combine(Program.dataDir, "DBs", "Notifications.db"));
-        private static readonly ILiteCollection<StoredNotification> Messages =
-            Database.GetCollection<StoredNotification>("Messages", BsonAutoId.Int64);
-        private static readonly ILiteCollection<StoredRoomInviteGrant> RoomInviteGrants =
-            Database.GetCollection<StoredRoomInviteGrant>("RoomInviteGrants");
+        private static readonly PostgresCollection<StoredNotification> Messages = new(
+            PostgresConfig.ConnectionString,
+            tableName: "notification_messages",
+            idColumn: "id",
+            idSelector: m => m.Id,
+            extraColumns: new (string, Func<StoredNotification, object?>)[]
+            {
+                ("recipient_player_id", m => m.RecipientPlayerId),
+                ("created_at", m => m.CreatedAt),
+                ("expiration_time", m => m.ExpirationTime)
+            });
+        private static readonly PostgresCollection<StoredRoomInviteGrant> RoomInviteGrants = new(
+            PostgresConfig.ConnectionString,
+            tableName: "notification_room_invite_grants",
+            idColumn: "message_id",
+            idSelector: g => g.MessageId,
+            extraColumns: new (string, Func<StoredRoomInviteGrant, object?>)[]
+            {
+                ("recipient_player_id", g => g.RecipientPlayerId),
+                ("room_instance_id", g => g.RoomInstanceId),
+                ("expiration_time", g => g.ExpirationTime)
+            });
+
+        public static int MigrateFromLiteDb()
+        {
+            string path = Path.Combine(Program.dataDir, "DBs", "Notifications.db");
+            if (!File.Exists(path))
+                return 0;
+
+            using var db = new LiteDB.LiteDatabase($"Filename={path};Connection=shared;ReadOnly=true");
+            int count = 0;
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Messages").FindAll())
+            {
+                Messages.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<StoredNotification>(doc, "Id"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("RoomInviteGrants").FindAll())
+            {
+                RoomInviteGrants.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<StoredRoomInviteGrant>(doc, "MessageId"));
+                count++;
+            }
+            return count;
+        }
 
         static NotificationDB()
         {
-            Messages.EnsureIndex(value => value.RecipientPlayerId);
-            Messages.EnsureIndex(value => value.CreatedAt);
-            RoomInviteGrants.EnsureIndex(value => value.RecipientPlayerId);
-            RoomInviteGrants.EnsureIndex(value => value.RoomInstanceId);
-            RoomInviteGrants.EnsureIndex(value => value.ExpirationTime);
+            Messages.EnsureIndex("recipient_player_id");
+            Messages.EnsureIndex("created_at");
+            RoomInviteGrants.EnsureIndex("recipient_player_id");
+            RoomInviteGrants.EnsureIndex("room_instance_id");
+            RoomInviteGrants.EnsureIndex("expiration_time");
 
             lock (Sync)
             {
@@ -72,7 +109,6 @@ namespace Mocha2023.Classes.DBs
 
         public sealed class StoredNotification
         {
-            [BsonId]
             public long Id { get; set; }
             public long RecipientPlayerId { get; set; }
             public int FromPlayerId { get; set; }
@@ -88,7 +124,6 @@ namespace Mocha2023.Classes.DBs
 
         public sealed class StoredRoomInviteGrant
         {
-            [BsonId]
             public long MessageId { get; set; }
             public long RecipientPlayerId { get; set; }
             public long InviterPlayerId { get; set; }
@@ -212,6 +247,7 @@ namespace Mocha2023.Classes.DBs
                     RoomInviteGrants.Delete(grant.MessageId);
                 }
 
+                stored.Id = Messages.NextId("notification_messages_id_seq");
                 Messages.Insert(stored);
 
                 RoomInviteGrants.Upsert(new StoredRoomInviteGrant
@@ -773,6 +809,7 @@ namespace Mocha2023.Classes.DBs
             lock (Sync)
             {
                 DeleteExpiredNoLock();
+                stored.Id = Messages.NextId("notification_messages_id_seq");
                 Messages.Insert(stored);
                 return ToClient(stored);
             }

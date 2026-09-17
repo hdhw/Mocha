@@ -1,37 +1,66 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using LiteDB;
+using Mocha2023.Classes.DBs.Postgres;
 
 namespace Mocha2023.Classes.DBs
 {
-
     public static class PlayerEventDB
     {
-        private static readonly LiteDatabase Database =
-            new(Path.Combine(Program.dataDir, "DBs", "PlayerEvents.db"));
+        private static readonly PostgresCollection<PlayerEvent> Events = new(
+            PostgresConfig.ConnectionString,
+            tableName: "player_events",
+            idColumn: "event_id",
+            idSelector: e => e.EventId,
+            extraColumns: new (string, Func<PlayerEvent, object?>)[]
+            {
+                ("creator_account_id", e => e.CreatorAccountId),
+                ("club_id", e => e.ClubId),
+                ("starts_at", e => e.StartsAt)
+            });
 
-        private static readonly ILiteCollection<PlayerEvent> Events =
-            Database.GetCollection<PlayerEvent>("Events");
-        private static readonly ILiteCollection<PlayerEventResponse> Responses =
-            Database.GetCollection<PlayerEventResponse>("Responses");
+        private static readonly PostgresCollection<PlayerEventResponse> Responses = new(
+            PostgresConfig.ConnectionString,
+            tableName: "player_event_responses",
+            idColumn: "id",
+            idSelector: r => r.Id,
+            extraColumns: new (string, Func<PlayerEventResponse, object?>)[]
+            {
+                ("event_id", r => r.EventId),
+                ("account_id", r => r.AccountId)
+            });
 
         private static readonly object Sync = new();
 
         static PlayerEventDB()
         {
-            LiteDbMaintenance.StartPeriodicCheckpoint("PlayerEvents.db", Database);
-            Events.EnsureIndex(value => value.CreatorAccountId);
-            Events.EnsureIndex(value => value.ClubId);
-            Events.EnsureIndex(value => value.StartsAt);
-            Responses.EnsureIndex(value => value.EventId);
-            Responses.EnsureIndex(value => value.AccountId);
+            Events.EnsureIndex("creator_account_id");
+            Events.EnsureIndex("club_id");
+            Events.EnsureIndex("starts_at");
+            Responses.EnsureIndex("event_id");
+            Responses.EnsureIndex("account_id");
+        }
+
+        public static int MigrateFromLiteDb()
+        {
+            string path = Path.Combine(Program.dataDir, "DBs", "PlayerEvents.db");
+            if (!File.Exists(path))
+                return 0;
+
+            using var db = new LiteDB.LiteDatabase($"Filename={path};Connection=shared;ReadOnly=true");
+            int count = 0;
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Events").FindAll())
+            {
+                Events.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<PlayerEvent>(doc, "EventId"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Responses").FindAll())
+            {
+                Responses.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<PlayerEventResponse>(doc, "Id"));
+                count++;
+            }
+            return count;
         }
 
         public sealed class PlayerEvent
         {
-            [BsonId]
             public long EventId { get; set; }
             public long CreatorAccountId { get; set; }
             public string Name { get; set; } = string.Empty;
@@ -51,7 +80,6 @@ namespace Mocha2023.Classes.DBs
 
         public sealed class PlayerEventResponse
         {
-            [BsonId]
             public string Id { get; set; } = string.Empty;
             public long EventId { get; set; }
             public long AccountId { get; set; }
@@ -65,7 +93,7 @@ namespace Mocha2023.Classes.DBs
         public static long GetNextEventId()
         {
             lock (Sync)
-                return Events.Count() == 0 ? 1 : Events.Max(value => value.EventId) + 1;
+                return Events.NextId("player_events_event_id_seq");
         }
 
         public static PlayerEvent Create(PlayerEvent evt)

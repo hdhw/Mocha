@@ -1,5 +1,5 @@
 using Mocha2023.Auth;
-using LiteDB;
+using Mocha2023.Classes.DBs.Postgres;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -23,16 +23,39 @@ namespace Mocha2023.Controllers
 
         private const int NoScore = 0;
 
-        private static readonly LiteDatabase LeaderboardDb = OpenDatabase();
-
-        private static readonly ILiteCollection<LeaderboardStat> Stats =
-            LeaderboardDb.GetCollection<LeaderboardStat>("LeaderboardStats");
+        private static readonly PostgresCollection<LeaderboardStat> Stats = new(
+            PostgresConfig.ConnectionString,
+            tableName: "legacy_leaderboard_stats",
+            idColumn: "id",
+            idSelector: x => x.Id,
+            extraColumns: new (string, Func<LeaderboardStat, object?>)[]
+            {
+                ("room_id", x => x.RoomId),
+                ("stat_channel", x => x.StatChannel),
+                ("account_id", x => x.AccountId)
+            });
 
         static LegacyLeaderboardController()
         {
-            Stats.EnsureIndex(x => x.RoomId);
-            Stats.EnsureIndex(x => x.StatChannel);
-            Stats.EnsureIndex(x => x.AccountId);
+            Stats.EnsureIndex("room_id");
+            Stats.EnsureIndex("stat_channel");
+            Stats.EnsureIndex("account_id");
+        }
+
+        public static int MigrateFromLiteDb()
+        {
+            string path = Path.Combine(Program.dataDir, "DBs", "Leaderboards.db");
+            if (!System.IO.File.Exists(path))
+                return 0;
+
+            using var db = new LiteDB.LiteDatabase($"Filename={path};Connection=shared;ReadOnly=true");
+            int count = 0;
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("LeaderboardStats").FindAll())
+            {
+                Stats.Upsert(Classes.DBs.LiteDbMigrationTool.ReadWithRecoveredId<LeaderboardStat>(doc, "Id"));
+                count++;
+            }
+            return count;
         }
 
         [HttpPost("/leaderboard/CheckAndSetStat")]
@@ -302,15 +325,6 @@ namespace Mocha2023.Controllers
             FormattableString.Invariant(
                 $"{roomId}:{statChannel}:{accountId}");
 
-        private static LiteDatabase OpenDatabase()
-        {
-            string dbDirectory = Path.Combine(Program.dataDir, "DBs");
-            Directory.CreateDirectory(dbDirectory);
-
-            return new LiteDatabase(
-                Path.Combine(dbDirectory, "Leaderboards.db"));
-        }
-
         private async Task<RequestValues> ReadRequestValuesAsync()
         {
             var values = new Dictionary<string, string>(
@@ -351,7 +365,6 @@ namespace Mocha2023.Controllers
 
         private sealed class LeaderboardStat
         {
-            [BsonId]
             public string Id { get; set; } = string.Empty;
 
             public long AccountId { get; set; }

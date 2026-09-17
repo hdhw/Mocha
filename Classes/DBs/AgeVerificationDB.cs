@@ -1,34 +1,48 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using LiteDB;
+using Mocha2023.Classes.DBs.Postgres;
 
 namespace Mocha2023.Classes.DBs
 {
-
     public static class AgeVerificationDB
     {
-        private static readonly LiteDatabase Database =
-            new(Path.Combine(Program.dataDir, "DBs", "AgeVerification.db"));
-
-        private static readonly ILiteCollection<AgeVerificationRequest> Requests =
-            Database.GetCollection<AgeVerificationRequest>("Requests");
+        private static readonly PostgresCollection<AgeVerificationRequest> Requests = new(
+            PostgresConfig.ConnectionString,
+            tableName: "age_verification_requests",
+            idColumn: "code",
+            idSelector: r => r.Code,
+            extraColumns: new (string, Func<AgeVerificationRequest, object?>)[]
+            {
+                ("account_id", r => r.AccountId),
+                ("status", r => r.Status)
+            });
 
         private const string CodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         private static readonly object Sync = new();
 
         static AgeVerificationDB()
         {
-            LiteDbMaintenance.StartPeriodicCheckpoint("AgeVerification.db", Database);
-            Requests.EnsureIndex(value => value.AccountId);
-            Requests.EnsureIndex(value => value.Status);
+            Requests.EnsureIndex("account_id");
+            Requests.EnsureIndex("status");
+        }
+
+        public static int MigrateFromLiteDb()
+        {
+            string path = Path.Combine(Program.dataDir, "DBs", "AgeVerification.db");
+            if (!File.Exists(path))
+                return 0;
+
+            using var db = new LiteDB.LiteDatabase($"Filename={path};Connection=shared;ReadOnly=true");
+            int count = 0;
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Requests").FindAll())
+            {
+                Requests.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<AgeVerificationRequest>(doc, "Code"));
+                count++;
+            }
+            return count;
         }
 
         public sealed class AgeVerificationRequest
         {
-            [BsonId]
             public string Code { get; set; } = string.Empty;
             public long AccountId { get; set; }
 
@@ -47,7 +61,6 @@ namespace Mocha2023.Classes.DBs
         {
             lock (Sync)
             {
-
                 foreach (AgeVerificationRequest stale in Requests
                              .Find(value => value.AccountId == accountId &&
                                  (value.Status == "Pending" || value.Status == "UnderReview"))

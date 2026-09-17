@@ -1,45 +1,108 @@
-using LiteDB;
 using System.Net;
 using System.Text.Json;
 using Mocha2023.Classes;
+using Mocha2023.Classes.DBs.Postgres;
 
 namespace Mocha2023.Classes.DBs
 {
     public static class RecNetDB
     {
         private const int ChallengeDefinitionVersion = 2;
-        private static readonly LiteDatabase Database =
-            new(Path.Combine(Program.dataDir, "DBs", "RecNet.db"));
 
-        public static readonly ILiteCollection<PhotoCheer> PhotoCheers =
-            Database.GetCollection<PhotoCheer>("PhotoCheers");
+        public static readonly PostgresCollection<PhotoCheer> PhotoCheers = new(
+            PostgresConfig.ConnectionString,
+            tableName: "recnet_photo_cheers",
+            idColumn: "id",
+            idSelector: value => value.Id,
+            extraColumns: new (string, Func<PhotoCheer, object?>)[]
+            {
+                ("photo_path", value => value.PhotoPath),
+                ("account_id", value => value.AccountId)
+            });
 
-        public static readonly ILiteCollection<PhotoComment> PhotoComments =
-            Database.GetCollection<PhotoComment>("PhotoComments");
+        public static readonly PostgresCollection<PhotoComment> PhotoComments = new(
+            PostgresConfig.ConnectionString,
+            tableName: "recnet_photo_comments",
+            idColumn: "id",
+            idSelector: value => value.Id,
+            extraColumns: new (string, Func<PhotoComment, object?>)[]
+            {
+                ("photo_path", value => value.PhotoPath),
+                ("account_id", value => value.AccountId)
+            });
 
-        public static readonly ILiteCollection<SavedImage> SavedImages =
-            Database.GetCollection<SavedImage>("SavedImages");
+        public static readonly PostgresCollection<SavedImage> SavedImages = new(
+            PostgresConfig.ConnectionString,
+            tableName: "recnet_saved_images",
+            idColumn: "photo_path",
+            idSelector: value => value.PhotoPath,
+            extraColumns: new (string, Func<SavedImage, object?>)[]
+            {
+                ("account_id", value => value.AccountId),
+                ("image_id", value => value.ImageId),
+                ("content_hash", value => value.ContentHash),
+                ("lookup_name", value => value.LookupName),
+                ("created_at", value => value.CreatedAt)
+            });
 
-        public static readonly ILiteCollection<ModerationLock> ModerationLocks =
-            Database.GetCollection<ModerationLock>("ModerationLocks");
+        public static readonly PostgresCollection<ModerationLock> ModerationLocks = new(
+            PostgresConfig.ConnectionString,
+            tableName: "recnet_moderation_locks",
+            idColumn: "account_id",
+            idSelector: value => value.AccountId,
+            extraColumns: new (string, Func<ModerationLock, object?>)[]
+            {
+                ("ban_group_id", value => value.BanGroupId)
+            });
 
-        public static readonly ILiteCollection<Event> Events =
-            Database.GetCollection<Event>("Events");
+        public static readonly PostgresCollection<Event> Events = new(
+            PostgresConfig.ConnectionString,
+            tableName: "recnet_events",
+            idColumn: "id",
+            idSelector: value => value.Id,
+            extraColumns: new (string, Func<Event, object?>)[]
+            {
+                ("image_name", value => value.ImageName)
+            });
 
-        public static readonly ILiteCollection<Announcement> Announcements =
-            Database.GetCollection<Announcement>("Announcements");
+        public static readonly PostgresCollection<Announcement> Announcements = new(
+            PostgresConfig.ConnectionString,
+            tableName: "recnet_announcements",
+            idColumn: "id",
+            idSelector: value => value.Id);
 
-        public static readonly ILiteCollection<ChallengeProgress> ChallengeProgresses =
-            Database.GetCollection<ChallengeProgress>("ChallengeProgresses");
+        public static readonly PostgresCollection<ChallengeProgress> ChallengeProgresses = new(
+            PostgresConfig.ConnectionString,
+            tableName: "recnet_challenge_progresses",
+            idColumn: "id",
+            idSelector: value => value.Id,
+            extraColumns: new (string, Func<ChallengeProgress, object?>)[]
+            {
+                ("account_id", value => value.AccountId)
+            });
 
-        public static readonly ILiteCollection<ChallengeCompletionEvent> ChallengeCompletionEvents =
-            Database.GetCollection<ChallengeCompletionEvent>("ChallengeCompletionEvents");
+        public static readonly PostgresCollection<ChallengeCompletionEvent> ChallengeCompletionEvents = new(
+            PostgresConfig.ConnectionString,
+            tableName: "recnet_challenge_completion_events",
+            idColumn: "id",
+            idSelector: value => value.Id);
 
-        public static readonly ILiteCollection<FeatureSetting> FeatureSettings =
-            Database.GetCollection<FeatureSetting>("FeatureSettings");
+        public static readonly PostgresCollection<FeatureSetting> FeatureSettings = new(
+            PostgresConfig.ConnectionString,
+            tableName: "recnet_feature_settings",
+            idColumn: "key",
+            idSelector: value => value.Key);
 
-        public static readonly ILiteCollection<IpBan> IpBans =
-            Database.GetCollection<IpBan>("IpBans");
+        public static readonly PostgresCollection<IpBan> IpBans = new(
+            PostgresConfig.ConnectionString,
+            tableName: "recnet_ip_bans",
+            idColumn: "id",
+            idSelector: value => value.Id,
+            extraColumns: new (string, Func<IpBan, object?>)[]
+            {
+                ("network", value => value.Network),
+                ("created_at", value => value.CreatedAt)
+            });
 
         private static readonly object ChallengeProgressLock = new();
         private static readonly object FeatureSettingsLock = new();
@@ -52,15 +115,20 @@ namespace Mocha2023.Classes.DBs
 
         static RecNetDB()
         {
-            SavedImages.EnsureIndex(image => image.AccountId);
-            SavedImages.EnsureIndex(image => image.ImageId);
-            SavedImages.EnsureIndex(image => image.ContentHash);
-            SavedImages.EnsureIndex(image => image.LookupName);
-            SavedImages.EnsureIndex(image => image.CreatedAt);
-            PhotoCheers.EnsureIndex(cheer => cheer.PhotoPath);
-            PhotoCheers.EnsureIndex(cheer => cheer.AccountId);
-            IpBans.EnsureIndex(ban => ban.Network, unique: true);
-            IpBans.EnsureIndex(ban => ban.CreatedAt);
+            SavedImages.EnsureIndex("account_id");
+            SavedImages.EnsureIndex("image_id");
+            SavedImages.EnsureIndex("content_hash");
+            SavedImages.EnsureIndex("lookup_name");
+            SavedImages.EnsureIndex("created_at");
+            PhotoCheers.EnsureIndex("photo_path");
+            PhotoCheers.EnsureIndex("account_id");
+            PhotoComments.EnsureIndex("photo_path");
+            PhotoComments.EnsureIndex("account_id");
+            ModerationLocks.EnsureIndex("ban_group_id");
+            ChallengeProgresses.EnsureIndex("account_id");
+            Events.EnsureIndex("image_name");
+            IpBans.EnsureIndex("network", unique: true);
+            IpBans.EnsureIndex("created_at");
 
             foreach (PhotoCheer cheer in PhotoCheers.FindAll().ToList())
             {
@@ -97,9 +165,69 @@ namespace Mocha2023.Classes.DBs
             }
         }
 
+        public static int MigrateFromLiteDb()
+        {
+            string path = Path.Combine(Program.dataDir, "DBs", "RecNet.db");
+            if (!File.Exists(path))
+                return 0;
+
+            using var db = new LiteDB.LiteDatabase($"Filename={path};Connection=shared;ReadOnly=true");
+            int count = 0;
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("PhotoCheers").FindAll())
+            {
+                PhotoCheers.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<PhotoCheer>(doc, "Id"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("PhotoComments").FindAll())
+            {
+                PhotoComments.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<PhotoComment>(doc, "Id"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("SavedImages").FindAll())
+            {
+                SavedImages.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<SavedImage>(doc, "PhotoPath"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("ModerationLocks").FindAll())
+            {
+                ModerationLocks.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<ModerationLock>(doc, "AccountId"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Events").FindAll())
+            {
+                Events.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<Event>(doc, "Id"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Announcements").FindAll())
+            {
+                Announcements.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<Announcement>(doc, "Id"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("ChallengeProgresses").FindAll())
+            {
+                ChallengeProgresses.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<ChallengeProgress>(doc, "Id"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("ChallengeCompletionEvents").FindAll())
+            {
+                ChallengeCompletionEvents.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<ChallengeCompletionEvent>(doc, "Id"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("FeatureSettings").FindAll())
+            {
+                FeatureSettings.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<FeatureSetting>(doc, "Key"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("IpBans").FindAll())
+            {
+                IpBans.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<IpBan>(doc, "Id"));
+                count++;
+            }
+            return count;
+        }
+
         public class PhotoCheer
         {
-            [BsonId]
             public string Id { get; set; } = string.Empty;
             public string PhotoPath { get; set; } = string.Empty;
             public long AccountId { get; set; }
@@ -160,7 +288,6 @@ namespace Mocha2023.Classes.DBs
 
         public class PhotoComment
         {
-            [BsonId]
             public string Id { get; set; } = Guid.NewGuid().ToString("N");
             public string PhotoPath { get; set; } = string.Empty;
             public long AccountId { get; set; }
@@ -170,7 +297,6 @@ namespace Mocha2023.Classes.DBs
 
         public class SavedImage
         {
-            [BsonId]
             public string PhotoPath { get; set; } = string.Empty;
             public long ImageId { get; set; }
             public long AccountId { get; set; }
@@ -187,7 +313,6 @@ namespace Mocha2023.Classes.DBs
 
         public class ModerationLock
         {
-            [BsonId]
             public long AccountId { get; set; }
             public string Reason { get; set; } = string.Empty;
             public long IssuedByAccountId { get; set; }
@@ -199,7 +324,6 @@ namespace Mocha2023.Classes.DBs
 
         public class Event
         {
-            [BsonId]
             public long Id { get; set; }
             public string Title { get; set; } = string.Empty;
             public string Description { get; set; } = string.Empty;
@@ -213,7 +337,6 @@ namespace Mocha2023.Classes.DBs
 
         public class Announcement
         {
-            [BsonId]
             public long Id { get; set; }
             public string Title { get; set; } = string.Empty;
             public string BodyMarkdown { get; set; } = string.Empty;
@@ -227,7 +350,6 @@ namespace Mocha2023.Classes.DBs
 
         public class ChallengeProgress
         {
-            [BsonId]
             public string Id { get; set; } = string.Empty;
             public long AccountId { get; set; }
             public int ChallengeMapId { get; set; }
@@ -240,7 +362,6 @@ namespace Mocha2023.Classes.DBs
 
         public class ChallengeCompletionEvent
         {
-            [BsonId]
             public string Id { get; set; } = string.Empty;
             public long AccountId { get; set; }
             public int ChallengeMapId { get; set; }
@@ -251,7 +372,6 @@ namespace Mocha2023.Classes.DBs
 
         public class FeatureSetting
         {
-            [BsonId]
             public string Key { get; set; } = string.Empty;
             public bool Enabled { get; set; }
             public long UpdatedByAccountId { get; set; }
@@ -260,7 +380,6 @@ namespace Mocha2023.Classes.DBs
 
         public class IpBan
         {
-            [BsonId]
             public string Id { get; set; } = Guid.NewGuid().ToString("N");
             public string Network { get; set; } = string.Empty;
             public string Reason { get; set; } = string.Empty;

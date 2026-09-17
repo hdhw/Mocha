@@ -1,5 +1,5 @@
 using System.Globalization;
-using LiteDB;
+using Mocha2023.Classes.DBs.Postgres;
 using static Mocha2023.Classes.DBs.DBClasses.ClubDBClasses;
 
 namespace Mocha2023.Classes.DBs
@@ -8,19 +8,60 @@ namespace Mocha2023.Classes.DBs
     {
         private const int MaxCreatedClubsPerAccount = 100;
         private static readonly object Sync = new();
-        private static readonly LiteDatabase Database =
-            new(Path.Combine(Program.dataDir, "DBs", "Clubs.db"));
 
-        public static readonly ILiteCollection<ClubRecord> Clubs =
-            Database.GetCollection<ClubRecord>("Clubs");
-        public static readonly ILiteCollection<ClubMembershipRecord> Memberships =
-            Database.GetCollection<ClubMembershipRecord>("Memberships");
-        public static readonly ILiteCollection<HomeClubRecord> HomeClubs =
-            Database.GetCollection<HomeClubRecord>("HomeClubs");
-        public static readonly ILiteCollection<ClubAnnouncementRecord> Announcements =
-            Database.GetCollection<ClubAnnouncementRecord>("Announcements");
-        public static readonly ILiteCollection<ClubAnnouncementReadRecord> AnnouncementReads =
-            Database.GetCollection<ClubAnnouncementReadRecord>("AnnouncementReads");
+        public static readonly PostgresCollection<ClubRecord> Clubs = new(
+            PostgresConfig.ConnectionString,
+            tableName: "clubs",
+            idColumn: "club_id",
+            idSelector: c => c.ClubId,
+            extraColumns: new (string, Func<ClubRecord, object?>)[]
+            {
+                ("creator_account_id", c => c.CreatorAccountId),
+                ("name", c => c.Name),
+                ("state", c => (int)c.State)
+            });
+
+        public static readonly PostgresCollection<ClubMembershipRecord> Memberships = new(
+            PostgresConfig.ConnectionString,
+            tableName: "club_memberships",
+            idColumn: "id",
+            idSelector: m => m.Id,
+            extraColumns: new (string, Func<ClubMembershipRecord, object?>)[]
+            {
+                ("club_id", m => m.ClubId),
+                ("account_id", m => m.AccountId),
+                ("membership_type", m => (int)m.MembershipType)
+            });
+
+        public static readonly PostgresCollection<HomeClubRecord> HomeClubs = new(
+            PostgresConfig.ConnectionString,
+            tableName: "club_home_clubs",
+            idColumn: "account_id",
+            idSelector: h => h.AccountId,
+            extraColumns: new (string, Func<HomeClubRecord, object?>)[]
+            {
+                ("club_id", h => h.ClubId)
+            });
+
+        public static readonly PostgresCollection<ClubAnnouncementRecord> Announcements = new(
+            PostgresConfig.ConnectionString,
+            tableName: "club_announcements",
+            idColumn: "announcement_id",
+            idSelector: a => a.AnnouncementId,
+            extraColumns: new (string, Func<ClubAnnouncementRecord, object?>)[]
+            {
+                ("club_id", a => a.ClubId)
+            });
+
+        public static readonly PostgresCollection<ClubAnnouncementReadRecord> AnnouncementReads = new(
+            PostgresConfig.ConnectionString,
+            tableName: "club_announcement_reads",
+            idColumn: "id",
+            idSelector: r => r.Id,
+            extraColumns: new (string, Func<ClubAnnouncementReadRecord, object?>)[]
+            {
+                ("club_id", r => r.ClubId)
+            });
 
         public static readonly IReadOnlyList<string> CategoryTags = new[]
         {
@@ -37,16 +78,52 @@ namespace Mocha2023.Classes.DBs
 
         static ClubDB()
         {
-            Clubs.EnsureIndex(value => value.CreatorAccountId);
-            Clubs.EnsureIndex(value => value.Name);
-            Clubs.EnsureIndex(value => value.State);
-            Announcements.EnsureIndex(value => value.ClubId);
-            AnnouncementReads.EnsureIndex(value => value.ClubId);
-            Memberships.EnsureIndex(value => value.ClubId);
-            Memberships.EnsureIndex(value => value.AccountId);
-            Memberships.EnsureIndex(value => value.MembershipType);
+            Clubs.EnsureIndex("creator_account_id");
+            Clubs.EnsureIndex("name");
+            Clubs.EnsureIndex("state");
+            Announcements.EnsureIndex("club_id");
+            AnnouncementReads.EnsureIndex("club_id");
+            Memberships.EnsureIndex("club_id");
+            Memberships.EnsureIndex("account_id");
+            Memberships.EnsureIndex("membership_type");
 
             RepairLegacyData();
+        }
+
+        public static int MigrateFromLiteDb()
+        {
+            string path = Path.Combine(Program.dataDir, "DBs", "Clubs.db");
+            if (!File.Exists(path))
+                return 0;
+
+            using var db = new LiteDB.LiteDatabase($"Filename={path};Connection=shared;ReadOnly=true");
+            int count = 0;
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Clubs").FindAll())
+            {
+                Clubs.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<ClubRecord>(doc, "ClubId"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Memberships").FindAll())
+            {
+                Memberships.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<ClubMembershipRecord>(doc, "Id"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("HomeClubs").FindAll())
+            {
+                HomeClubs.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<HomeClubRecord>(doc, "AccountId"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Announcements").FindAll())
+            {
+                Announcements.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<ClubAnnouncementRecord>(doc, "AnnouncementId"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("AnnouncementReads").FindAll())
+            {
+                AnnouncementReads.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<ClubAnnouncementReadRecord>(doc, "Id"));
+                count++;
+            }
+            return count;
         }
 
         public static void RepairLegacyData()
@@ -563,9 +640,7 @@ namespace Mocha2023.Classes.DBs
         {
             lock (Sync)
             {
-                long nextId = Announcements.Count() == 0
-                    ? 1
-                    : Announcements.Max(value => value.AnnouncementId) + 1;
+                long nextId = Announcements.NextId("club_announcements_announcement_id_seq");
 
                 var record = new ClubAnnouncementRecord
                 {
@@ -835,7 +910,7 @@ namespace Mocha2023.Classes.DBs
         }
 
         private static long NextClubId() =>
-            Clubs.Count() == 0 ? 1 : Clubs.Max(value => value.ClubId) + 1;
+            Clubs.NextId("clubs_club_id_seq");
 
         private static string MembershipId(long clubId, long accountId) =>
             $"{clubId}:{accountId}";

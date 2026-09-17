@@ -1,10 +1,22 @@
-using System.Linq.Expressions;
+using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using Dapper;
 using Npgsql;
 
 namespace Mocha2023.Classes.DBs.Postgres
 {
+    // Marks a property that must round-trip through the client's JSON
+    // contract but never be written to the JSONB storage column - the
+    // Postgres equivalent of LiteDB's [BsonIgnore] (which only ever
+    // applied to storage, never to the client-facing System.Text.Json
+    // contract those same models also carry).
+    [AttributeUsage(AttributeTargets.Property)]
+    public sealed class PostgresIgnoreAttribute : Attribute
+    {
+    }
+
     // Drop-in replacement for the subset of LiteDB's ILiteCollection<T>
     // surface actually used across the codebase, backed by a real Postgres
     // table shaped (<id column>, <optional extra indexed columns>, data
@@ -23,8 +35,69 @@ namespace Mocha2023.Classes.DBs.Postgres
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
             PropertyNamingPolicy = null,
-            MaxDepth = 64
+            MaxDepth = 64,
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver
+            {
+                Modifiers = { IgnorePostgresIgnoreProperties, RestoreJsonIgnoredProperties }
+            }
         };
+
+        private static void IgnorePostgresIgnoreProperties(JsonTypeInfo typeInfo)
+        {
+            // Removed outright, not just ShouldSerialize = false - a
+            // property left in the list still claims its JSON name, which
+            // collides with the real field RestoreJsonIgnoredProperties
+            // below re-adds under that same name (e.g. an alias explicitly
+            // named after the field it mirrors).
+            for (int i = typeInfo.Properties.Count - 1; i >= 0; i--)
+            {
+                if (typeInfo.Properties[i].AttributeProvider?.IsDefined(typeof(PostgresIgnoreAttribute), true) == true)
+                    typeInfo.Properties.RemoveAt(i);
+            }
+        }
+
+        // These models double as the client's System.Text.Json contract, so
+        // [JsonIgnore] on them only ever meant "don't send this to the
+        // client" - LiteDB's BSON mapper never looked at that attribute, so
+        // every [JsonIgnore] field (passwords, tokens, IPs, internal ids...)
+        // was still persisted. Restore that same field into the storage
+        // round-trip here; [PostgresIgnore] is the only attribute that
+        // actually means "don't persist this."
+        private static void RestoreJsonIgnoredProperties(JsonTypeInfo typeInfo)
+        {
+            if (typeInfo.Kind != JsonTypeInfoKind.Object)
+                return;
+
+            foreach (PropertyInfo clrProperty in typeInfo.Type.GetProperties(
+                         BindingFlags.Public | BindingFlags.Instance))
+            {
+                JsonIgnoreAttribute? jsonIgnore = clrProperty.GetCustomAttribute<JsonIgnoreAttribute>();
+                if (jsonIgnore == null || jsonIgnore.Condition != JsonIgnoreCondition.Always)
+                    continue;
+                if (clrProperty.GetCustomAttribute<PostgresIgnoreAttribute>() != null)
+                    continue;
+
+                // The default resolver may already have added this property
+                // with serialization suppressed (because of [JsonIgnore]) -
+                // remove that entry rather than trust an equality check
+                // against it, then always add a fresh, unsuppressed one.
+                for (int i = typeInfo.Properties.Count - 1; i >= 0; i--)
+                {
+                    if (Equals(typeInfo.Properties[i].AttributeProvider, clrProperty))
+                        typeInfo.Properties.RemoveAt(i);
+                }
+
+                JsonPropertyInfo propertyInfo = typeInfo.CreateJsonPropertyInfo(
+                    clrProperty.PropertyType,
+                    clrProperty.Name);
+                propertyInfo.AttributeProvider = clrProperty;
+                if (clrProperty.CanRead)
+                    propertyInfo.Get = obj => clrProperty.GetValue(obj);
+                if (clrProperty.CanWrite)
+                    propertyInfo.Set = (obj, value) => clrProperty.SetValue(obj, value);
+                typeInfo.Properties.Add(propertyInfo);
+            }
+        }
 
         private readonly string _connectionString;
         private readonly string _tableName;
@@ -76,10 +149,10 @@ namespace Mocha2023.Classes.DBs.Postgres
         public List<T> Find(Func<T, bool> predicate) =>
             FindAll().Where(predicate).ToList();
 
-        public List<T> Find(Expression<Func<T, bool>> predicate) =>
-            Find(predicate.Compile());
+        public T? FindOne(Func<T, bool> predicate) =>
+            Find(predicate).FirstOrDefault();
 
-        public bool Exists(Expression<Func<T, bool>> predicate) =>
+        public bool Exists(Func<T, bool> predicate) =>
             Find(predicate).Count > 0;
 
         public long LongCount()
@@ -89,8 +162,8 @@ namespace Mocha2023.Classes.DBs.Postgres
         }
 
         public int Count() => (int)LongCount();
-        public int Count(Expression<Func<T, bool>> predicate) => Find(predicate).Count;
-        public long LongCount(Expression<Func<T, bool>> predicate) => Find(predicate).Count;
+        public int Count(Func<T, bool> predicate) => Find(predicate).Count;
+        public long LongCount(Func<T, bool> predicate) => Find(predicate).Count;
 
         public TResult Max<TResult>(Func<T, TResult> selector) =>
             FindAll().Select(selector).Max()!;
@@ -146,6 +219,12 @@ namespace Mocha2023.Classes.DBs.Postgres
             return rows > 0;
         }
 
+        // Mirrors LiteDB's bulk Update(IEnumerable<T>) overload, which
+        // returns the count of rows actually updated - not each row's
+        // individual success, so a partial failure isn't silently masked.
+        public int Update(IEnumerable<T> entities) =>
+            entities.Count(Update);
+
         public bool Upsert(T entity)
         {
             using NpgsqlConnection connection = Open();
@@ -160,15 +239,19 @@ namespace Mocha2023.Classes.DBs.Postgres
                 $"DELETE FROM {_tableName} WHERE {_idColumn} = @id", new { id }) > 0;
         }
 
-        public int DeleteMany(Expression<Func<T, bool>> predicate)
+        public int DeleteMany(Func<T, bool> predicate)
         {
-            List<object> ids = Find(predicate).Select(_idSelector).ToList();
-            if (ids.Count == 0)
-                return 0;
-
-            using NpgsqlConnection connection = Open();
-            return connection.Execute(
-                $"DELETE FROM {_tableName} WHERE {_idColumn} = ANY(@ids)", new { ids });
+            // A boxed List<object> can't be bound as a typed Postgres array
+            // parameter (Npgsql needs a concrete element type), so this
+            // deletes one row at a time through the already-reliable
+            // Delete(object) path instead of a single ANY(@ids) statement.
+            int deleted = 0;
+            foreach (object id in Find(predicate).Select(_idSelector))
+            {
+                if (Delete(id))
+                    deleted++;
+            }
+            return deleted;
         }
 
         // Replaces the race-prone "Max(id)+1 under a lock" pattern several

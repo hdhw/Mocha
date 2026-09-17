@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
-using LiteDB;
 using Mocha2023.Classes;
 using Mocha2023.Classes.DBs.DBClasses;
+using Mocha2023.Classes.DBs.Postgres;
 using static Mocha2023.Classes.DBs.DBClasses.RoomDBClasses;
 using SysJson = System.Text.Json;
 
@@ -32,10 +32,38 @@ namespace Mocha2023.Classes.DBs
             return CompatibleLegacyOMVersion;
         }
 
-        public static LiteDatabase RoomDBFile = new LiteDatabase(Path.Combine(Program.dataDir, "DBs", "Rooms.db"));
-        public static readonly ILiteCollection<Room> Rooms = RoomDBFile.GetCollection<Room>("Rooms");
-        public static readonly ILiteCollection<SubRoomDataSave> SubRoomDataSaves = RoomDBFile.GetCollection<SubRoomDataSave>("SubRoomDataSaves");
-        public static readonly ILiteCollection<RoomBan> RoomBans = RoomDBFile.GetCollection<RoomBan>("RoomBans");
+        public static readonly PostgresCollection<Room> Rooms = new(
+            PostgresConfig.ConnectionString,
+            tableName: "rooms",
+            idColumn: "room_id",
+            idSelector: value => value.RoomId,
+            extraColumns: new (string, Func<Room, object?>)[]
+            {
+                ("creator_account_id", value => value.CreatorAccountId)
+            });
+
+        public static readonly PostgresCollection<SubRoomDataSave> SubRoomDataSaves = new(
+            PostgresConfig.ConnectionString,
+            tableName: "room_sub_room_data_saves",
+            idColumn: "sub_room_data_save_id",
+            idSelector: value => value.SubRoomDataSaveId,
+            extraColumns: new (string, Func<SubRoomDataSave, object?>)[]
+            {
+                ("room_id", value => value.RoomId),
+                ("sub_room_id", value => value.SubRoomId)
+            });
+
+        public static readonly PostgresCollection<RoomBan> RoomBans = new(
+            PostgresConfig.ConnectionString,
+            tableName: "room_bans",
+            idColumn: "room_ban_id",
+            idSelector: value => value.RoomBanId,
+            extraColumns: new (string, Func<RoomBan, object?>)[]
+            {
+                ("room_id", value => value.RoomId),
+                ("account_id", value => value.AccountId)
+            });
+
         private static readonly object SaveIdLock = new();
         private static readonly object DormCreationLock = new();
         private static readonly object SubRoomMutationLock = new();
@@ -89,9 +117,47 @@ namespace Mocha2023.Classes.DBs
 
         static RoomDB()
         {
-            LiteDbMaintenance.StartPeriodicCheckpoint("Rooms.db", RoomDBFile);
+            Rooms.EnsureIndex("creator_account_id");
+            SubRoomDataSaves.EnsureIndex("room_id");
+            SubRoomDataSaves.EnsureIndex("sub_room_id");
+            RoomBans.EnsureIndex("room_id");
+            RoomBans.EnsureIndex("account_id");
 
             RepairCanonicalBaseRoomMetadata();
+        }
+
+        public static int MigrateFromLiteDb()
+        {
+            string path = Path.Combine(Program.dataDir, "DBs", "Rooms.db");
+            if (!File.Exists(path))
+                return 0;
+
+            using var db = new LiteDB.LiteDatabase($"Filename={path};Connection=shared;ReadOnly=true");
+            int count = 0;
+
+            // Postgres starts empty, so the very first startup auto-seeds
+            // any missing canonical base rooms with fresh sequence ids -
+            // clear those placeholders before importing the real historical
+            // rows (which already carry their own real ids for those same
+            // rooms), or we'd end up with duplicates.
+            Rooms.DeleteMany(_ => true);
+
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Rooms").FindAll())
+            {
+                Rooms.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<Room>(doc, "RoomId"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("SubRoomDataSaves").FindAll())
+            {
+                SubRoomDataSaves.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<SubRoomDataSave>(doc, "SubRoomDataSaveId"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("RoomBans").FindAll())
+            {
+                RoomBans.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<RoomBan>(doc, "RoomBanId"));
+                count++;
+            }
+            return count;
         }
 
         private static string NormalizeCanonicalRoomName(string? name) =>
@@ -264,6 +330,7 @@ namespace Mocha2023.Classes.DBs
 
             var ban = new RoomBan
             {
+                RoomBanId = RoomBans.NextId("room_bans_room_ban_id_seq"),
                 RoomId = roomId,
                 AccountId = accountId,
                 BannedByAccountId = bannedByAccountId,
@@ -400,9 +467,7 @@ namespace Mocha2023.Classes.DBs
             string? description,
             string? roomDataBlob)
         {
-            long nextId = SubRoomDataSaves.Count() == 0
-                ? 1
-                : Convert.ToInt64(SubRoomDataSaves.Max(x => x.SubRoomDataSaveId)) + 1;
+            long nextId = SubRoomDataSaves.NextId("room_sub_room_data_saves_id_seq");
 
             var save = new SubRoomDataSave
             {
@@ -931,15 +996,8 @@ namespace Mocha2023.Classes.DBs
             });
         }
 
-        public static long GetNextRoomId()
-        {
-            if (Rooms.Count() == 0)
-                return 1;
-
-            var maxId = Rooms.Max(x => x.RoomId);
-
-            return Convert.ToInt64(maxId) + 1;
-        }
+        public static long GetNextRoomId() =>
+            Rooms.NextId("rooms_room_id_seq");
 
         public static bool ChangeRoomId(long oldRoomId, long newRoomId, out string error)
         {

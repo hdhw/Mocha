@@ -8444,6 +8444,7 @@ namespace Mocha2023.Controllers
 
             var announcement = new RecNetDB.Announcement
             {
+                Id = RecNetDB.Announcements.NextId("recnet_announcements_id_seq"),
                 Title = title,
                 BodyMarkdown = bodyMarkdown,
                 Kind = kind,
@@ -8712,6 +8713,7 @@ namespace Mocha2023.Controllers
 
             var evt = new RecNetDB.Event
             {
+                Id = RecNetDB.Events.NextId("recnet_events_id_seq"),
                 Title = title,
                 Description = description,
                 ImageName = imagePath,

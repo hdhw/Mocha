@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using LiteDB;
+using Mocha2023.Classes.DBs.Postgres;
 
 namespace Mocha2023.Classes.DBs
 {
@@ -9,55 +9,108 @@ namespace Mocha2023.Classes.DBs
     public static class CreatorFeatureDB
     {
         private static readonly object Sync = new();
-        private static readonly LiteDatabase Database = OpenDatabase();
-
-        private static readonly ILiteCollection<InventionRecord> Inventions =
-            Database.GetCollection<InventionRecord>("Inventions");
 
         private const long MaxClientInventionId = 1_000_000_000;
 
-        private static readonly ILiteCollection<InventionCheerRecord> InventionCheers =
-            Database.GetCollection<InventionCheerRecord>("InventionCheers");
-        private static readonly ILiteCollection<InventionAliasRecord> InventionAliases =
-            Database.GetCollection<InventionAliasRecord>("InventionAliases");
-        private static readonly ILiteCollection<InventionPurchaseRecord> InventionPurchases =
-            Database.GetCollection<InventionPurchaseRecord>("InventionPurchases");
-        private static readonly ILiteCollection<MeetupCodeRecord> MeetupCodes =
-            Database.GetCollection<MeetupCodeRecord>("MeetupCodes");
-        private static readonly ILiteCollection<CloudVariableRecord> CloudVariables =
-            Database.GetCollection<CloudVariableRecord>("CloudVariables");
-        private static readonly ILiteCollection<RoomPlayerDataRecord> RoomPlayerData =
-            Database.GetCollection<RoomPlayerDataRecord>("RoomPlayerData");
+        private static readonly PostgresCollection<InventionRecord> Inventions = new(
+            PostgresConfig.ConnectionString,
+            tableName: "creator_inventions",
+            idColumn: "invention_id",
+            idSelector: value => value.InventionId,
+            extraColumns: new (string, Func<InventionRecord, object?>)[]
+            {
+                ("creator_account_id", value => value.CreatorAccountId),
+                ("room_id", value => value.RoomId),
+                ("updated_at", value => value.UpdatedAtUtc)
+            });
 
-        private static LiteDatabase OpenDatabase()
-        {
-            string directory = Path.Combine(Program.dataDir, "DBs");
-            Directory.CreateDirectory(directory);
-            return new LiteDatabase(Path.Combine(directory, "CreatorFeatures.db"));
-        }
+        private static readonly PostgresCollection<InventionCheerRecord> InventionCheers = new(
+            PostgresConfig.ConnectionString,
+            tableName: "creator_invention_cheers",
+            idColumn: "id",
+            idSelector: value => value.Id,
+            extraColumns: new (string, Func<InventionCheerRecord, object?>)[]
+            {
+                ("invention_id", value => value.InventionId),
+                ("account_id", value => value.AccountId)
+            });
+
+        private static readonly PostgresCollection<InventionAliasRecord> InventionAliases = new(
+            PostgresConfig.ConnectionString,
+            tableName: "creator_invention_aliases",
+            idColumn: "legacy_invention_id",
+            idSelector: value => value.LegacyInventionId,
+            extraColumns: new (string, Func<InventionAliasRecord, object?>)[]
+            {
+                ("current_invention_id", value => value.CurrentInventionId)
+            });
+
+        private static readonly PostgresCollection<InventionPurchaseRecord> InventionPurchases = new(
+            PostgresConfig.ConnectionString,
+            tableName: "creator_invention_purchases",
+            idColumn: "id",
+            idSelector: value => value.Id,
+            extraColumns: new (string, Func<InventionPurchaseRecord, object?>)[]
+            {
+                ("invention_id", value => value.InventionId),
+                ("account_id", value => value.AccountId)
+            });
+
+        private static readonly PostgresCollection<MeetupCodeRecord> MeetupCodes = new(
+            PostgresConfig.ConnectionString,
+            tableName: "creator_meetup_codes",
+            idColumn: "code",
+            idSelector: value => value.Code,
+            extraColumns: new (string, Func<MeetupCodeRecord, object?>)[]
+            {
+                ("creator_account_id", value => value.CreatorAccountId),
+                ("room_instance_id", value => value.RoomInstanceId),
+                ("expires_at", value => value.ExpiresAtUtc)
+            });
+
+        private static readonly PostgresCollection<CloudVariableRecord> CloudVariables = new(
+            PostgresConfig.ConnectionString,
+            tableName: "creator_cloud_variables",
+            idColumn: "id",
+            idSelector: value => value.Id,
+            extraColumns: new (string, Func<CloudVariableRecord, object?>)[]
+            {
+                ("room_id", value => value.RoomId),
+                ("account_id", value => value.AccountId),
+                ("updated_at", value => value.UpdatedAtUtc)
+            });
+
+        private static readonly PostgresCollection<RoomPlayerDataRecord> RoomPlayerData = new(
+            PostgresConfig.ConnectionString,
+            tableName: "creator_room_player_data",
+            idColumn: "id",
+            idSelector: value => value.Id,
+            extraColumns: new (string, Func<RoomPlayerDataRecord, object?>)[]
+            {
+                ("room_id", value => value.RoomId),
+                ("account_id", value => value.AccountId),
+                ("updated_at", value => value.UpdatedAtUtc)
+            });
 
         static CreatorFeatureDB()
         {
-            Directory.CreateDirectory(Path.Combine(Program.dataDir, "DBs"));
-            LiteDbMaintenance.StartPeriodicCheckpoint("CreatorFeatures.db", Database);
-
-            Inventions.EnsureIndex(value => value.CreatorAccountId);
-            Inventions.EnsureIndex(value => value.RoomId);
-            Inventions.EnsureIndex(value => value.UpdatedAtUtc);
-            InventionCheers.EnsureIndex(value => value.InventionId);
-            InventionCheers.EnsureIndex(value => value.AccountId);
-            InventionAliases.EnsureIndex(value => value.CurrentInventionId);
-            InventionPurchases.EnsureIndex(value => value.InventionId);
-            InventionPurchases.EnsureIndex(value => value.AccountId);
-            MeetupCodes.EnsureIndex(value => value.CreatorAccountId);
-            MeetupCodes.EnsureIndex(value => value.RoomInstanceId);
-            MeetupCodes.EnsureIndex(value => value.ExpiresAtUtc);
-            CloudVariables.EnsureIndex(value => value.RoomId);
-            CloudVariables.EnsureIndex(value => value.AccountId);
-            CloudVariables.EnsureIndex(value => value.UpdatedAtUtc);
-            RoomPlayerData.EnsureIndex(value => value.RoomId);
-            RoomPlayerData.EnsureIndex(value => value.AccountId);
-            RoomPlayerData.EnsureIndex(value => value.UpdatedAtUtc);
+            Inventions.EnsureIndex("creator_account_id");
+            Inventions.EnsureIndex("room_id");
+            Inventions.EnsureIndex("updated_at");
+            InventionCheers.EnsureIndex("invention_id");
+            InventionCheers.EnsureIndex("account_id");
+            InventionAliases.EnsureIndex("current_invention_id");
+            InventionPurchases.EnsureIndex("invention_id");
+            InventionPurchases.EnsureIndex("account_id");
+            MeetupCodes.EnsureIndex("creator_account_id");
+            MeetupCodes.EnsureIndex("room_instance_id");
+            MeetupCodes.EnsureIndex("expires_at");
+            CloudVariables.EnsureIndex("room_id");
+            CloudVariables.EnsureIndex("account_id");
+            CloudVariables.EnsureIndex("updated_at");
+            RoomPlayerData.EnsureIndex("room_id");
+            RoomPlayerData.EnsureIndex("account_id");
+            RoomPlayerData.EnsureIndex("updated_at");
 
             MigrateLegacyInventionFiles();
             RepairOversizedInventionIds();
@@ -65,9 +118,54 @@ namespace Mocha2023.Classes.DBs
             RepairStoredInventionBlobs();
         }
 
+        public static int MigrateFromLiteDb()
+        {
+            string path = Path.Combine(Program.dataDir, "DBs", "CreatorFeatures.db");
+            if (!File.Exists(path))
+                return 0;
+
+            using var db = new LiteDB.LiteDatabase($"Filename={path};Connection=shared;ReadOnly=true");
+            int count = 0;
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Inventions").FindAll())
+            {
+                Inventions.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<InventionRecord>(doc, "InventionId"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("InventionCheers").FindAll())
+            {
+                InventionCheers.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<InventionCheerRecord>(doc, "Id"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("InventionAliases").FindAll())
+            {
+                InventionAliases.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<InventionAliasRecord>(doc, "LegacyInventionId"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("InventionPurchases").FindAll())
+            {
+                InventionPurchases.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<InventionPurchaseRecord>(doc, "Id"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("MeetupCodes").FindAll())
+            {
+                MeetupCodes.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<MeetupCodeRecord>(doc, "Code"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("CloudVariables").FindAll())
+            {
+                CloudVariables.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<CloudVariableRecord>(doc, "Id"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("RoomPlayerData").FindAll())
+            {
+                RoomPlayerData.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<RoomPlayerDataRecord>(doc, "Id"));
+                count++;
+            }
+            return count;
+        }
+
         public sealed class InventionRecord
         {
-            [BsonId]
             public long InventionId { get; set; }
             public long CreatorAccountId { get; set; }
             public long RoomId { get; set; }
@@ -96,7 +194,6 @@ namespace Mocha2023.Classes.DBs
 
         public sealed class InventionAliasRecord
         {
-            [BsonId]
             public long LegacyInventionId { get; set; }
             public long CurrentInventionId { get; set; }
             public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
@@ -104,7 +201,6 @@ namespace Mocha2023.Classes.DBs
 
         public sealed class InventionPurchaseRecord
         {
-            [BsonId]
             public string Id { get; set; } = string.Empty;
             public long InventionId { get; set; }
             public long AccountId { get; set; }
@@ -114,7 +210,6 @@ namespace Mocha2023.Classes.DBs
 
         public sealed class InventionCheerRecord
         {
-            [BsonId]
             public string Id { get; set; } = string.Empty;
             public long InventionId { get; set; }
             public long AccountId { get; set; }
@@ -123,7 +218,6 @@ namespace Mocha2023.Classes.DBs
 
         public sealed class MeetupCodeRecord
         {
-            [BsonId]
             public string Code { get; set; } = string.Empty;
             public long CreatorAccountId { get; set; }
             public long RoomId { get; set; }
@@ -138,7 +232,6 @@ namespace Mocha2023.Classes.DBs
 
         public sealed class CloudVariableRecord
         {
-            [BsonId]
             public string Id { get; set; } = string.Empty;
             public long RoomId { get; set; }
             public long AccountId { get; set; }
@@ -151,7 +244,6 @@ namespace Mocha2023.Classes.DBs
 
         public sealed class RoomPlayerDataRecord
         {
-            [BsonId]
             public string Id { get; set; } = string.Empty;
             public long RoomId { get; set; }
             public long AccountId { get; set; }

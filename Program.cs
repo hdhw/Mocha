@@ -310,6 +310,12 @@ namespace Mocha2023
 
         public static async Task Main(string[] args)
         {
+            // LiteDB-era DateTime values (and any read back off old data
+            // during the Postgres migration) aren't guaranteed Kind=Utc -
+            // without this, Npgsql throws writing an Unspecified-Kind
+            // DateTime into a timestamptz column instead of treating it as UTC.
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
             TextWriter originalConsole = Console.Out;
             string logFilePath = InitializeFileLogging(originalConsole);
             var consoleInput = new ConsoleInputGuard(originalConsole, Console.Out);
@@ -1184,6 +1190,10 @@ namespace Mocha2023
 
                 case "import-meowii":
                     await HandleImportMeowiiAsync(arguments);
+                    break;
+
+                case "migrate-litedb":
+                    Classes.DBs.LiteDbMigrationTool.RunAll();
                     break;
 
                 case "exit":

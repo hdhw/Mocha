@@ -1,5 +1,5 @@
 ﻿using Mocha2023.Classes.DBs.DBClasses;
-using LiteDB;
+using Mocha2023.Classes.DBs.Postgres;
 using static Mocha2023.Classes.DBs.DBClasses.PlayerDBClasses;
 
 namespace Mocha2023.Classes.DBs
@@ -8,31 +8,44 @@ namespace Mocha2023.Classes.DBs
     public static partial class RelationshipDB
     {
         private static readonly object Sync = new();
-        private static readonly LiteDatabase Database =
-            new(Path.Combine(Program.dataDir, "DBs", "Relationships.db"));
 
-        private static readonly ILiteCollection<RelationshipRecord> Records =
-            Database.GetCollection<RelationshipRecord>("Relationships");
+        private static readonly PostgresCollection<RelationshipRecord> Records = new(
+            PostgresConfig.ConnectionString,
+            tableName: "relationships",
+            idColumn: "id",
+            idSelector: r => r.Id,
+            extraColumns: new (string, Func<RelationshipRecord, object?>)[]
+            {
+                ("source_player_id", r => r.SourcePlayerId),
+                ("target_player_id", r => r.TargetPlayerId),
+                ("kind", r => (int)r.Kind)
+            });
 
         static RelationshipDB()
         {
+            Records.EnsureIndex("source_player_id");
+            Records.EnsureIndex("target_player_id");
+            Records.EnsureIndex("kind");
+        }
 
-            var rawRecords = Database.GetCollection("Relationships");
-            foreach (BsonDocument document in rawRecords.FindAll().ToList())
+        public static int MigrateFromLiteDb()
+        {
+            string path = Path.Combine(Program.dataDir, "DBs", "Relationships.db");
+            if (!File.Exists(path))
+                return 0;
+
+            using var db = new LiteDB.LiteDatabase($"Filename={path};Connection=shared;ReadOnly=true");
+            int count = 0;
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Relationships").FindAll())
             {
-                BsonValue id = document["_id"];
-                if (!id.IsString)
-                    rawRecords.Delete(id);
+                Records.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<RelationshipRecord>(doc, "Id"));
+                count++;
             }
-
-            Records.EnsureIndex(value => value.SourcePlayerId);
-            Records.EnsureIndex(value => value.TargetPlayerId);
-            Records.EnsureIndex(value => value.Kind);
+            return count;
         }
 
         public sealed class RelationshipRecord
         {
-            [BsonId]
             public string Id { get; set; } = string.Empty;
             public RelationshipKind Kind { get; set; }
             public long SourcePlayerId { get; set; }

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using LiteDB;
+using Mocha2023.Classes.DBs.Postgres;
 using SystemJsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Mocha2023.Classes.DBs
@@ -11,25 +11,72 @@ namespace Mocha2023.Classes.DBs
     public static class ChatDB
     {
         private static readonly object Sync = new();
-        private static readonly LiteDatabase Database =
-            new(Path.Combine(Program.dataDir, "DBs", "Chat.db"));
 
-        private static readonly ILiteCollection<ChatThread> Threads =
-            Database.GetCollection<ChatThread>("Threads", BsonAutoId.Int64);
+        private static readonly PostgresCollection<ChatThread> Threads = new(
+            PostgresConfig.ConnectionString,
+            tableName: "chat_threads",
+            idColumn: "thread_id",
+            idSelector: t => t.ThreadId,
+            extraColumns: new (string, Func<ChatThread, object?>)[]
+            {
+                ("updated_at", t => t.UpdatedAt)
+            });
 
-        private static readonly ILiteCollection<ChatMessage> Messages =
-            Database.GetCollection<ChatMessage>("Messages", BsonAutoId.Int64);
+        private static readonly PostgresCollection<ChatMessage> Messages = new(
+            PostgresConfig.ConnectionString,
+            tableName: "chat_messages",
+            idColumn: "message_id",
+            idSelector: m => m.MessageId,
+            extraColumns: new (string, Func<ChatMessage, object?>)[]
+            {
+                ("thread_id", m => m.ThreadId),
+                ("created_at", m => m.CreatedAt)
+            });
 
-        private static readonly ILiteCollection<ChatReadState> ReadStates =
-            Database.GetCollection<ChatReadState>("ReadStates");
+        private static readonly PostgresCollection<ChatReadState> ReadStates = new(
+            PostgresConfig.ConnectionString,
+            tableName: "chat_read_states",
+            idColumn: "id",
+            idSelector: s => s.Id,
+            extraColumns: new (string, Func<ChatReadState, object?>)[]
+            {
+                ("thread_id", s => s.ThreadId),
+                ("account_id", s => s.AccountId)
+            });
 
         static ChatDB()
         {
-            Threads.EnsureIndex(value => value.UpdatedAt);
-            Messages.EnsureIndex(value => value.ThreadId);
-            Messages.EnsureIndex(value => value.CreatedAt);
-            ReadStates.EnsureIndex(value => value.ThreadId);
-            ReadStates.EnsureIndex(value => value.AccountId);
+            Threads.EnsureIndex("updated_at");
+            Messages.EnsureIndex("thread_id");
+            Messages.EnsureIndex("created_at");
+            ReadStates.EnsureIndex("thread_id");
+            ReadStates.EnsureIndex("account_id");
+        }
+
+        public static int MigrateFromLiteDb()
+        {
+            string path = Path.Combine(Program.dataDir, "DBs", "Chat.db");
+            if (!File.Exists(path))
+                return 0;
+
+            using var db = new LiteDB.LiteDatabase($"Filename={path};Connection=shared;ReadOnly=true");
+            int count = 0;
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Threads").FindAll())
+            {
+                Threads.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<ChatThread>(doc, "ThreadId"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Messages").FindAll())
+            {
+                Messages.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<ChatMessage>(doc, "MessageId"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("ReadStates").FindAll())
+            {
+                ReadStates.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<ChatReadState>(doc, "Id"));
+                count++;
+            }
+            return count;
         }
 
         public static int DeveloperThreadCount
@@ -52,7 +99,6 @@ namespace Mocha2023.Classes.DBs
 
         public sealed class ChatThread
         {
-            [BsonId]
             public long ThreadId { get; set; }
             public int Type { get; set; }
             public string? Name { get; set; }
@@ -64,7 +110,6 @@ namespace Mocha2023.Classes.DBs
 
         public sealed class ChatMessage
         {
-            [BsonId]
             public long MessageId { get; set; }
             public long ThreadId { get; set; }
             public long SenderAccountId { get; set; }
@@ -74,7 +119,6 @@ namespace Mocha2023.Classes.DBs
 
         public sealed class ChatReadState
         {
-            [BsonId]
             public string Id { get; set; } = string.Empty;
             public long ThreadId { get; set; }
             public long AccountId { get; set; }
@@ -443,13 +487,9 @@ namespace Mocha2023.Classes.DBs
         }
 
         private static long GetNextThreadIdNoLock() =>
-            Threads.Count() == 0
-                ? 1
-                : Threads.Max(value => value.ThreadId) + 1;
+            Threads.NextId("chat_threads_thread_id_seq");
 
         private static long GetNextMessageIdNoLock() =>
-            Messages.Count() == 0
-                ? 1
-                : Messages.Max(value => value.MessageId) + 1;
+            Messages.NextId("chat_messages_message_id_seq");
     }
 }

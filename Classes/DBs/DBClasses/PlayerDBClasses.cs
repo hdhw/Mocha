@@ -2,7 +2,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Mocha2023.Classes;
-using LiteDB;
 
 namespace Mocha2023.Classes.DBs.DBClasses
 {
@@ -10,7 +9,6 @@ namespace Mocha2023.Classes.DBs.DBClasses
     {
         public class FullPlayer
         {
-            [BsonId]
             public long PlayerId { get; set; }
             public List<mPlatformID> PlatformIds { get; set; } = new();
             [JsonIgnore]

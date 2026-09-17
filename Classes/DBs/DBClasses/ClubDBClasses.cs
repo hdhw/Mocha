@@ -1,4 +1,3 @@
-using LiteDB;
 
 namespace Mocha2023.Classes.DBs.DBClasses
 {
@@ -6,7 +5,6 @@ namespace Mocha2023.Classes.DBs.DBClasses
     {
         public sealed class ClubRecord
         {
-            [BsonId]
             public long ClubId { get; set; }
             public string Name { get; set; } = string.Empty;
             public string Description { get; set; } = string.Empty;
@@ -30,7 +28,6 @@ namespace Mocha2023.Classes.DBs.DBClasses
 
         public sealed class ClubMembershipRecord
         {
-            [BsonId]
             public string Id { get; set; } = string.Empty;
             public long ClubId { get; set; }
             public long AccountId { get; set; }
@@ -48,7 +45,6 @@ namespace Mocha2023.Classes.DBs.DBClasses
 
         public sealed class HomeClubRecord
         {
-            [BsonId]
             public long AccountId { get; set; }
             public long ClubId { get; set; }
             public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -109,7 +105,6 @@ namespace Mocha2023.Classes.DBs.DBClasses
 
         public sealed class ClubAnnouncementRecord
         {
-            [BsonId]
             public long AnnouncementId { get; set; }
             public long ClubId { get; set; }
             public long AccountId { get; set; }
@@ -122,7 +117,6 @@ namespace Mocha2023.Classes.DBs.DBClasses
 
         public sealed class ClubAnnouncementReadRecord
         {
-            [BsonId]
             public string Id { get; set; } = string.Empty;
             public long ClubId { get; set; }
             public long AccountId { get; set; }

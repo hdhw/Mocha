@@ -1,30 +1,64 @@
-using LiteDB;
+using Mocha2023.Classes.DBs.Postgres;
 
 namespace Mocha2023.Classes.DBs
 {
     public static class ReportsDB
     {
-        private static readonly LiteDatabase Database =
-            new(Path.Combine(Program.dataDir, "DBs", "Reports.db"));
+        public static readonly PostgresCollection<PlayerReport> PlayerReports = new(
+            PostgresConfig.ConnectionString,
+            tableName: "player_reports",
+            idColumn: "id",
+            idSelector: r => r.Id,
+            extraColumns: new (string, Func<PlayerReport, object?>)[]
+            {
+                ("status", r => r.Status),
+                ("created_at", r => r.CreatedAt),
+                ("reported_player_id", r => r.ReportedPlayerId)
+            });
 
-        public static readonly ILiteCollection<PlayerReport> PlayerReports =
-            Database.GetCollection<PlayerReport>("PlayerReports");
-
-        public static readonly ILiteCollection<BugReport> BugReports =
-            Database.GetCollection<BugReport>("BugReports");
+        public static readonly PostgresCollection<BugReport> BugReports = new(
+            PostgresConfig.ConnectionString,
+            tableName: "bug_reports",
+            idColumn: "id",
+            idSelector: r => r.Id,
+            extraColumns: new (string, Func<BugReport, object?>)[]
+            {
+                ("status", r => r.Status),
+                ("created_at", r => r.CreatedAt)
+            });
 
         static ReportsDB()
         {
-            PlayerReports.EnsureIndex(report => report.Status);
-            PlayerReports.EnsureIndex(report => report.CreatedAt);
-            PlayerReports.EnsureIndex(report => report.ReportedPlayerId);
-            BugReports.EnsureIndex(report => report.Status);
-            BugReports.EnsureIndex(report => report.CreatedAt);
+            PlayerReports.EnsureIndex("status");
+            PlayerReports.EnsureIndex("created_at");
+            PlayerReports.EnsureIndex("reported_player_id");
+            BugReports.EnsureIndex("status");
+            BugReports.EnsureIndex("created_at");
+        }
+
+        public static int MigrateFromLiteDb()
+        {
+            string path = Path.Combine(Program.dataDir, "DBs", "Reports.db");
+            if (!File.Exists(path))
+                return 0;
+
+            using var db = new LiteDB.LiteDatabase($"Filename={path};Connection=shared;ReadOnly=true");
+            int count = 0;
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("PlayerReports").FindAll())
+            {
+                PlayerReports.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<PlayerReport>(doc, "Id"));
+                count++;
+            }
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("BugReports").FindAll())
+            {
+                BugReports.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<BugReport>(doc, "Id"));
+                count++;
+            }
+            return count;
         }
 
         public class PlayerReport
         {
-            [BsonId]
             public Guid Id { get; set; } = Guid.NewGuid();
 
             public long ReporterId { get; set; }
@@ -49,7 +83,6 @@ namespace Mocha2023.Classes.DBs
 
         public class BugReport
         {
-            [BsonId]
             public Guid Id { get; set; } = Guid.NewGuid();
 
             public long ReporterId { get; set; }

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
-using LiteDB;
+using Mocha2023.Classes.DBs.Postgres;
 
 namespace Mocha2023.Classes.DBs.DBClasses
 {
@@ -14,7 +14,6 @@ namespace Mocha2023.Classes.DBs.DBClasses
 
         public class Room
         {
-            [BsonId]
             public long RoomId { get; set; }
 
             public bool IsDorm { get; set; }
@@ -66,7 +65,7 @@ namespace Mocha2023.Classes.DBs.DBClasses
             [JsonIgnore]
             public bool CreativeToolsBetaEnabled { get; set; }
 
-            [BsonIgnore]
+            [PostgresIgnore]
             [JsonPropertyName("CreativeToolsBetaEnabled")]
             public bool CreativeToolsBetaEnabledForClient
             {
@@ -74,7 +73,7 @@ namespace Mocha2023.Classes.DBs.DBClasses
                 set => CreativeToolsBetaEnabled = value;
             }
 
-            [BsonIgnore]
+            [PostgresIgnore]
             [JsonPropertyName("SupportsBetaContent")]
             public bool SupportsBetaContentForClient
             {
@@ -82,7 +81,7 @@ namespace Mocha2023.Classes.DBs.DBClasses
                 set => CreativeToolsBetaEnabled = value;
             }
 
-            [BsonIgnore]
+            [PostgresIgnore]
             [JsonPropertyName("IsBeta")]
             public bool IsBetaForClient
             {
@@ -90,7 +89,7 @@ namespace Mocha2023.Classes.DBs.DBClasses
                 set => CreativeToolsBetaEnabled = value;
             }
 
-            [BsonIgnore]
+            [PostgresIgnore]
             [JsonPropertyName("BetaContentEnabled")]
             public bool BetaContentEnabledForClient
             {
@@ -131,7 +130,7 @@ namespace Mocha2023.Classes.DBs.DBClasses
             [JsonIgnore]
             public int UgcVersion { get; set; }
 
-            [BsonIgnore]
+            [PostgresIgnore]
             [JsonPropertyName("Version")]
             public int VersionForClient
             {
@@ -164,11 +163,11 @@ namespace Mocha2023.Classes.DBs.DBClasses
             [JsonIgnore]
             public long SubRoomDataSaveId { get; set; }
 
-            [BsonIgnore]
+            [PostgresIgnore]
             [JsonPropertyName("CurrentSave")]
             public SubRoomDataSave? SubRoomDataSave { get; set; }
 
-            [BsonIgnore]
+            [PostgresIgnore]
             [JsonPropertyName("DataSavedAt")]
             public DateTime? DataSavedAtForClient =>
                 SubRoomDataSave?.CreatedAt;
@@ -261,7 +260,6 @@ namespace Mocha2023.Classes.DBs.DBClasses
                 [JsonPropertyName("CurrentSave")]
                 public SubRoomDataSave CurrentSave { get; set; } = new();
             }
-            [BsonId]
             [JsonPropertyName("SubRoomDataSaveId")]
             public long SubRoomDataSaveId { get; set; }
 
@@ -277,7 +275,7 @@ namespace Mocha2023.Classes.DBs.DBClasses
             [JsonPropertyName("DataBlob")]
             public string DataBlob { get; set; } = string.Empty;
 
-            [BsonIgnore]
+            [PostgresIgnore]
             [JsonPropertyName("SubRoomDataFilename")]
             public string SubRoomDataFilename => DataBlob;
 
@@ -287,7 +285,7 @@ namespace Mocha2023.Classes.DBs.DBClasses
             [JsonPropertyName("DataBlobHash")]
             public string? DataBlobHash { get; set; }
 
-            [BsonIgnore]
+            [PostgresIgnore]
             [JsonPropertyName("SubRoomDataHash")]
             public string? SubRoomDataHash => DataBlobHash;
 
@@ -355,117 +353,15 @@ namespace Mocha2023.Classes.DBs.DBClasses
             public bool IsAvailable { get; set; }
         }
 
-        public static void HydrateCurrentSaves(
-            LiteDatabase database,
-            Room room)
-        {
-            ArgumentNullException.ThrowIfNull(database);
-            ArgumentNullException.ThrowIfNull(room);
-
-            room.SubRooms ??= new List<SubRooms>();
-
-            var saves = database.GetCollection<SubRoomDataSave>(
-                SubRoomDataSavesCollectionName,
-                BsonAutoId.Int64
-            );
-
-            SubRoomDataSave? newestRoomSave = null;
-
-            foreach (var subRoom in room.SubRooms)
-            {
-                SubRoomDataSave? currentSave = null;
-
-                if (subRoom.SubRoomDataSaveId > 0)
-                {
-                    currentSave = saves.FindById(
-                        subRoom.SubRoomDataSaveId
-                    );
-
-                    if (currentSave != null &&
-                        (currentSave.RoomId != room.RoomId ||
-                         currentSave.SubRoomId != subRoom.SubRoomId))
-                    {
-                        Console.WriteLine(
-                            $"[ROOM LOAD WARNING] Stale save pointer " +
-                            $"room={room.RoomId} " +
-                            $"subroom={subRoom.SubRoomId} " +
-                            $"saveId={subRoom.SubRoomDataSaveId}"
-                        );
-
-                        currentSave = null;
-                    }
-                }
-
-                currentSave ??= FindNewestSubRoomSave(
-                    saves,
-                    room.RoomId,
-                    subRoom.SubRoomId
-                );
-
-                if (currentSave == null)
-                {
-                    Console.WriteLine(
-                        $"[ROOM LOAD] No save found " +
-                        $"room={room.RoomId} " +
-                        $"subroom={subRoom.SubRoomId}"
-                    );
-
-                    continue;
-                }
-
-                ApplyCurrentSave(subRoom, currentSave);
-
-                if (newestRoomSave == null ||
-                    currentSave.CreatedAt > newestRoomSave.CreatedAt)
-                {
-                    newestRoomSave = currentSave;
-                }
-
-                Console.WriteLine(
-                    $"[ROOM LOAD] " +
-                    $"room={room.RoomId} " +
-                    $"subroom={subRoom.SubRoomId} " +
-                    $"saveId={currentSave.SubRoomDataSaveId} " +
-                    $"superRoomBlob={currentSave.RoomDataBlob ?? "null"} " +
-                    $"subRoomBlob={currentSave.DataBlob} " +
-                    $"persistenceVersion=" +
-                    $"{currentSave.PersistenceVersion?.ToString() ?? "null"}"
-                );
-            }
-
-            if (!string.IsNullOrWhiteSpace(newestRoomSave?.RoomDataBlob))
-            {
-                room.DataBlob = newestRoomSave.RoomDataBlob;
-            }
-
-            if (newestRoomSave?.PersistenceVersion is int persistenceVersion)
-            {
-                room.PersistenceVersion = persistenceVersion;
-            }
-
-            room.UgcVersion = Math.Max(1, room.UgcVersion);
-        }
-
         public static SubRoomDataSave? FindNewestSubRoomSave(
-            ILiteCollection<SubRoomDataSave> saves,
+            Mocha2023.Classes.DBs.Postgres.PostgresCollection<SubRoomDataSave> saves,
             long roomId,
             long subRoomId)
         {
             ArgumentNullException.ThrowIfNull(saves);
 
-            var query = Query.And(
-                Query.EQ(
-                    nameof(SubRoomDataSave.RoomId),
-                    roomId
-                ),
-                Query.EQ(
-                    nameof(SubRoomDataSave.SubRoomId),
-                    subRoomId
-                )
-            );
-
             return saves
-                .Find(query)
+                .Find(save => save.RoomId == roomId && save.SubRoomId == subRoomId)
                 .OrderByDescending(save => save.CreatedAt)
                 .ThenByDescending(save => save.SubRoomDataSaveId)
                 .FirstOrDefault();
@@ -556,7 +452,6 @@ namespace Mocha2023.Classes.DBs.DBClasses
 
         public class RoomBan
         {
-            [BsonId]
             public long RoomBanId { get; set; }
 
             public long RoomId { get; set; }

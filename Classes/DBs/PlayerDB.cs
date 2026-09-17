@@ -1,7 +1,7 @@
 ﻿using System;
-using LiteDB;
 using Mocha2023.Classes;
 using Mocha2023.Classes.DBs.DBClasses;
+using Mocha2023.Classes.DBs.Postgres;
 using Mocha2023.Controllers;
 using static Mocha2023.Classes.DBs.DBClasses.PlayerDBClasses;
 using System.Globalization;
@@ -41,11 +41,11 @@ namespace Mocha2023.Classes.DBs
         // daily 15-cheer allowance. Real Rec Room refills once a day.
         private const long CheerCreditRefreshSeconds = 24 * 60 * 60;
 
-        public static LiteDatabase PlayerDBFile =
-            new LiteDatabase(Path.Combine(Program.dataDir, "DBs", "Players.db"));
-
-        public static readonly ILiteCollection<FullPlayer> Players =
-            PlayerDBFile.GetCollection<FullPlayer>("Players");
+        public static readonly PostgresCollection<FullPlayer> Players = new(
+            PostgresConfig.ConnectionString,
+            tableName: "players",
+            idColumn: "player_id",
+            idSelector: value => value.PlayerId);
 
         private const string RRPlusSettingKey = "RecRoomPlus.IsActive";
         private const string InitialTokensSettingKey =
@@ -71,8 +71,6 @@ namespace Mocha2023.Classes.DBs
 
         static PlayerDB()
         {
-            LiteDbMaintenance.StartPeriodicCheckpoint("Players.db", PlayerDBFile);
-
             try
             {
                 int repaired = RepairPlaceholderDisplayNames();
@@ -88,6 +86,22 @@ namespace Mocha2023.Classes.DBs
                 Console.WriteLine(
                     $"[ACCOUNT DISPLAYNAME MIGRATION] failed={exception.Message}");
             }
+        }
+
+        public static int MigrateFromLiteDb()
+        {
+            string path = Path.Combine(Program.dataDir, "DBs", "Players.db");
+            if (!File.Exists(path))
+                return 0;
+
+            using var db = new LiteDB.LiteDatabase($"Filename={path};Connection=shared;ReadOnly=true");
+            int count = 0;
+            foreach (LiteDB.BsonDocument doc in db.GetCollection("Players").FindAll())
+            {
+                Players.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<FullPlayer>(doc, "PlayerId"));
+                count++;
+            }
+            return count;
         }
 
         private static int RepairPlaceholderDisplayNames()
@@ -220,7 +234,7 @@ namespace Mocha2023.Classes.DBs
 
             var newFullPlayer = new FullPlayer
             {
-                PlayerId = accountId ?? 0,
+                PlayerId = accountId ?? Players.NextId("players_player_id_seq"),
 
                 PlatformIds = new List<mPlatformID>
                 {

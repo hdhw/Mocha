@@ -1,4 +1,4 @@
-using LiteDB;
+using Mocha2023.Classes.DBs.Postgres;
 
 namespace Mocha2023.Classes.DBs;
 
@@ -6,7 +6,6 @@ public static class AnticheatLogDB
 {
     public class AnticheatEntry
     {
-        [BsonId]
         public long Id { get; set; }
 
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
@@ -18,14 +17,39 @@ public static class AnticheatLogDB
         public string? UserAgent { get; set; }
     }
 
-    private static readonly LiteDatabase DB = new(
-        Path.Combine(Program.dataDir, "DBs", "AnticheatLogs.db"));
-
-    public static readonly ILiteCollection<AnticheatEntry> Entries =
-        DB.GetCollection<AnticheatEntry>("Entries");
+    public static readonly PostgresCollection<AnticheatEntry> Entries = new(
+        PostgresConfig.ConnectionString,
+        tableName: "anticheat_entries",
+        idColumn: "id",
+        idSelector: e => e.Id,
+        extraColumns: new (string, Func<AnticheatEntry, object?>)[]
+        {
+            ("account_id", e => e.AccountId)
+        });
 
     private const int MaxStored = 20_000;
     private const int TrimBatchSize = 1_000;
+
+    static AnticheatLogDB()
+    {
+        Entries.EnsureIndex("account_id");
+    }
+
+    public static int MigrateFromLiteDb()
+    {
+        string path = Path.Combine(Program.dataDir, "DBs", "AnticheatLogs.db");
+        if (!File.Exists(path))
+            return 0;
+
+        using var db = new LiteDB.LiteDatabase($"Filename={path};Connection=shared;ReadOnly=true");
+        int count = 0;
+        foreach (LiteDB.BsonDocument doc in db.GetCollection("Entries").FindAll())
+        {
+            Entries.Upsert(LiteDbMigrationTool.ReadWithRecoveredId<AnticheatEntry>(doc, "Id"));
+            count++;
+        }
+        return count;
+    }
 
     public static void Log(
         string ipAddress,
@@ -35,15 +59,17 @@ public static class AnticheatLogDB
         string flags,
         string? userAgent)
     {
-        Entries.Insert(new AnticheatEntry
+        var entry = new AnticheatEntry
         {
+            Id = Entries.NextId("anticheat_entries_id_seq"),
             IpAddress = ipAddress,
             AccountId = accountId,
             SteamId = steamId,
             Build = build,
             Flags = flags,
             UserAgent = userAgent
-        });
+        };
+        Entries.Insert(entry);
 
         long count = Entries.LongCount();
         if (count > MaxStored)

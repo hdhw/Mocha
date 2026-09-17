@@ -2,29 +2,20 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using LiteDB;
+using Mocha2023.Classes.DBs.Postgres;
 
 namespace Mocha2023.Classes
 {
     public static class RoomBlobStorage
     {
-        private static readonly object DatabaseLock = new();
-
         public static readonly string BlobDirectory =
             Path.Combine(
                 AppContext.BaseDirectory,
                 "RoomBlobs"
             );
 
-        public static readonly string DatabasePath =
-            Path.Combine(
-                AppContext.BaseDirectory,
-                "RoomBlobs.db"
-            );
-
         public sealed class BlobRecord
         {
-            [BsonId]
             public string BlobName { get; set; } = string.Empty;
 
             public string Hash { get; set; } = string.Empty;
@@ -33,6 +24,12 @@ namespace Mocha2023.Classes
 
             public DateTime CreatedAt { get; set; }
         }
+
+        private static readonly PostgresCollection<BlobRecord> Blobs = new(
+            PostgresConfig.ConnectionString,
+            tableName: "room_blobs",
+            idColumn: "blob_name",
+            idSelector: value => value.BlobName);
 
         public static async Task<BlobRecord> StoreAsync(
             Stream input)
@@ -110,18 +107,7 @@ namespace Mocha2023.Classes
                 CreatedAt = DateTime.UtcNow
             };
 
-            lock (DatabaseLock)
-            {
-                using var database =
-                    new LiteDatabase(DatabasePath);
-
-                var blobs =
-                    database.GetCollection<BlobRecord>(
-                        "RoomBlobs"
-                    );
-
-                blobs.Upsert(record);
-            }
+            Blobs.Upsert(record);
 
             return record;
         }
@@ -132,17 +118,7 @@ namespace Mocha2023.Classes
             string safeName =
                 NormalizeBlobName(blobName);
 
-            lock (DatabaseLock)
-            {
-                using var database =
-                    new LiteDatabase(DatabasePath);
-
-                return database
-                    .GetCollection<BlobRecord>(
-                        "RoomBlobs"
-                    )
-                    .FindById(safeName);
-            }
+            return Blobs.FindById(safeName);
         }
 
         public static bool Exists(
