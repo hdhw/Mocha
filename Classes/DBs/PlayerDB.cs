@@ -271,17 +271,21 @@ namespace Mocha2023.Classes.DBs
                 return;
             }
 
+            // Only the one-way hash is ever persisted - nobody, including
+            // admins, can recover a player's real IP from stored data.
+            string hashedIp = IpHasher.Hash(ip);
+
             bool changed = false;
 
             if (isSignup && string.IsNullOrEmpty(account.SignupIp))
             {
-                account.SignupIp = ip;
+                account.SignupIp = hashedIp;
                 changed = true;
             }
 
-            if (account.LastKnownIp != ip)
+            if (account.LastKnownIp != hashedIp)
             {
-                account.LastKnownIp = ip;
+                account.LastKnownIp = hashedIp;
                 changed = true;
             }
             account.LastKnownIpAt = DateTime.UtcNow;
@@ -289,11 +293,11 @@ namespace Mocha2023.Classes.DBs
 
             account.RecentIps ??= new List<AccountIpRecord>();
             if (account.RecentIps.Count == 0 ||
-                account.RecentIps[^1].Ip != ip)
+                account.RecentIps[^1].Ip != hashedIp)
             {
                 account.RecentIps.Add(new AccountIpRecord
                 {
-                    Ip = ip,
+                    Ip = hashedIp,
                     SeenAt = DateTime.UtcNow
                 });
 

@@ -1,4 +1,5 @@
 using Mocha2023.Classes.DBs.Postgres;
+using Mocha2023.Classes;
 
 namespace Mocha2023.Classes.DBs;
 
@@ -62,7 +63,7 @@ public static class AnticheatLogDB
         var entry = new AnticheatEntry
         {
             Id = Entries.NextId("anticheat_entries_id_seq"),
-            IpAddress = ipAddress,
+            IpAddress = IpHasher.Hash(ipAddress),
             AccountId = accountId,
             SteamId = steamId,
             Build = build,

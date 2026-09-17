@@ -2920,7 +2920,10 @@ namespace Mocha2023.Controllers
 
             var query = ScannerLogDB.Attempts.Query();
             if (!string.IsNullOrWhiteSpace(ip))
-                query = query.Where(a => a.IpAddress == ip.Trim());
+            {
+                string ipHashFilter = IpHasher.Hash(ip.Trim());
+                query = query.Where(a => a.IpAddress == ipHashFilter);
+            }
 
             List<ScannerLogDB.ScannerAttempt> page = query
                 .OrderByDescending(a => a.Id)
@@ -2935,7 +2938,7 @@ namespace Mocha2023.Controllers
                 {
                     id = a.Id,
                     timestamp = a.Timestamp,
-                    ipAddress = a.IpAddress,
+                    ipHash = a.IpAddress,
                     method = a.Method,
                     path = a.Path,
                     queryString = a.QueryString,
@@ -2960,7 +2963,10 @@ namespace Mocha2023.Controllers
 
             var query = AnticheatLogDB.Entries.Query();
             if (!string.IsNullOrWhiteSpace(ip))
-                query = query.Where(a => a.IpAddress == ip.Trim());
+            {
+                string ipHashFilter = IpHasher.Hash(ip.Trim());
+                query = query.Where(a => a.IpAddress == ipHashFilter);
+            }
 
             List<AnticheatLogDB.AnticheatEntry> page = query
                 .OrderByDescending(a => a.Id)
@@ -2975,7 +2981,7 @@ namespace Mocha2023.Controllers
                 {
                     id = a.Id,
                     timestamp = a.Timestamp,
-                    ipAddress = a.IpAddress,
+                    ipHash = a.IpAddress,
                     accountId = a.AccountId,
                     steamId = a.SteamId,
                     build = a.Build,
@@ -5407,12 +5413,12 @@ namespace Mocha2023.Controllers
                 twoFactorEnabled = account.TwoFactorEnabled,
                 hasPassword = !string.IsNullOrEmpty(account.Password),
                 loginDisabled = account.LoginDisabled,
-                signupIp = account.SignupIp,
-                lastKnownIp = account.LastKnownIp,
+                signupIpHash = account.SignupIp,
+                lastKnownIpHash = account.LastKnownIp,
                 lastKnownIpAt = account.LastKnownIpAt,
-                recentIps = account.RecentIps?
+                recentIpHashes = account.RecentIps?
                     .OrderByDescending(record => record.SeenAt)
-                    .Select(record => new { ip = record.Ip, seenAt = record.SeenAt }),
+                    .Select(record => new { ipHash = record.Ip, seenAt = record.SeenAt }),
                 ban = nativeBan == null ? null : new
                 {
                     reason = nativeBan.Message,

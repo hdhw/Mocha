@@ -107,10 +107,10 @@ namespace Mocha2023
                 ? string.Empty
                 : $" | {exception.GetType().Name}: {exception.Message}";
 
-            string ipText = string.IsNullOrWhiteSpace(clientIp) ? "unknown" : clientIp;
+            string ipText = string.IsNullOrWhiteSpace(clientIp) ? "unknown" : Classes.IpHasher.Hash(clientIp);
 
             WriteRaw(
-                $"[{statusCode}] {method,-7} {path} ({elapsedMilliseconds} ms) ip={ipText}{suffix}",
+                $"[{statusCode}] {method,-7} {path} ({elapsedMilliseconds} ms) ipHash={ipText}{suffix}",
                 color
             );
         }
@@ -161,6 +161,11 @@ namespace Mocha2023
                 string.IsNullOrWhiteSpace(ServerConfig.PhotonCustomAuthSecret))
             {
                 missing.Add("PHOTON_CUSTOM_AUTH_SECRET");
+            }
+
+            if (string.IsNullOrWhiteSpace(ServerConfig.IpHashSecret))
+            {
+                missing.Add("IP_HASH_SECRET");
             }
 
             if (missing.Count == 0)

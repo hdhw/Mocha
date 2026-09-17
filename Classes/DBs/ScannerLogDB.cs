@@ -1,4 +1,5 @@
 using Mocha2023.Classes.DBs.Postgres;
+using Mocha2023.Classes;
 
 namespace Mocha2023.Classes.DBs;
 
@@ -47,7 +48,7 @@ public static class ScannerLogDB
         var attempt = new ScannerAttempt
         {
             Id = Attempts.NextId("scanner_attempts_id_seq"),
-            IpAddress = ipAddress,
+            IpAddress = IpHasher.Hash(ipAddress),
             Method = method,
             Path = path,
             QueryString = queryString,

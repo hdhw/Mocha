@@ -24,6 +24,9 @@ namespace Mocha2023.Classes
         public static readonly string PhotonCustomAuthSecret =
             Program.LoadLocalSetting("PHOTON_CUSTOM_AUTH_SECRET");
 
+        public static readonly string IpHashSecret =
+            Program.LoadLocalSetting("IP_HASH_SECRET");
+
         public static bool PhotonEnabled =>
             !string.IsNullOrWhiteSpace(PhotonRealtimeAppId);
 

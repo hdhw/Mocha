@@ -111,6 +111,24 @@ namespace Mocha2023.Classes
         }
     }
 
+    // A player's real IP is never stored - only this keyed, one-way hash of
+    // it. It's deterministic (the same IP always hashes to the same value),
+    // so exact-match lookups and cross-entry correlation still work, but
+    // there's no way back to the original address, even for admins.
+    public static class IpHasher
+    {
+        public static string Hash(string? ip)
+        {
+            if (string.IsNullOrWhiteSpace(ip))
+                return string.Empty;
+
+            byte[] key = System.Text.Encoding.UTF8.GetBytes(ServerConfig.IpHashSecret);
+            using var hmac = new System.Security.Cryptography.HMACSHA256(key);
+            byte[] hash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(ip.Trim()));
+            return Convert.ToHexString(hash).ToLowerInvariant();
+        }
+    }
+
     public static class IpNetwork
     {
         public static bool TryNormalize(string? value, out string normalized)

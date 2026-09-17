@@ -44,7 +44,7 @@ public class AnticheatController : ControllerBase
 
         AnticheatLogDB.Log(ip, accountId, steamId, build, flags, userAgent);
 
-        Console.WriteLine($"[ANTICHEAT] ip={ip} account={accountId?.ToString() ?? "none"} steam={steamId} build={build} flags={flags}");
+        Console.WriteLine($"[ANTICHEAT] ipHash={IpHasher.Hash(ip)} account={accountId?.ToString() ?? "none"} steam={steamId} build={build} flags={flags}");
 
         return Ok(new { received = true });
     }

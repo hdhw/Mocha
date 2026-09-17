@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using System.Text.RegularExpressions;
 using Dapper;
 using Npgsql;
 
@@ -113,10 +114,24 @@ namespace Mocha2023.Classes.DBs.Postgres
             (string Column, Func<T, object?> Extract)[]? extraColumns = null)
         {
             _connectionString = connectionString;
-            _tableName = tableName;
-            _idColumn = idColumn;
+            _tableName = ValidateIdentifier(tableName);
+            _idColumn = ValidateIdentifier(idColumn);
             _idSelector = idSelector;
             _extraColumns = extraColumns ?? Array.Empty<(string, Func<T, object?>)>();
+            foreach ((string column, _) in _extraColumns)
+                ValidateIdentifier(column);
+        }
+
+        // Table/column names can never be parameterized (Postgres has no
+        // bind-parameter syntax for identifiers), so every one that reaches
+        // an interpolated SQL string goes through this whitelist first.
+        // Every call site today passes a hardcoded literal, but this makes
+        // that a hard guarantee instead of just current practice.
+        private static string ValidateIdentifier(string identifier)
+        {
+            if (!Regex.IsMatch(identifier, "^[a-z_][a-z0-9_]*$"))
+                throw new ArgumentException($"'{identifier}' is not a safe SQL identifier.", nameof(identifier));
+            return identifier;
         }
 
         private NpgsqlConnection Open()
@@ -261,6 +276,7 @@ namespace Mocha2023.Classes.DBs.Postgres
         // like this one).
         public long NextId(string sequenceName)
         {
+            ValidateIdentifier(sequenceName);
             using NpgsqlConnection connection = Open();
             return connection.ExecuteScalar<long>($"SELECT nextval('{sequenceName}')");
         }
@@ -269,6 +285,7 @@ namespace Mocha2023.Classes.DBs.Postgres
         // static constructor, same call sites LiteDB's EnsureIndex used.
         public void EnsureIndex(string columnName, bool unique = false)
         {
+            ValidateIdentifier(columnName);
             using NpgsqlConnection connection = Open();
             string indexName = $"ix_{_tableName}_{columnName}";
             string uniqueSql = unique ? "UNIQUE" : "";
