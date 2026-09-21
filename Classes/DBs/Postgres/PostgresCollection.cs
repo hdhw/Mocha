@@ -25,12 +25,12 @@ namespace Mocha2023.Classes.DBs.Postgres
     // column; extra columns exist only so real indexes can back hot lookups -
     // they are kept in sync from the same object on every write.
     //
-    // Find()/DeleteMany() fetch the full table and filter in-memory with the
-    // exact same C# predicate the caller already had - at this app's data
-    // scale (tens of thousands of rows per table at most) that is simpler
-    // and just as correct as a general expression-to-SQL translator, without
-    // the risk of a translator silently mishandling an edge case LiteDB
-    // handled differently.
+    // Find()/DeleteMany() filter in-memory with the exact same C# predicate
+    // the caller already had - at this app's data scale (tens of thousands
+    // of rows per table at most) that is simpler and just as correct as a
+    // general expression-to-SQL translator, without the risk of a
+    // translator silently mishandling an edge case LiteDB handled
+    // differently. See the cache below for how "in-memory" is kept cheap.
     public sealed class PostgresCollection<T>
     {
         private static readonly JsonSerializerOptions JsonOptions = new()
@@ -106,6 +106,23 @@ namespace Mocha2023.Classes.DBs.Postgres
         private readonly Func<T, object> _idSelector;
         private readonly (string Column, Func<T, object?> Extract)[] _extraColumns;
 
+        // Find()/FindAll()/FindById() used to hit Postgres on every single
+        // call - a full "SELECT data::text FROM table" + JSON-deserialize
+        // every row, even for a single-record lookup, since the in-memory
+        // predicate filtering that replaced LiteDB's queries only runs
+        // after the whole table is already in hand. That was fine under
+        // LiteDB (a memory-mapped local file, no network round trip, no
+        // JSON parsing cost) but is a full table scan over the network on
+        // every read under Postgres, and got slower as tables grew - this
+        // is what actually made things slow after the migration, not
+        // Postgres itself. This cache restores LiteDB's real behavior (the
+        // whole table resident in memory) while keeping Postgres as the
+        // durable store: reads never touch the database, writes update
+        // both. Safe because this app is a single process - nothing else
+        // writes to these tables outside this class.
+        private readonly object _cacheLock = new();
+        private Dictionary<object, T>? _cache;
+
         public PostgresCollection(
             string connectionString,
             string tableName,
@@ -120,6 +137,41 @@ namespace Mocha2023.Classes.DBs.Postgres
             _extraColumns = extraColumns ?? Array.Empty<(string, Func<T, object?>)>();
             foreach ((string column, _) in _extraColumns)
                 ValidateIdentifier(column);
+        }
+
+        // Boxed ints and boxed longs never compare equal as dictionary keys
+        // even when the value matches, and call sites pass whichever
+        // integral type they happen to have on hand for an id. Normalize so
+        // a lookup always lands on the same key the row was cached under.
+        private static object CanonicalKey(object id) => id switch
+        {
+            int i => (long)i,
+            short s => (long)s,
+            byte b => (long)b,
+            uint ui => (long)ui,
+            _ => id,
+        };
+
+        private Dictionary<object, T> Cache
+        {
+            get
+            {
+                lock (_cacheLock)
+                {
+                    if (_cache != null)
+                        return _cache;
+
+                    using NpgsqlConnection connection = Open();
+                    var built = new Dictionary<object, T>();
+                    foreach (string json in connection.Query<string>($"SELECT data::text FROM {_tableName}"))
+                    {
+                        T row = Deserialize(json);
+                        built[CanonicalKey(_idSelector(row))] = row;
+                    }
+                    _cache = built;
+                    return _cache;
+                }
+            }
         }
 
         // Table/column names can never be parameterized (Postgres has no
@@ -146,19 +198,14 @@ namespace Mocha2023.Classes.DBs.Postgres
 
         public T? FindById(object id)
         {
-            using NpgsqlConnection connection = Open();
-            string? json = connection.QuerySingleOrDefault<string?>(
-                $"SELECT data::text FROM {_tableName} WHERE {_idColumn} = @id",
-                new { id });
-            return json == null ? default : Deserialize(json);
+            lock (_cacheLock)
+                return Cache.TryGetValue(CanonicalKey(id), out T? value) ? value : default;
         }
 
         public List<T> FindAll()
         {
-            using NpgsqlConnection connection = Open();
-            return connection.Query<string>($"SELECT data::text FROM {_tableName}")
-                .Select(Deserialize)
-                .ToList();
+            lock (_cacheLock)
+                return Cache.Values.ToList();
         }
 
         public List<T> Find(Func<T, bool> predicate) =>
@@ -172,8 +219,8 @@ namespace Mocha2023.Classes.DBs.Postgres
 
         public long LongCount()
         {
-            using NpgsqlConnection connection = Open();
-            return connection.ExecuteScalar<long>($"SELECT COUNT(*) FROM {_tableName}");
+            lock (_cacheLock)
+                return Cache.Count;
         }
 
         public int Count() => (int)LongCount();
@@ -221,6 +268,9 @@ namespace Mocha2023.Classes.DBs.Postgres
         {
             using NpgsqlConnection connection = Open();
             int rows = connection.Execute(BuildInsertOrUpsertSql(upsert: false), BuildParameters(entity));
+            if (rows > 0)
+                lock (_cacheLock)
+                    Cache[CanonicalKey(_idSelector(entity))] = entity;
             return rows > 0;
         }
 
@@ -231,6 +281,9 @@ namespace Mocha2023.Classes.DBs.Postgres
                 .Append("data = @data::jsonb");
             string sql = $"UPDATE {_tableName} SET {string.Join(", ", setColumns)} WHERE {_idColumn} = @id";
             int rows = connection.Execute(sql, BuildParameters(entity));
+            if (rows > 0)
+                lock (_cacheLock)
+                    Cache[CanonicalKey(_idSelector(entity))] = entity;
             return rows > 0;
         }
 
@@ -244,14 +297,21 @@ namespace Mocha2023.Classes.DBs.Postgres
         {
             using NpgsqlConnection connection = Open();
             int rows = connection.Execute(BuildInsertOrUpsertSql(upsert: true), BuildParameters(entity));
+            if (rows > 0)
+                lock (_cacheLock)
+                    Cache[CanonicalKey(_idSelector(entity))] = entity;
             return rows > 0;
         }
 
         public bool Delete(object id)
         {
             using NpgsqlConnection connection = Open();
-            return connection.Execute(
+            bool deleted = connection.Execute(
                 $"DELETE FROM {_tableName} WHERE {_idColumn} = @id", new { id }) > 0;
+            if (deleted)
+                lock (_cacheLock)
+                    Cache.Remove(CanonicalKey(id));
+            return deleted;
         }
 
         public int DeleteMany(Func<T, bool> predicate)
