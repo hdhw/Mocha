@@ -2,6 +2,7 @@
   {
     "id": "pc",
     "tabLabel": "PC",
+    "tabIcon": "fa-brands fa-windows",
     "headline": "Windows",
     "icon": "download_avatar_pc.webp",
     "blurb": "Mocha is the best place to build and play games together. Create something fun and exciting with friends from around the world on any PC.",
@@ -14,6 +15,7 @@
   {
     "id": "quest",
     "tabLabel": "Quest",
+    "tabIcon": "fa-brands fa-meta",
     "headline": "Meta Quest",
     "icon": "download_avatar_quest.webp",
     "blurb": "Step into Mocha in full VR. Build rooms, hang out, and play games with friends from anywhere.",
@@ -26,6 +28,7 @@
   {
     "id": "rift",
     "tabLabel": "Rift",
+    "tabIcon": "fa-brands fa-meta",
     "headline": "Rift",
     "icon": "download_avatar_rift.webp",
     "blurb": "Play Mocha in VR on Rift. Build rooms, hang out, and play games with friends from anywhere.",
@@ -38,6 +41,7 @@
   {
     "id": "pico",
     "tabLabel": "Pico",
+    "tabIcon": "fa-solid fa-vr-cardboard",
     "headline": "Pico",
     "icon": "download_avatar_quest.webp",
     "blurb": "Play Mocha in VR on Pico. Build rooms, hang out, and play games with friends from anywhere.",
@@ -50,6 +54,7 @@
   {
     "id": "xbox",
     "tabLabel": "Xbox",
+    "tabIcon": "fa-brands fa-xbox",
     "headline": "Xbox",
     "icon": "download_avatar_xbox.webp",
     "blurb": "Play Mocha on your Xbox. Build rooms, hang out, and play games with friends from anywhere.",
@@ -62,6 +67,7 @@
   {
     "id": "ps",
     "tabLabel": "PlayStation",
+    "tabIcon": "fa-brands fa-playstation",
     "headline": "PlayStation",
     "icon": "download_avatar_ps.webp",
     "blurb": "Play Mocha on your PlayStation. Build rooms, hang out, and play games with friends from anywhere.",
@@ -74,6 +80,7 @@
   {
     "id": "switch",
     "tabLabel": "Switch",
+    "tabIcon": "fa-solid fa-gamepad",
     "headline": "Switch",
     "icon": "download_avatar_switch.webp",
     "blurb": "Play Mocha on your Nintendo Switch. Build rooms, hang out, and play games with friends from anywhere.",
@@ -86,6 +93,7 @@
   {
     "id": "android",
     "tabLabel": "Android",
+    "tabIcon": "fa-brands fa-android",
     "headline": "Android",
     "icon": "download_avatar_android.webp",
     "blurb": "Take Mocha with you. Chat, browse rooms, and stay connected with friends on the go.",
@@ -98,6 +106,7 @@
   {
     "id": "ios",
     "tabLabel": "iOS",
+    "tabIcon": "fa-brands fa-apple",
     "headline": "iOS",
     "icon": "download_avatar_ios.webp",
     "blurb": "Take Mocha with you. Chat, browse rooms, and stay connected with friends on the go.",

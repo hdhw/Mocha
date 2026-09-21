@@ -13,7 +13,7 @@
     function renderTabs() {
         tabs.innerHTML = platforms.map(p => `
       <button class="platform-tab${p.id === activeId ? ' platform-tab-active' : ''}" data-id="${esc(p.id)}" type="button">
-        <img src="/recnet/${esc(p.icon)}" alt="" width="36" height="36">
+        <i class="${esc(p.tabIcon)}" aria-hidden="true"></i>
         <span>${esc(p.tabLabel)}</span>
       </button>`).join('');
 

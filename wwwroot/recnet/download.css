@@ -28,10 +28,8 @@
     cursor: pointer;
 }
 
-.platform-tab img {
-    width: 36px;
-    height: 36px;
-    object-fit: contain;
+.platform-tab i {
+    font-size: 28px;
     opacity: .6;
 }
 
@@ -46,8 +44,9 @@
     color: var(--ink);
 }
 
-.platform-tab-active img {
+.platform-tab-active i {
     opacity: 1;
+    color: var(--pink);
 }
 
 .download-stage {
