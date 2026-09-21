@@ -1,0 +1,74 @@
+[
+  {
+    "id": "pc",
+    "label": "Windows PC",
+    "icon": "download_avatar_pc.webp",
+    "version": "",
+    "size": "",
+    "url": "",
+    "available": false
+  },
+  {
+    "id": "quest",
+    "label": "Meta Quest",
+    "icon": "download_avatar_quest.webp",
+    "version": "",
+    "size": "",
+    "url": "",
+    "available": false
+  },
+  {
+    "id": "rift",
+    "label": "Rift",
+    "icon": "download_avatar_rift.webp",
+    "version": "",
+    "size": "",
+    "url": "",
+    "available": false
+  },
+  {
+    "id": "xbox",
+    "label": "Xbox",
+    "icon": "download_avatar_xbox.webp",
+    "version": "",
+    "size": "",
+    "url": "",
+    "available": false
+  },
+  {
+    "id": "ps",
+    "label": "PlayStation",
+    "icon": "download_avatar_ps.webp",
+    "version": "",
+    "size": "",
+    "url": "",
+    "available": false
+  },
+  {
+    "id": "switch",
+    "label": "Switch",
+    "icon": "download_avatar_switch.webp",
+    "version": "",
+    "size": "",
+    "url": "",
+    "available": false
+  },
+  {
+    "id": "android",
+    "label": "Android",
+    "icon": "download_avatar_android.webp",
+    "version": "",
+    "size": "",
+    "url": "",
+    "available": false
+  },
+  {
+    "id": "ios",
+    "label": "iOS",
+    "icon": "download_avatar_ios.webp",
+    "version": "",
+    "size": "",
+    "url": "",
+    "available": false
+  }
+]

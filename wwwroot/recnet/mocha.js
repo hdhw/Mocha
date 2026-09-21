@@ -3443,7 +3443,7 @@ async function pollMassImportJob(jobId, status, progressBox) {
             progressBox.innerHTML = (job.results || []).map(r => {
                 const detail = r.success
                     ? ` (room ${r.roomId}, ${r.subRoomsImported} subroom${r.subRoomsImported === 1 ? '' : 's'}${r.bakedAssetsImported ? `, ${r.bakedAssetsImported} baked assets` : ''})`
-                    : ` — ${r.error}`;
+                    : ` (${r.error})`;
                 const color = r.success ? '#4caf50' : '#ff5555';
                 return `<div style="color:${color};font-family:monospace;font-size:12px;padding:2px 0">${r.success ? '✓' : '✗'} ${r.name}${detail}</div>`;
             }).join('');

@@ -76,6 +76,12 @@ namespace Mocha2023.Controllers
             return Serve("privacy.html", "text/html; charset=utf-8");
         }
 
+        [HttpGet("/download")]
+        public IActionResult Download()
+        {
+            return Serve("download.html", "text/html; charset=utf-8");
+        }
+
         [HttpGet("/tos")]
         public IActionResult TermsOfService()
         {
