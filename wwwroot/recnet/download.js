@@ -42,7 +42,7 @@
           <img src="/recnet/${esc(platform.icon)}" alt="" width="220" height="220">
         </div>
         <div class="download-hero-content">
-          <h1>Mocha for<div>${esc(platform.headline)}</div></h1>
+          <h1>Mocha for ${esc(platform.headline)}</h1>
           <p class="download-blurb">${esc(platform.blurb)}</p>
           <p class="download-requirement">${esc(platform.requirement)}</p>
           ${platform.available && platform.url ? `
