@@ -709,6 +709,7 @@ namespace Mocha2023.Controllers
                     new
                     {
                         Success = false,
+                        Result = 8,
                         Error = "invention_object_blob_missing",
                         InventionId = inventionId
                     });
@@ -729,6 +730,7 @@ namespace Mocha2023.Controllers
             return Ok(new
             {
                 Success = true,
+                Result = 0,
                 InventionId = invention.InventionId,
                 Id = invention.InventionId,
                 Uses = invention.Uses,
