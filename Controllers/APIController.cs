@@ -10840,6 +10840,8 @@ namespace Mocha2023.Controllers
                     StatusCodes.Status409Conflict,
                     new { Success = false, Result = 8, Error = "invention_object_blob_missing" });
             }
+            Console.WriteLine(
+                $"[INVENTION VERSION] byPath id={inventionId} success body={JsonSerializer.Serialize(version)}");
             return Ok(version);
         }
 
@@ -10865,6 +10867,8 @@ namespace Mocha2023.Controllers
                     StatusCodes.Status409Conflict,
                     new { Success = false, Result = 8, Error = "invention_object_blob_missing" });
             }
+            Console.WriteLine(
+                $"[INVENTION VERSION] byQuery id={resolvedId} success body={JsonSerializer.Serialize(currentVersion)}");
             return Ok(currentVersion);
         }
 
