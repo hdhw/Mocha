@@ -229,7 +229,7 @@ namespace Mocha2023.Controllers
             object? version = CreatorFeatureDB.ToClientInventionVersion(invention);
             return version == null
                 ? StatusCode(StatusCodes.Status409Conflict,
-                    new { Success = false, Error = "invention_object_blob_missing" })
+                    new { Success = false, Result = 8, Error = "invention_object_blob_missing" })
                 : Ok(new[] { version });
         }
 
@@ -254,7 +254,7 @@ namespace Mocha2023.Controllers
             object? version = CreatorFeatureDB.ToClientInventionVersion(invention);
             return version == null
                 ? StatusCode(StatusCodes.Status409Conflict,
-                    new { Success = false, Error = "invention_object_blob_missing" })
+                    new { Success = false, Result = 8, Error = "invention_object_blob_missing" })
                 : Ok(version);
         }
 

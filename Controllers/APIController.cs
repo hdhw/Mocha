@@ -10838,7 +10838,7 @@ namespace Mocha2023.Controllers
                     $"[INVENTION VERSION] byPath id={inventionId} blob_missing dataBlob={record.DataBlob}");
                 return StatusCode(
                     StatusCodes.Status409Conflict,
-                    new { Success = false, Error = "invention_object_blob_missing" });
+                    new { Success = false, Result = 8, Error = "invention_object_blob_missing" });
             }
             return Ok(version);
         }
@@ -10863,7 +10863,7 @@ namespace Mocha2023.Controllers
                     $"[INVENTION VERSION] byQuery id={resolvedId} blob_missing dataBlob={record.DataBlob}");
                 return StatusCode(
                     StatusCodes.Status409Conflict,
-                    new { Success = false, Error = "invention_object_blob_missing" });
+                    new { Success = false, Result = 8, Error = "invention_object_blob_missing" });
             }
             return Ok(currentVersion);
         }

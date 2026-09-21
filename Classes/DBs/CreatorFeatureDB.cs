@@ -673,6 +673,8 @@ namespace Mocha2023.Classes.DBs
             int versionNumber = Math.Max(1, value.Version);
             return new
             {
+                Success = true,
+                Result = 0,
                 InventionId = value.InventionId,
                 Id = value.InventionId,
                 ReplicationId = StableReplicationId(
