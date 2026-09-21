@@ -1,0 +1,161 @@
+.download-page {
+    min-height: 100vh;
+    background: var(--canvas);
+}
+
+.platform-tabs {
+    display: flex;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding: var(--space-4) max(24px,calc((100vw - 1180px)/2));
+    border-bottom: 1px solid var(--line);
+}
+
+.platform-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    width: 84px;
+    padding: 10px 8px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.platform-tab i {
+    font-size: 28px;
+    opacity: .6;
+}
+
+.platform-tab:hover {
+    background: var(--surface-hover);
+    color: var(--ink);
+}
+
+.platform-tab-active {
+    border-color: var(--line);
+    background: var(--surface);
+    color: var(--ink);
+}
+
+.platform-tab-active i {
+    opacity: 1;
+    color: var(--pink);
+}
+
+.download-stage {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 48px 28px 90px;
+}
+
+.download-hero {
+    display: flex;
+    align-items: center;
+    gap: 48px;
+    padding: 52px;
+    border: 1px solid #4a3565;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(125deg,#3f197e,#7540c7 70%,#9256db);
+    color: #fff;
+    box-shadow: 0 20px 60px rgba(23,9,42,.34);
+}
+
+.download-hero-art {
+    flex: 0 0 auto;
+}
+
+.download-hero-art img {
+    width: 220px;
+    height: 220px;
+    object-fit: contain;
+    filter: drop-shadow(0 12px 24px rgba(0,0,0,.25));
+}
+
+.download-hero-content h1 {
+    margin: 0 0 14px;
+    font-size: clamp(32px,4.5vw,48px);
+    line-height: 1.05;
+    letter-spacing: -1px;
+}
+
+.download-blurb {
+    max-width: 480px;
+    margin: 0 0 10px;
+    color: #eadff9;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.download-requirement {
+    margin: 0 0 20px;
+    color: #cbb8ea;
+    font-size: 13px;
+}
+
+.download-terms {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    max-width: 420px;
+    margin-bottom: 18px;
+    color: #eadff9;
+    font-size: 13px;
+    line-height: 1.5;
+    cursor: pointer;
+}
+
+.download-terms input {
+    margin-top: 3px;
+}
+
+.download-terms a {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.download-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 13px 28px;
+    text-decoration: none;
+}
+
+.download-cta-locked {
+    opacity: .5;
+    pointer-events: none;
+}
+
+.download-cta-soon {
+    display: inline-flex;
+    padding: 13px 28px;
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,.12);
+    color: #eadff9;
+    font-weight: 500;
+}
+
+.download-meta {
+    margin: 12px 0 0;
+    color: #cbb8ea;
+    font-size: 12px;
+}
+
+@media (max-width: 640px) {
+    .download-hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 36px 24px;
+    }
+
+    .download-terms, .download-blurb {
+        max-width: none;
+    }
+}
