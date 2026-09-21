@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1d1d1d">
-  <meta name="description" content="Download Mocha for PC, Quest, Xbox, PlayStation, Switch, and mobile.">
+  <meta name="description" content="Download Mocha for PC, Quest, Rift, Pico, Xbox, PlayStation, Switch, Android, and iOS.">
   <title>Download · Mocha</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="/recnet/dark.css?v=mocha4">
   <link rel="stylesheet" href="/recnet/font.css?v=mocha4">
   <link rel="stylesheet" href="/recnet/privacy.css?v=mocha4">
-  <link rel="stylesheet" href="/recnet/download.css?v=1">
+  <link rel="stylesheet" href="/recnet/download.css?v=2">
 </head>
 <body class="download-page">
   <header class="privacy-header">
@@ -26,21 +26,10 @@
     </a>
   </header>
 
-  <main class="download-main">
-    <section class="privacy-hero">
-      <div class="privacy-eyebrow">Get Mocha</div>
-      <h1>Play Mocha on your platform</h1>
-      <p>Pick a platform below to download the current build. New here? Check the <a href="/recnet/developer">Live Ops</a> page for what changed recently.</p>
-    </section>
+  <nav id="platformTabs" class="platform-tabs" aria-label="Choose a platform"></nav>
 
-    <section id="downloadGrid" class="download-grid" aria-live="polite">
-      <div class="loading"><i></i>Loading platforms</div>
-    </section>
-
-    <section class="download-note">
-      <h2>Having trouble?</h2>
-      <p>Make sure you are downloading the build that matches your platform. If a download will not open or a platform is not listed yet, ask in the community's official support channel with your platform and what happened.</p>
-    </section>
+  <main id="downloadStage" class="download-stage">
+    <div class="loading"><i></i>Loading platforms</div>
   </main>
 
   <footer class="privacy-footer">
@@ -50,6 +39,6 @@
     <a href="/tos">Terms</a>
   </footer>
 
-  <script src="/recnet/download.js?v=1"></script>
+  <script src="/recnet/download.js?v=2"></script>
 </body>
 </html>
