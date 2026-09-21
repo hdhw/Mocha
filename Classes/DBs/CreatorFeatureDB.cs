@@ -696,11 +696,11 @@ namespace Mocha2023.Classes.DBs
                 DataBlobSize = dataBlobSize,
                 BlobUrl = "/cdn/" + dataBlobPath.TrimStart('/'),
                 DownloadUrl = "/cdn/" + dataBlobPath.TrimStart('/'),
-                InstantiationCost = Math.Max(0, value.InstantiationCost),
-                LightsCost = Math.Max(0, value.LightsCost),
-                ChipsCost = Math.Max(0, value.ChipsCost),
-                CloudVariablesCost = Math.Max(0, value.CloudVariablesCost),
-                AiCost = Math.Max(0, value.AiCost),
+                InstantiationCost = 0,
+                LightsCost = 0,
+                ChipsCost = 0,
+                CloudVariablesCost = 0,
+                AiCost = 0,
                 CanSpawn = true
             };
         }
@@ -762,11 +762,11 @@ namespace Mocha2023.Classes.DBs
                 DataBlobHash = hasBlob ? dataBlobHash : string.Empty,
                 ObjectDataBlobHash = hasBlob ? dataBlobHash : string.Empty,
                 DataBlobSize = hasBlob ? dataBlobSize : 0,
-                InstantiationCost = Math.Max(0, value.InstantiationCost),
-                LightsCost = Math.Max(0, value.LightsCost),
-                ChipsCost = Math.Max(0, value.ChipsCost),
-                CloudVariablesCost = Math.Max(0, value.CloudVariablesCost),
-                AiCost = Math.Max(0, value.AiCost),
+                InstantiationCost = 0,
+                LightsCost = 0,
+                ChipsCost = 0,
+                CloudVariablesCost = 0,
+                AiCost = 0,
                 ReferencedInventions = value.ReferencedInventionIds ?? new List<long>(),
                 ReferencedInventionIds = value.ReferencedInventionIds ?? new List<long>(),
                 DataBlobUrl = hasBlob
