@@ -738,7 +738,7 @@ namespace Mocha2023.Controllers
                 DataBlobSize = blobSize,
                 CurrentVersion = currentVersion,
                 InventionVersion = currentVersion,
-                Version = currentVersion,
+                Version = Math.Max(1, invention.Version),
                 Value = client,
                 Invention = client
             });
