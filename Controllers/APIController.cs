@@ -10825,17 +10825,22 @@ namespace Mocha2023.Controllers
         [HttpGet("/api/inventions/v2/{inventionId:long}/version")]
         public IActionResult GetInventionVersionByPath(long inventionId)
         {
+            Console.WriteLine($"[INVENTION VERSION] byPath hit id={inventionId}");
             CreatorFeatureDB.InventionRecord? record =
                 CreatorFeatureDB.GetInvention(inventionId);
             if (record == null)
                 return NotFound(new { Success = false, Error = "invention_not_found" });
 
             object? version = CreatorFeatureDB.ToClientInventionVersion(record);
-            return version == null
-                ? StatusCode(
+            if (version == null)
+            {
+                Console.WriteLine(
+                    $"[INVENTION VERSION] byPath id={inventionId} blob_missing dataBlob={record.DataBlob}");
+                return StatusCode(
                     StatusCodes.Status409Conflict,
-                    new { Success = false, Error = "invention_object_blob_missing" })
-                : Ok(version);
+                    new { Success = false, Error = "invention_object_blob_missing" });
+            }
+            return Ok(version);
         }
 
         [HttpGet("/api/inventions/v1/version")]
@@ -10845,17 +10850,22 @@ namespace Mocha2023.Controllers
             [FromQuery] int version = 0)
         {
             long resolvedId = inventionId > 0 ? inventionId : id;
+            Console.WriteLine($"[INVENTION VERSION] byQuery hit id={resolvedId}");
             CreatorFeatureDB.InventionRecord? record =
                 CreatorFeatureDB.GetInvention(resolvedId);
             if (record == null)
                 return NotFound();
 
             object? currentVersion = CreatorFeatureDB.ToClientInventionVersion(record);
-            return currentVersion == null
-                ? StatusCode(
+            if (currentVersion == null)
+            {
+                Console.WriteLine(
+                    $"[INVENTION VERSION] byQuery id={resolvedId} blob_missing dataBlob={record.DataBlob}");
+                return StatusCode(
                     StatusCodes.Status409Conflict,
-                    new { Success = false, Error = "invention_object_blob_missing" })
-                : Ok(currentVersion);
+                    new { Success = false, Error = "invention_object_blob_missing" });
+            }
+            return Ok(currentVersion);
         }
 
         [HttpGet("/api/storefronts/v1/toptoday")]

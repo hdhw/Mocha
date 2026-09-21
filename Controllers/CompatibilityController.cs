@@ -695,15 +695,30 @@ namespace Mocha2023.Controllers
         [HttpPut("/api/inventions/v1/{inventionId:long}/use")]
         public IActionResult RecordInventionSpawn(long inventionId)
         {
-            if (!AuthStuff.GetPlayerId(Request).HasValue)
+            Console.WriteLine(
+                $"[INVENTION SPAWN] hit inventionId={inventionId} " +
+                $"method={Request.Method} path={Request.Path}");
+
+            long? spawnCallerId = AuthStuff.GetPlayerId(Request);
+            if (!spawnCallerId.HasValue)
+            {
+                Console.WriteLine($"[INVENTION SPAWN] id={inventionId} unauthorized");
                 return Unauthorized();
+            }
 
             CreatorFeatureDB.InventionRecord? existing =
                 CreatorFeatureDB.GetInvention(inventionId);
             if (existing == null || !CanViewInvention(existing))
+            {
+                Console.WriteLine(
+                    $"[INVENTION SPAWN] id={inventionId} not_found_or_forbidden " +
+                    $"exists={existing != null} caller={spawnCallerId.Value}");
                 return NotFound(new { Success = false, Error = "invention_not_found" });
+            }
             if (!CreatorFeatureDB.HasValidInventionBlob(existing))
             {
+                Console.WriteLine(
+                    $"[INVENTION SPAWN] id={inventionId} blob_missing dataBlob={existing.DataBlob}");
                 return StatusCode(
                     StatusCodes.Status409Conflict,
                     new
@@ -727,6 +742,8 @@ namespace Mocha2023.Controllers
             object client = CreatorFeatureDB.ToClientInvention(invention);
             object? currentVersion =
                 CreatorFeatureDB.ToClientInventionVersion(invention);
+            Console.WriteLine(
+                $"[INVENTION SPAWN] id={inventionId} success blob={blobName} size={blobSize}");
             return Ok(new
             {
                 Success = true,
