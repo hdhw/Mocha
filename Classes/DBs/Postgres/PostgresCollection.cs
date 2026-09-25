@@ -334,10 +334,28 @@ namespace Mocha2023.Classes.DBs.Postgres
         // Insert() never has to guess whether an id was already assigned
         // (natural keys, GUIDs) or needs generating (auto-increment domains
         // like this one).
+        // Plain nextval() trusts the sequence to already be ahead of every
+        // row in the table - true only if every row ever got its id from
+        // this same sequence. It isn't: MigrateFromLiteDb (see
+        // LiteDbMigrationTool) inserts rows with their original recovered
+        // ids via Upsert, entirely bypassing the sequence, so the sequence
+        // can sit well behind the table's real max id. The first NextId()
+        // call after that hands out an id a migrated row already has, and
+        // the INSERT throws a Postgres 23505 duplicate-key error on the
+        // table's primary key.
+        //
+        // Bump the sequence past the table's current max id first - a
+        // COALESCE(MAX(id), 0) scan over an indexed primary key is cheap,
+        // and this makes NextId() correct no matter how existing rows got
+        // their ids (migration, a manual insert, anything), not just ids
+        // this sequence itself issued.
         public long NextId(string sequenceName)
         {
             ValidateIdentifier(sequenceName);
             using NpgsqlConnection connection = Open();
+            connection.Execute(
+                $"SELECT setval('{sequenceName}', " +
+                $"COALESCE((SELECT MAX({_idColumn}) FROM {_tableName}), 0))");
             return connection.ExecuteScalar<long>($"SELECT nextval('{sequenceName}')");
         }
 

@@ -1942,10 +1942,33 @@ async function banAppeal() {
         }
     });
 }
+async function renderBanGate() {
+    app.innerHTML = '<div class="loading"><i></i>Loading your account status</div>';
+    const reason = currentUser?.ban?.reason || 'No reason was recorded.';
+    const whenBanned = currentUser?.ban?.isPermanent ? 'This is a permanent ban.' : (currentUser?.ban?.bannedAtUnix ? `Banned ${new Date(currentUser.ban.bannedAtUnix * 1000).toLocaleString()}` : '');
+    let info;
+    try {
+        info = await get('/recnet/api/banappeal/generateCode');
+    }
+    catch (error) {
+        app.innerHTML = `<section class="settings-card gated-settings"><i class="fa-solid fa-ban"></i><h1 class="page-title">Your account is banned</h1><p>${esc(reason)}</p><p class="field-hint">${esc(error.message)}</p></section>`;
+        return;
+    }
+    app.innerHTML = `<section class="settings-card gated-settings"><i class="fa-solid fa-ban"></i><h1 class="page-title">Your account is banned</h1><p>${esc(reason)}</p>${whenBanned ? `<p class="field-hint">${esc(whenBanned)}</p>` : ''}<p class="field-hint">Appeal code: <strong>${esc(info.code)}</strong></p>${info.alreadySubmitted ? '<p class="field-hint">You already submitted an appeal - a moderator will review it.</p>' : '<button id="banGateAppeal" class="primary-button">Make an appeal</button>'}</section>`;
+    const appealButton = document.querySelector('#banGateAppeal');
+    if (appealButton)
+        appealButton.onclick = () => { location.href = info.appealUrl; };
+}
 async function route() { try {
     if (location.pathname === '/recnet/banappeal') {
         select('');
         await banAppeal();
+        app.focus({ preventScroll: true });
+        return;
+    }
+    if (currentUser?.ban) {
+        select('');
+        await renderBanGate();
         app.focus({ preventScroll: true });
         return;
     }

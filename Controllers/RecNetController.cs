@@ -301,6 +301,7 @@ namespace Mocha2023.Controllers
 
     [ApiController]
     [Mocha2023.Classes.ApiProtection]
+    [Mocha2023.Classes.BanGate]
     [Route("recnet/api")]
     public class RecNetController : ControllerBase
     {
@@ -8956,8 +8957,27 @@ namespace Mocha2023.Controllers
             displayName = account.Player.DisplayName, profileImage = ImageUrl(account.Player.ProfileImage),
             isAdmin = IsAdmin(account),
             isDeveloper = IsDeveloper(account),
-            isModerator = IsModerator(account)
+            isModerator = IsModerator(account),
+            ban = BuildBanSummary(account)
         };
+
+        // Null when the account isn't currently banned. Deliberately leaves
+        // the appeal code out - the client fetches that lazily from
+        // BanAppealController's own generateCode endpoint only once it
+        // actually needs to show/link it, instead of minting one on every
+        // session check (login, auth/me, register all call ToSession).
+        private static object? BuildBanSummary(PlayerDBClasses.FullPlayer account)
+        {
+            if (!PlayerDB.IsPlayerBanned(account.PlayerId, out var details) || details == null)
+                return null;
+
+            return new
+            {
+                reason = details.Message,
+                isPermanent = details.Duration <= 0,
+                bannedAtUnix = details.ModerationSetUnixTime
+            };
+        }
 
         private static object ToCheerBadgePayload(
             PlayerDBClasses.FullPlayer account)
