@@ -216,7 +216,7 @@ namespace Mocha2023.Controllers
                 }
             }
 
-            string fallbackPath = Path.Combine(baseImagesPath, "DefaultPFP.png");
+            string fallbackPath = Path.Combine(baseImagesPath, "404.png");
             if (System.IO.File.Exists(fallbackPath))
             {
                 var fallbackFile = new FileInfo(fallbackPath);
