@@ -5,10 +5,9 @@
 >
 > If you use this source your genuinely a retard or something 😭
 >
-> Expect questionable code quality, poor architecture, potential security vulnerabilities, broken implementations, and generally questionable life choices.
-
-> [!WARNING]
-> This repository is provided for educational purposes, experimentation, and source inspection only. Do not deploy it in production.
+> this is probably riddled with vulnerbilities and rehosting it will get you clowned on 😭
+>
+> this source also probably has like a rce somewhere idk 🤣 go find it i dont care
 
 ## About
 
